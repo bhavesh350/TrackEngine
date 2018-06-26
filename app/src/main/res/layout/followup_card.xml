@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    card_view:cardCornerRadius="5dp"
+    android:elevation="20dp"
+    card_view:cardBackgroundColor="#00ffffff"
+    android:layout_marginLeft="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginLeft="@dimen/_5sdp"
+        android:layout_marginTop="5dp">
+
+        <TextView
+            android:text="Id"
+            android:typeface="serif"
+            android:textSize="@dimen/_18ssp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/issueIdFollowup" />
+
+        <TextView
+            android:text="Gaurab Guha"
+            android:textSize="@dimen/_18ssp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/assignedTo"
+            android:layout_alignParentTop="true"/>
+        <TextView
+            android:text="Open"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:typeface="serif"
+            android:textSize="@dimen/_18ssp"
+            android:id="@+id/statusFollowup"
+
+            />
+
+        <TextView
+            android:text="Comment:xcvxcvxcv aaaa"
+            android:textSize="@dimen/_18ssp"
+            android:typeface="serif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/commentFollowup" />
+
+        <TextView
+            android:text="Updated On: 21/3/2014"
+            android:gravity="right"
+            android:textColor="#fff"
+            android:textSize="@dimen/_15ssp"
+            android:layout_marginRight="3dp"
+            android:background="#254250"
+            android:typeface="serif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/dateFollowup" />
+
+    </LinearLayout>
+
+
+</android.support.v7.widget.CardView>

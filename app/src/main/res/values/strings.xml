@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Track Engine</string>
+    <string name="toast_crash">Loading... Data!!!</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_ticket_info">TicketInfo</string>
+    <string name="internet_error">Internet is not wokring properly, may not synced with server!!!</string>
+    <string name="title_activity_full_screen_map">FullScreenMap</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="google_key">AIzaSyB0dhdy20kP6XtnmJ21mqw4eU7_Rkaob7o</string>
+
+    <string name="Large">Multiple Zones Services LLP is a registered company specializing in IT software services. We are in the business of Software Solution and our products are synergetic to the IT service industry customers.
+We offer SAAS based service desk and mobile work force management system. It is a cloud-based platform that turns all your mobile phones into tools that enable you to enhance field service productivity, reduce field operation costs and increase customer satisfaction. Our solution works on smartphones with a mobile app (Android) and on feature phones (i.e. without GPS or data capability).
+</string>
+    <string name="manpreetsir">Mr Manpreet Singh is a B-Tech from IIT Kharagpur and has won spurs in marketing and entrepreneurship during his spectacular 24-year track record in the IT Industry due to his multi-faceted excellence.</string>
+    <string name="forgotpaswd"><u>Forgot Password ?</u></string>
+    <string name="Mission">At MZS, we have a mission to build the best service brand application with a culture that supports our team members, so that we can provide exceptional service to our customer.</string>
+    <string name="Vision">A place where people with ideas and a zeal to implement them, come together. A place where individuals are able to take success and failures in their stride.
+                        A platform where people challenge their own limits and extend their horizons.</string>
+    <string name="title_activity_raise_ticket">RaiseTicket</string>
+    <string name="title_activity_internal_issue_listing">InternalIssueListing</string>
+
+
+</resources>

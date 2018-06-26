@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "46467174084",
+    "firebase_url": "https://trackengine-c6122.firebaseio.com",
+    "project_id": "trackengine-c6122",
+    "storage_bucket": "trackengine-c6122.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46467174084:android:66a6b5660f1e65a1",
+        "android_client_info": {
+          "package_name": "net.mzi.trackengine"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46467174084-bk5b8j1us3824u2gbntthejerua02mqi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS0fRGwu076a6T0qZYiS5X7Rzjmjc7oqs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

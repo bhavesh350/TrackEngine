@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/ctc"
+        android:orderInCategory="100"
+        android:title="Call to Customer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/nroute"
+        android:orderInCategory="100"
+        android:title="Navigate to Route"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/atkt"
+        android:orderInCategory="100"
+        android:title="Assign Ticket"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/chStatus"
+        android:orderInCategory="100"
+        android:title="Change Ticket Status"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/showDistance"
+        android:orderInCategory="100"
+        android:title="Show Distance"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/updateOem"
+        android:orderInCategory="100"
+        android:title="Update OEM"
+        app:showAsAction="never" />
+</menu>

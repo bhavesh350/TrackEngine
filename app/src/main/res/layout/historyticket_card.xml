@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/_10sdp"
+    android:layout_marginBottom="@dimen/_5sdp"
+    card_view:cardCornerRadius="@dimen/_10sdp"
+    android:elevation="@dimen/_100sdp"
+    card_view:cardBackgroundColor="#00ffffff"
+    android:layout_marginLeft="@dimen/_10sdp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_120sdp"
+        android:background="#fff">
+
+
+        <TextView
+            android:text="Time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:typeface="serif"
+            android:layout_alignBottom="@+id/user_tktno"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="@dimen/_47sdp"
+            android:layout_marginEnd="@dimen/_47sdp"
+            android:id="@+id/tktstatus_time" />
+
+        <TextView
+            android:text="Status"
+            android:background="#a6daa3"
+            android:padding="@dimen/_5sdp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:typeface="serif"
+            android:id="@+id/user_tktstatus"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:text="Number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:typeface="serif"
+            android:id="@+id/user_tktno"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/textView13"
+            android:layout_toEndOf="@+id/textView13" />
+
+        <TextView
+            android:text="Ticket No.: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:typeface="serif"
+            android:id="@+id/textView13"
+            android:layout_alignBaseline="@+id/user_tktno"
+            android:layout_alignBottom="@+id/user_tktno"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="@dimen/_21sdp"
+            android:layout_marginStart="@dimen/_21sdp" />
+
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

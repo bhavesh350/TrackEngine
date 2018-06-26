@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_raise_ticket"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="net.mzi.trackengine.RaiseTicket"
+    tools:showIn="@layout/activity_raise_ticket"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+    <TextView
+        android:text="Category*"
+        android:textColor="@color/colorAccent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp">
+        <Spinner
+            android:id="@+id/categorySpinner"
+            android:typeface="serif"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/subjectEditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Subject*" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/descEditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Description*" />
+        </android.support.design.widget.TextInputLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="15dp"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/status"
+            android:layout_centerHorizontal="true">
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="Upload Image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/_12ssp"
+                android:textColor="#000"
+                android:layout_gravity="center"
+                android:textStyle="bold"
+                android:typeface="serif"
+                android:id="@+id/textView15" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tint="#319705"
+                android:visibility="gone"
+                app:srcCompat="@drawable/tickwhite"
+                android:id="@+id/imageuplaodicon"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/vCam"
+                android:layout_marginLeft="@dimen/_25sdp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:checked="false"
+                android:paddingRight="@dimen/_45sdp"
+                android:text="Via Camera" />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:id="@+id/vGal"
+                android:text="Via Gallery" />
+
+        </LinearLayout>
+        <Button
+            android:text="Create Ticket"
+            android:layout_gravity="bottom|center"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/_15sdp"
+            android:background="@color/colorAccent"
+            android:layout_width="@dimen/_160sdp"
+            android:layout_height="wrap_content"
+            android:typeface="serif"
+            android:id="@+id/submitButton" />
+    </LinearLayout>
+
+
+</LinearLayout>

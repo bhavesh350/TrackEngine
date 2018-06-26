@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="@dimen/_16sdp">
+
+    <TextView
+        android:text="Resend link to customer "
+        android:padding="@dimen/_15sdp"
+        android:textColor="#000"
+        android:textStyle="bold"
+        android:textSize="@dimen/_10ssp"
+        android:typeface="serif"
+        android:layout_width="match_parent"
+        android:background="@color/colorPrimary"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView10"
+        android:layout_marginBottom="@dimen/_8sdp"/>
+
+    <TextView
+        android:text="via Email"
+        android:layout_width="match_parent"
+        android:textColor="#000"
+        android:typeface="serif"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:gravity="center">
+        <RadioButton
+            android:text="Registered MailID"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:id="@+id/vEmail"
+            android:layout_marginRight="@dimen/_10sdp"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:text="via SMS"
+        android:textColor="#000"
+        android:typeface="serif"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView7" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:gravity="center">
+        <RadioButton
+            android:text="Reg. Number"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:layout_height="wrap_content"
+            android:id="@+id/regNumber"
+            android:layout_marginRight="@dimen/_10sdp"/>
+
+        <RadioButton
+            android:text="New Number"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:id="@+id/newNumber" />
+
+        </LinearLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:id="@+id/tiNumber"
+            android:visibility="invisible"
+            >
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:ems="10"
+                android:drawableRight="@drawable/ic_menu_send"
+                android:drawableTint="#81d15e"
+                android:layout_weight="1"
+                android:hint="Enter new Number"
+                android:id="@+id/edieNewNumber" />
+        </android.support.design.widget.TextInputLayout>
+
+
+
+
+</LinearLayout>

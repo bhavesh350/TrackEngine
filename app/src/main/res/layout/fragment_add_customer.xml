@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentLeft="true">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/addCustomerEditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Customer name" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/addressline1EditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Address Line 1" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/addressline2EditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Address Line 2" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+
+            <EditText
+                android:id="@+id/addressline3EditText"
+                android:layout_width="match_parent"
+                android:typeface="serif"
+                android:layout_height="wrap_content"
+                android:hint="Address Line 3" />
+        </android.support.design.widget.TextInputLayout>
+        <TextView
+            android:text="State*"
+            android:textColor="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+        <Spinner
+            android:id="@+id/stateSpinner"
+            android:typeface="serif"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            />
+        </android.support.design.widget.TextInputLayout>
+        <TextView
+            android:text="City"
+            android:textColor="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+            <Spinner
+                android:id="@+id/citySpinner"
+                android:typeface="serif"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                />
+        </android.support.design.widget.TextInputLayout>
+
+        <TextView
+            android:text="Area"
+            android:textColor="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+            <Spinner
+                android:id="@+id/areaSpinner"
+                android:typeface="serif"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                />
+        </android.support.design.widget.TextInputLayout>
+
+        <TextView
+            android:text="Pincode"
+            android:textColor="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp">
+            <TextView
+                android:text=""
+                android:id="@+id/pincodeTextView"
+                android:textColor="#000"
+                android:layout_marginLeft="@dimen/_5sdp"
+                android:textSize="@dimen/_13ssp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <Button
+            android:text="Add Customer"
+            android:layout_gravity="bottom|center"
+            android:gravity="center"
+            android:background="@color/colorAccent"
+            android:layout_width="@dimen/_160sdp"
+            android:layout_height="wrap_content"
+            android:typeface="serif"
+            android:id="@+id/addCustomerButton" />
+    </LinearLayout>
+</ScrollView>

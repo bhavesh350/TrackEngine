@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_performance"
+            android:icon="@drawable/performance"
+            android:title="Performance" />
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@drawable/quantum_ic_forward_30_grey600_36"
+            android:title="History" />
+        <item
+            android:id="@+id/nav_mytkts"
+            android:icon="@drawable/places_ic_search"
+            android:title="My Tickets" />
+
+        <item
+            android:id="@+id/nav_updatedata"
+            android:icon="@drawable/filter"
+            android:title="Update Data" />
+
+        <item
+            android:id="@+id/nav_offlinesync"
+            android:icon="@android:drawable/ic_menu_share"
+            android:title="Offline Sync" />
+
+        <item
+        android:id="@+id/nav_resetdata"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:title="Factory Data Reset"/>
+
+        <item
+            android:id="@+id/nav_myvouchers"
+            android:icon="@android:drawable/ic_menu_upload"
+            android:title="My Vouchers" />
+
+        <item
+            android:id="@+id/nav_sendLog"
+            android:icon="@android:drawable/ic_menu_upload"
+            android:title="Send Logs" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+
+            <item
+                android:id="@+id/nav_aboutus"
+                android:icon="@drawable/aboutblack"
+                android:title="About Us" />
+            <item
+                android:id="@+id/nav_contactus"
+                android:icon="@drawable/callblack"
+                android:title="Contact Us" />
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+        </menu>
+    </item>
+
+</menu>

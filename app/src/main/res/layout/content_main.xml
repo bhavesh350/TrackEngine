@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/activity_main_swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true">
+
+        <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/scrollView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true">
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/content_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:weightSum="1"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                tools:context="net.mzi.trackengine.MainActivity"
+                tools:showIn="@layout/app_bar_main">
+
+                <LinearLayout
+                    android:id="@+id/timerL"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_45sdp"
+                    android:background="#fcebbf"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/checkInStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="@dimen/_5sdp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text=""
+                        android:textColor="#fff"
+                        android:textStyle="bold"
+                        android:typeface="serif" />
+
+                    <TextView
+                        android:id="@+id/checkInTime"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="2.2"
+                        android:gravity="center"
+                        android:padding="@dimen/_5sdp"
+                        android:text=""
+                        android:textStyle="bold"
+                        android:typeface="serif" />
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/newtkt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/_5sdp"
+                    android:layout_marginTop="@dimen/_50sdp"
+                    android:visibility="gone">
+
+                    <fragment
+                        android:id="@+id/fragment"
+                        android:name="net.mzi.trackengine.Firstfrag"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_340sdp"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/textView17" />
+
+                    <TextView
+                        android:id="@+id/textView17"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:text="My Tickets "
+                        android:textColor="#000"
+                        android:textSize="@dimen/_12ssp"
+                        android:typeface="serif" />
+                </RelativeLayout>
+
+                <RelativeLayout
+
+                    android:id="@+id/remaininglayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.27">
+
+                    <RelativeLayout
+                        android:id="@+id/line"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/task_view"
+                        android:layout_marginTop="@dimen/_10sdp"
+                        android:background="#cfe9f5"
+                        android:padding="@dimen/_2sdp"></RelativeLayout>
+
+
+                    <TextView
+                        android:id="@+id/textView21"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="@dimen/_10sdp"
+                        android:text="My Session "
+                        android:textColor="#000"
+                        android:textSize="15sp"
+                        android:typeface="serif"
+                        android:visibility="gone" />
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/task_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/viewAll"
+                        android:orientation="horizontal"
+                        android:scrollbars="horizontal"></android.support.v7.widget.RecyclerView>
+
+                    <TextView
+                        android:id="@+id/textView23"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/timerLayout"
+                        android:layout_centerHorizontal="true"
+                        android:text="Task Manager "
+                        android:textColor="#000"
+                        android:textSize="15sp"
+                        android:typeface="serif" />
+
+                    <TextView
+                        android:id="@+id/textView24"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/line"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="@dimen/_31sdp"
+                        android:text="My Location"
+                        android:textColor="#000"
+                        android:textSize="15sp"
+                        android:typeface="serif" />
+
+                    <fragment
+                        android:id="@+id/map"
+                        class="com.google.android.gms.maps.SupportMapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_200sdp"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/textView24"
+                        tools:context=".AgentDetail" />
+
+                    <TextView
+                        android:id="@+id/viewAlert"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="@dimen/_5sdp"
+                        android:background="@color/colorPrimary"
+                        android:gravity="center"
+                        android:padding="@dimen/_2sdp"
+                        android:text="Please Wait, fetching ticket info!!!"
+                        android:textColor="#fff"
+                        android:textStyle="bold"
+                        android:typeface="serif"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:id="@+id/timerLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/textView21"
+                        android:background="#fcebbf"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textView12"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/textView11"
+                            android:layout_centerHorizontal="true"
+                            android:text="Duration"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textView11"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_centerHorizontal="true"
+                            android:text="00:00:00"
+                            android:textSize="@dimen/_60ssp" />
+
+                        <TextView
+                            android:id="@+id/textView4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_below="@+id/textView12"
+                            android:layout_marginTop="@dimen/_13sdp"
+                            android:text="" />
+
+                        <Chronometer
+                            android:id="@+id/chrono"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="25sp"
+                            android:visibility="gone" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/viewAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/textView23"
+                        android:text="VIEW ALL  >>" />
+
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/_10sdp"
+                    android:layout_marginLeft="@dimen/_20sdp"
+                    android:gravity="center"
+                    android:text="Copyright © 2017 by MZS LLP.\nAll Right Reserved." />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="@dimen/_2sdp"
+                    android:layout_marginBottom="@dimen/_20sdp"
+                    android:background="@color/colorPrimary" />
+            </LinearLayout>
+        </ScrollView>
+    </android.support.v4.widget.SwipeRefreshLayout>
+</RelativeLayout>

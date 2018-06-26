@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    android:clickable="true">
+
+    <TextView
+        android:id="@+id/rate_customer"
+        android:typeface="serif"
+        android:textColor="@color/colorAccent"
+        android:layout_marginLeft="@dimen/_60sdp"
+        android:layout_gravity="left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rate Me"
+        android:textSize="@dimen/_18ssp"/>
+
+    <RatingBar
+        android:id="@+id/ratingBar"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:numStars="5"
+        android:stepSize="1.0" />
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:ems="10"
+            android:gravity="top"
+
+            android:hint="Enter Feedback"
+            android:id="@+id/feedback" />
+    </android.support.design.widget.TextInputLayout>
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="visible"
+        >
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:layout_weight="1"
+            android:hint="Enter OTP"
+            android:id="@+id/otp" />
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:text="Send Feedback"
+        android:textColor="#fff"
+        android:typeface="serif"
+        android:background="@color/colorPrimary"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/sendfb" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabfeedback"
+        android:layout_width="wrap_content"
+        android:scaleType="fitXY"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        app:fabSize="mini"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@android:drawable/ic_dialog_info"
+        android:tint="#fff"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="bottom|right" />
+
+</LinearLayout>
