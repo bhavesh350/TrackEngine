@@ -17,6 +17,7 @@ public class ApiResult {
         @SerializedName("Message")
         public String Message;
     }
+
     public class ComplainCategory {
         @SerializedName("Id")
         public String Id;
@@ -28,13 +29,14 @@ public class ApiResult {
         public String Active;
 
     }
+
     public class ContractManpower {
 
         @SerializedName("Id")
         public String Id;
 
         @SerializedName("UserId")
-        public String UserId ;
+        public String UserId;
 
         @SerializedName("UserName")
         public String UserName;
@@ -65,13 +67,14 @@ public class ApiResult {
 
 
     }
+
     public class Complain {
 
         @SerializedName("Id")
         public String Id;
 
         @SerializedName("CategoryName")
-        public String CategoryName ;
+        public String CategoryName;
 
         @SerializedName("Subject")
         public String Subject;
@@ -129,6 +132,7 @@ public class ApiResult {
 
 
     }
+
     public class Customer {
 
         @SerializedName("CustomerName")
@@ -170,6 +174,7 @@ public class ApiResult {
         public String EnterpriseName;
 
     }
+
     public class IssueDetail {
 
         @SerializedName("Result")
@@ -259,33 +264,33 @@ public class ApiResult {
         @SerializedName("lstDetails")
         public lstDetails IssueDetail[];
 
-        public IssueDetail(String Userid, String ParentCompanyId, String IsuueId, String Status, String Comment, String ActivityDate, String DepartmentId, String Latitude, String Longitude, String AssetSerialNo,String DeviceId,String RealtimeUpdate,String LastTransportMode,String Expense, String AssignedUserId) {
-            this.UserId=Userid;
-            this.ParentCompanyId=ParentCompanyId;
-            this.IssueId=IsuueId;
-            this.Status=Status;
-            this.Comment=Comment;
-            this.ActivityDate=ActivityDate;
-            this.DepartmentId=DepartmentId;
-            this.Latitude=Latitude;
-            this.Longitude=Longitude;
-            this.AssetSerialNo=AssetSerialNo;
-            this.DeviceId=DeviceId;
-            this.RealtimeUpdate=RealtimeUpdate;
-            this.AssignedUserId=AssignedUserId;
-            this.LastAction=LastAction;
-            this.Expense=Expense;
-            this.LastTransportMode=LastTransportMode;
+        public IssueDetail(String Userid, String ParentCompanyId, String IsuueId, String Status, String Comment, String ActivityDate, String DepartmentId, String Latitude, String Longitude, String AssetSerialNo, String DeviceId, String RealtimeUpdate, String LastTransportMode, String Expense, String AssignedUserId) {
+            this.UserId = Userid;
+            this.ParentCompanyId = ParentCompanyId;
+            this.IssueId = IsuueId;
+            this.Status = Status;
+            this.Comment = Comment;
+            this.ActivityDate = ActivityDate;
+            this.DepartmentId = DepartmentId;
+            this.Latitude = Latitude;
+            this.Longitude = Longitude;
+            this.AssetSerialNo = AssetSerialNo;
+            this.DeviceId = DeviceId;
+            this.RealtimeUpdate = RealtimeUpdate;
+            this.AssignedUserId = AssignedUserId;
+            this.LastAction = LastAction;
+            this.Expense = Expense;
+            this.LastTransportMode = LastTransportMode;
 
         }
 
         public IssueDetail(String IssueIds, String UserId, String IsAssetVerificationEnable, String DepartmentId, String LastAction) {
-            this.IssueIds=IssueIds;
-            this.UserId=UserId;
-            this.IsAssetVerificationEnable=IsAssetVerificationEnable;
-            this.DepartmentId=DepartmentId;
-            this.ActivityDate=ActivityDate;
-            this.LastAction=LastAction;
+            this.IssueIds = IssueIds;
+            this.UserId = UserId;
+            this.IsAssetVerificationEnable = IsAssetVerificationEnable;
+            this.DepartmentId = DepartmentId;
+            this.ActivityDate = ActivityDate;
+            this.LastAction = LastAction;
         }
 
 
@@ -389,10 +394,11 @@ public class ApiResult {
 
         }
     }
+
     public class IssueStatus {
 
         @SerializedName("lstIssue_Status")
-        public lstDetails data ;
+        public lstDetails data;
 
 
         public class lstDetails {
@@ -429,8 +435,8 @@ public class ApiResult {
     }*/
 
 
-
     }
+
     public class Location {
         @SerializedName("Id")
         public String Id;
@@ -443,7 +449,7 @@ public class ApiResult {
 
     }
 
-    public class User{
+    public class User {
 
         @SerializedName("UserId")
         public String UserId;
@@ -473,16 +479,15 @@ public class ApiResult {
         public String DeviceModel;
 
 
-
         @SerializedName("LoggedInUserDetail")
-        public LoginDetail.Datum data ;
+        public LoginDetail.Datum data;
 
-        public User(String sUsername, String sPassword, String sDeviceId, String sDeviceModel,String ActivityDate) {
-            this.Username=sUsername;
-            this.Password=sPassword;
-            this.DeviceId=sDeviceId;
-            this.DeviceModel=sDeviceModel;
-            this.ActivityDate=ActivityDate;
+        public User(String sUsername, String sPassword, String sDeviceId, String sDeviceModel, String ActivityDate) {
+            this.Username = sUsername;
+            this.Password = sPassword;
+            this.DeviceId = sDeviceId;
+            this.DeviceModel = sDeviceModel;
+            this.ActivityDate = ActivityDate;
 
         }
     }
@@ -523,7 +528,7 @@ public class ApiResult {
         public String Message;
 
         @SerializedName("LoggedInUserDetail")
-        public Datum data ;
+        public Datum data;
 
         public class Datum {
             @SerializedName("UserName")
@@ -584,34 +589,33 @@ public class ApiResult {
             public String Message;
 
             @SerializedName("IssueStatusList")
-            public IssueStatus.lstDetails dataStatus [] ;
+            public IssueStatus.lstDetails dataStatus[];
 
             @SerializedName("IssueAssetPartList")
-            public IssueAssetPartList issueAssetPartList[] ;
+            public IssueAssetPartList issueAssetPartList[];
 
             @SerializedName("ModeOfTrasportList")
-            public ModeOfTrasportList modeOfTrasportList[] ;
+            public ModeOfTrasportList modeOfTrasportList[];
 
         }
 
         public LoginDetail(String sUsername, String sPassword, String sDeviceId, String sDeviceModel) {
-            this.Username=sUsername;
-            this.Password=sPassword;
-            this.DeviceId=sDeviceId;
-            this.DeviceModel=sDeviceModel;
+            this.Username = sUsername;
+            this.Password = sPassword;
+            this.DeviceId = sDeviceId;
+            this.DeviceModel = sDeviceModel;
 
         }
-
 
 
     }
 
     public class VoucherList {
         @SerializedName("lstConveyanceVoucherApprover")
-        public Voucher Vouchers[] ;
+        public Voucher Vouchers[];
 
         @SerializedName("listConveyanceVoucherHistory")
-        public VoucherHistory VouchersHistory[] ;
+        public VoucherHistory VouchersHistory[];
     }
 
 
@@ -672,6 +676,7 @@ public class ApiResult {
         @SerializedName("IsPublic")
         public String IsPublic;
     }
+
     public class SubCategoryName {
 
         @SerializedName("Id")
@@ -681,6 +686,7 @@ public class ApiResult {
         public String CategoryName;
 
     }
+
     public class User_Location {
         @SerializedName("Result")
         public ApiResult.Result resData;
@@ -705,21 +711,21 @@ public class ApiResult {
 
         @SerializedName("ActionTime")
         public String ActionTime;
-/*
-        @SerializedName("UserId")
-        public String UserId;
+        /*
+                @SerializedName("UserId")
+                public String UserId;
 
-        @SerializedName("DeviceId")
-        public String DeviceId;*/
+                @SerializedName("DeviceId")
+                public String DeviceId;*/
         @SerializedName("Latitude")
         public String Latitude;
 
         @SerializedName("Longitude")
         public String Longitude;
 
-   /*     @SerializedName("AutoCaptured")
-        public String AutoCaptured;
-*/
+        /*     @SerializedName("AutoCaptured")
+             public String AutoCaptured;
+     */
         @SerializedName("ActivityDate")
         public String ActivityDate;
 
@@ -760,22 +766,22 @@ public class ApiResult {
         public Double latitude;
         public Double longitude;
 
-        public User_Location(String RealTimeUpdate, String UserId, String DeviceId, String Latitude, String Longitude, String ActivityDate, String AutoCaptured, String AddressLine, String SubLocality,  String PostalCode, String City, String State, String Country,String KnownName, String Provider){
-            this.RealTimeUpdate=RealTimeUpdate;
-            this.UserId=UserId;
-            this.DeviceId=DeviceId;
-            this.Latitude=Latitude;
-            this.Longitude=Longitude;
-            this.ActivityDate=ActivityDate;
-            this.AutoCaptured=AutoCaptured;
-            this.AddressLine=AddressLine;
-            this.SubLocality=SubLocality;
-            this.PostalCode=PostalCode;
-            this.City=City;
-            this.State=State;
-            this.Country=Country;
-            this.KnownName=KnownName;
-            this.Provider=Provider;
+        public User_Location(String RealTimeUpdate, String UserId, String DeviceId, String Latitude, String Longitude, String ActivityDate, String AutoCaptured, String AddressLine, String SubLocality, String PostalCode, String City, String State, String Country, String KnownName, String Provider) {
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.UserId = UserId;
+            this.DeviceId = DeviceId;
+            this.Latitude = Latitude;
+            this.Longitude = Longitude;
+            this.ActivityDate = ActivityDate;
+            this.AutoCaptured = AutoCaptured;
+            this.AddressLine = AddressLine;
+            this.SubLocality = SubLocality;
+            this.PostalCode = PostalCode;
+            this.City = City;
+            this.State = State;
+            this.Country = Country;
+            this.KnownName = KnownName;
+            this.Provider = Provider;
 
         }
     }
@@ -804,7 +810,7 @@ public class ApiResult {
     }
 
 
-        public class UserCheckInOut {
+    public class UserCheckInOut {
 
         @SerializedName("Result")
         public ApiResult.Result resData;
@@ -843,11 +849,11 @@ public class ApiResult {
         public String Duration;
 
         public UserCheckInOut(String RealTimeUpdate, String UserId, String DeviceId, String IsCheckedIn, String ActivityDate) {
-            this.RealTimeUpdate=RealTimeUpdate;
-            this.UserId=UserId;
-            this.DeviceId=DeviceId;
-            this.IsCheckedIn=IsCheckedIn;
-            this.ActivityDate=ActivityDate;
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.UserId = UserId;
+            this.DeviceId = DeviceId;
+            this.IsCheckedIn = IsCheckedIn;
+            this.ActivityDate = ActivityDate;
 
         }
     }
@@ -876,12 +882,12 @@ public class ApiResult {
         public String RealTimeUpdate;
 
         public User_BatteryLevel(String RealTimeUpdate, String UserId, String DeviceId, String Battery, String ActivityDate, String AutoCaptured) {
-            this.RealTimeUpdate=RealTimeUpdate;
-            this.ActivityDate=ActivityDate;
-            this.AutoCaptured=AutoCaptured;
-            this.Battery=Battery;
-            this.DeviceId=DeviceId;
-            this.UserId=UserId;
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.ActivityDate = ActivityDate;
+            this.AutoCaptured = AutoCaptured;
+            this.Battery = Battery;
+            this.DeviceId = DeviceId;
+            this.UserId = UserId;
         }
     }
 
@@ -906,11 +912,11 @@ public class ApiResult {
         public String RealTimeUpdate;
 
         public User_MobileData(String RealTimeUpdate, String UserId, String DeviceId, String Enabled, String ActionDate) {
-            this.UserId=UserId;
-            this.RealTimeUpdate=RealTimeUpdate;
-            this.DeviceId=DeviceId;
-            this.Enabled=Enabled;
-            this.ActionDate=ActionDate;
+            this.UserId = UserId;
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.DeviceId = DeviceId;
+            this.Enabled = Enabled;
+            this.ActionDate = ActionDate;
         }
     }
 
@@ -936,11 +942,11 @@ public class ApiResult {
 
 
         public User_GPS(String RealTimeUpdate, String UserId, String DeviceId, String Enabled, String ActionDate) {
-            this.UserId=UserId;
-            this.RealTimeUpdate=RealTimeUpdate;
-            this.DeviceId=DeviceId;
-            this.Enabled=Enabled;
-            this.ActionDate=ActionDate;
+            this.UserId = UserId;
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.DeviceId = DeviceId;
+            this.Enabled = Enabled;
+            this.ActionDate = ActionDate;
         }
     }
 

@@ -1,15 +1,15 @@
 package net.mzi.trackengine;
 
 import android.content.Context;
-import android.location.Address;
-import android.location.Geocoder;
-import android.support.v4.app.Fragment;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -31,28 +31,28 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     public static final int Pending = 1;
     public static final int Attended = 2;
     public static final int Complete = 3;
-    Button bFilterList,bSorting;
+    Button bFilterList, bSorting;
     //static  String parentId;
     RecyclerView mRecyclerView;
     //static List<String> statusList=new ArrayList<String>();
-    List<DistanceSortingClassParameter> lDistance=new ArrayList<DistanceSortingClassParameter>();
-    List<String> mTicketNumber=new ArrayList<String>();
-    List<String> mName=new ArrayList<String>();
-    List<String> mTime=new ArrayList<String>();
-    List<String> mSub=new ArrayList<String>();
-    List<String> mMob=new ArrayList<String>();
-    List<String> mLoc=new ArrayList<String>();
-    List<String> mcardType=new ArrayList<String>();
-    List<Integer> mCardColor=new ArrayList<Integer>();
-    List<Integer> mDatasetTypes=new ArrayList<Integer>();
-    List<String> mIssueID=new ArrayList<String>();
-    List<String> selectedItems=new ArrayList<String>();
+    List<DistanceSortingClassParameter> lDistance = new ArrayList<DistanceSortingClassParameter>();
+    List<String> mTicketNumber = new ArrayList<String>();
+    List<String> mName = new ArrayList<String>();
+    List<String> mTime = new ArrayList<String>();
+    List<String> mSub = new ArrayList<String>();
+    List<String> mMob = new ArrayList<String>();
+    List<String> mLoc = new ArrayList<String>();
+    List<String> mcardType = new ArrayList<String>();
+    List<Integer> mCardColor = new ArrayList<Integer>();
+    List<Integer> mDatasetTypes = new ArrayList<Integer>();
+    List<String> mIssueID = new ArrayList<String>();
+    List<String> selectedItems = new ArrayList<String>();
     //List<StatusInfoClass> statusList=new ArrayList<StatusInfoClass>();
     static String card;
     SQLiteDatabase sql;
     Cursor cquery;
     Cursor cqueryForStatus;
-    Double lat,lon,curLat,curLon;
+    Double lat, lon, curLat, curLon;
     Gps gps;
 
     @Override
@@ -62,42 +62,41 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         getSupportActionBar().setTitle("Task List");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        gps= new Gps(getApplicationContext());
+        gps = new Gps(getApplicationContext());
 
-        bSorting=(Button)findViewById(R.id.SortingId);
-        bFilterList=(Button)findViewById(R.id.FilterStatusId);
-        sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE,null);
+        bSorting = (Button) findViewById(R.id.SortingId);
+        bFilterList = (Button) findViewById(R.id.FilterStatusId);
+        sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         bSorting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 lDistance.clear();
-                curLat=gps.getLatitude();
-                curLon=gps.getLongitude();
-                cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = '"+card+"'", null);
+                curLat = gps.getLatitude();
+                curLon = gps.getLongitude();
+                cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = '" + card + "'", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                    if(cquery.getDouble(11)==0.0){
+                    if (cquery.getDouble(11) == 0.0) {
                         Geocoder coder = new Geocoder(TaskActivity.this);
                         List<Address> address;
                         try {
-                            address = coder.getFromLocationName(cquery.getString(10).toString(),5);
-                            if (address.size()>0) {
+                            address = coder.getFromLocationName(cquery.getString(10).toString(), 5);
+                            if (address.size() > 0) {
                                 Address location = address.get(0);
                                 lat = location.getLatitude();
                                 lon = location.getLongitude();
                             }
-                        }catch (Exception e){
-                            Log.e("FullScreenMap","exception"+e.getMessage());
-                            lat=cquery.getDouble(2);
-                            lon=cquery.getDouble(3);
+                        } catch (Exception e) {
+                            Log.e("FullScreenMap", "exception" + e.getMessage());
+                            lat = cquery.getDouble(2);
+                            lon = cquery.getDouble(3);
                         }
+                    } else {
+                        lat = cquery.getDouble(2);
+                        lon = cquery.getDouble(3);
                     }
-                    else {
-                        lat=cquery.getDouble(2);
-                        lon=cquery.getDouble(3);
-                    }
-                    lDistance.add(new DistanceSortingClassParameter(showDistance(curLat,curLon,lat,lon),cquery.getString(1).toString()));
+                    lDistance.add(new DistanceSortingClassParameter(showDistance(curLat, curLon, lat, lon), cquery.getString(1).toString()));
                 }
-                Collections.sort(lDistance,new Comparator<DistanceSortingClassParameter>() {
+                Collections.sort(lDistance, new Comparator<DistanceSortingClassParameter>() {
                     @Override
                     public int compare(DistanceSortingClassParameter s1, DistanceSortingClassParameter s2) {
                         return s1.dDistance.compareTo(s2.dDistance);
@@ -113,10 +112,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 mDatasetTypes.clear();
                 mCardColor.clear();
                 mcardType.clear();
-                for(int i=0;i<lDistance.size();i++){
-                    Log.e("onCreate: ", lDistance.get(i).sIssueId+"sdfsfd"+lDistance.get(i).dDistance);
-                    cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '"+lDistance.get(i).sIssueId+"'", null);
-                    if(cquery.getCount()>0){
+                for (int i = 0; i < lDistance.size(); i++) {
+                    Log.e("onCreate: ", lDistance.get(i).sIssueId + "sdfsfd" + lDistance.get(i).dDistance);
+                    cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '" + lDistance.get(i).sIssueId + "'", null);
+                    if (cquery.getCount() > 0) {
                         cquery.moveToFirst();
                         mIssueID.add(cquery.getString(1).toString());
                         mName.add(cquery.getString(19).toString());
@@ -153,9 +152,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                     }
                 }
                 mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
-                mLayoutManager = new LinearLayoutManager(TaskActivity.this,LinearLayoutManager.VERTICAL,false);
+                mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
                 mRecyclerView.setLayoutManager(mLayoutManager);
-                scehduleAdapter=new SchedulingAdapter(mIssueID,mName,mTime,mLoc,mMob,mSub, mDatasetTypes,mCardColor,mcardType,mTicketNumber,TaskActivity.this);
+                scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub,
+                        mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
                 mRecyclerView.setAdapter(scehduleAdapter);
             }
 
@@ -164,21 +164,20 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             @Override
             public void onClick(View v) {
                 Fragment hello = new FilterListFragment();
-                FragmentManager fragmentManager = ((AppCompatActivity)TaskActivity.this).getSupportFragmentManager();
+                FragmentManager fragmentManager = ((AppCompatActivity) TaskActivity.this).getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.add(R.id.activity_task, hello);
                 fragmentTransaction.commit();
-                
+
             }
         });
         Bundle bundle = getIntent().getExtras();
-        if(bundle.getString("cardpos")!= null) {
+        if (bundle.getString("cardpos") != null) {
             card = bundle.get("cardpos").toString();
 
-            if(selectedItems.size()>0){
-               // selectedItem is used for Filtered Data, so if it contains the data , it means filter option is clicked. It contain all the statuses that is selected by user for filtering.
-            }
-            else {
+            if (selectedItems.size() > 0) {
+                // selectedItem is used for Filtered Data, so if it contains the data , it means filter option is clicked. It contain all the statuses that is selected by user for filtering.
+            } else {
                 if (card.equals("1")) {
                     cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 1", null);
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
@@ -212,11 +211,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         mLoc.add(cquery.getString(10).toString());
                         mTicketNumber.add(cquery.getString(20).toString());
                         cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
-                        if(cqueryForStatus.getCount()>0) {
+                        if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
                             mcardType.add(cqueryForStatus.getString(0).toString());
-                        }
-                        else {
+                        } else {
                             mcardType.add("N/A");
                         }
                         //mcardType.add("Complete");
@@ -236,11 +234,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         mTicketNumber.add(cquery.getString(20).toString());
 
                         cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
-                        if(cqueryForStatus.getCount()>0) {
+                        if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
                             mcardType.add(cqueryForStatus.getString(0).toString());
-                        }
-                        else {
+                        } else {
                             mcardType.add("N/A");
                         }
                         //mcardType.add("Closed");
@@ -295,9 +292,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             }
         }
         mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
-        mLayoutManager = new LinearLayoutManager(TaskActivity.this,LinearLayoutManager.VERTICAL,false);
+        mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        scehduleAdapter=new SchedulingAdapter(mIssueID,mName,mTime,mLoc,mMob,mSub, mDatasetTypes,mCardColor,mcardType,mTicketNumber,TaskActivity.this);
+        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes,
+                mCardColor, mcardType, mTicketNumber, TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
     }
 
@@ -325,11 +323,11 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         mCardColor.clear();
         mcardType.clear();
         mTicketNumber.clear();
-        selectedItems=data;
-        for(int i = 0; i<selectedItems.size();i++) {
+        selectedItems = data;
+        for (int i = 0; i < selectedItems.size(); i++) {
             Log.e("onCreate: ", String.valueOf(selectedItems.size()));
-                //Log.e("onCreate:", cqueryForStatus.getString(0).toString());
-            if(sIsAccepted.equals("0")) {
+            //Log.e("onCreate:", cqueryForStatus.getString(0).toString());
+            if (sIsAccepted.equals("0")) {
                 cquery = sql.rawQuery("select * from Issue_Detail where StatusId = '" + selectedItems.get(i) + "'", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                     mIssueID.add(cquery.getString(1).toString());
@@ -363,8 +361,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
 
                     }
                 }
-            }
-            else {
+            } else {
                 cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = '" + selectedItems.get(i) + "'", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                     mIssueID.add(cquery.getString(1).toString());
@@ -393,25 +390,25 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         mDatasetTypes.add(Complete);
                     }
 
-                   // }
+                    // }
                 }
             }
-                //mcardType.add("Complete");
+            //mcardType.add("Complete");
         }
         mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
-        mLayoutManager = new LinearLayoutManager(TaskActivity.this,LinearLayoutManager.VERTICAL,false);
+        mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        scehduleAdapter=new SchedulingAdapter(mIssueID,mName,mTime,mLoc,mMob,mSub, mDatasetTypes,mCardColor,mcardType,mTicketNumber,TaskActivity.this);
+        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setVisibility(View.VISIBLE);
         /*FilterListFragment m = new FilterListFragment();
         m.removeFragment(TaskActivity.this);*/
     }
-    private Double showDistance(Double curlat, Double curlon,Double desLat,Double desLon) {
-        if(desLat==null||desLon==null||desLat==0.0||desLon==0.0){
+
+    private Double showDistance(Double curlat, Double curlon, Double desLat, Double desLon) {
+        if (desLat == null || desLon == null || desLat == 0.0 || desLon == 0.0) {
             return 0.0;
-        }
-        else {
+        } else {
             final int R = 6371; // Radious of the earth
             Double latDistance = deg2rad(desLat - curlat);
             Double lonDistance = deg2rad(desLon - curlon);
@@ -423,6 +420,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             return distance;
         }
     }
+
     private double deg2rad(double deg) {
         return (deg * Math.PI / 180.0);
     }

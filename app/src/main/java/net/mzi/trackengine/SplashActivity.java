@@ -7,18 +7,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.firebase.client.Firebase;
 
@@ -41,8 +36,8 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTheme(R.style.AppTheme);
-        //setContentView(R.layout.activity_splash);
+//        setTheme(R.style.AppTheme);
+        setContentView(R.layout.activity_splash);
 //        getSupportActionBar().hide();
         //if(checkAndRequestPermissions()) {}
 
@@ -50,7 +45,9 @@ public class SplashActivity extends AppCompatActivity {
         Firebase.setAndroidContext(this);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         session = new SessionManager(getApplicationContext());
-        Thread timerThread = new Thread() {
+
+        new Thread(new Runnable() {
+            @Override
             public void run() {
                 sql.execSQL("create table if not exists User_BatteryLevel("
                         + "Id integer primary key autoincrement,"
@@ -228,11 +225,12 @@ public class SplashActivity extends AppCompatActivity {
                     Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
                     startActivity(intent);
                     SplashActivity.this.finish();
-                    //session.createLoginSession(Login.uname,Login.pwd);
+//                    session.createLoginSession(Login.uname,Login.pwd);
                 }
             }
-        };
-        timerThread.start();
+        }).start();
+
+
     }
 
     @Override

@@ -324,17 +324,19 @@ public class ServiceLocation extends Service {
             call1.enqueue(new Callback<ApiResult.User_Location>() {
                 @Override
                 public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
-                    ApiResult.User_Location iData = response.body();
-                    if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                    try{
+                        ApiResult.User_Location iData = response.body();
+                        if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "false");
-                        sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                    } else {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "true");
-                        sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                    }
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("SyncStatus", "false");
+                            sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                        } else {
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("SyncStatus", "true");
+                            sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                        }
+                    }catch (Exception e){}
                 }
 
                 @Override

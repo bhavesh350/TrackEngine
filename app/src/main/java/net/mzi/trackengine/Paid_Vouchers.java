@@ -62,36 +62,38 @@ public class Paid_Vouchers extends Fragment {
         call1.enqueue(new Callback<ApiResult.VoucherList>() {
             @Override
             public void onResponse(Call<ApiResult.VoucherList> call, Response<ApiResult.VoucherList> response) {
-                ApiResult.VoucherList iData= response.body();
-                ApiResult.Voucher temp=null;
-                ApiResult o = new ApiResult();
-                temp=o.new Voucher();
-                for(int i = 0; i <iData.Vouchers.length;i++){
-                    temp.AccountApproved=iData.Vouchers[i].AccountApproved;
-                    temp.ConveyanceAmount=iData.Vouchers[i].ConveyanceAmount;
-                    temp.DistanceTravel=iData.Vouchers[i].DistanceTravel;
-                    temp.FromDate=iData.Vouchers[i].FromDate;
-                    temp.ToDate=iData.Vouchers[i].ToDate;
-                    temp.SeniorApproved=iData.Vouchers[i].SeniorApproved;
-                    temp.VoucherNumber=iData.Vouchers[i].VoucherNumber;
-                    temp.VoucherId=iData.Vouchers[i].VoucherId;
-                    temp.Id=iData.Vouchers[i].Id;
+                try{
+                    ApiResult.VoucherList iData= response.body();
+                    ApiResult.Voucher temp=null;
+                    ApiResult o = new ApiResult();
+                    temp=o.new Voucher();
+                    for(int i = 0; i <iData.Vouchers.length;i++){
+                        temp.AccountApproved=iData.Vouchers[i].AccountApproved;
+                        temp.ConveyanceAmount=iData.Vouchers[i].ConveyanceAmount;
+                        temp.DistanceTravel=iData.Vouchers[i].DistanceTravel;
+                        temp.FromDate=iData.Vouchers[i].FromDate;
+                        temp.ToDate=iData.Vouchers[i].ToDate;
+                        temp.SeniorApproved=iData.Vouchers[i].SeniorApproved;
+                        temp.VoucherNumber=iData.Vouchers[i].VoucherNumber;
+                        temp.VoucherId=iData.Vouchers[i].VoucherId;
+                        temp.Id=iData.Vouchers[i].Id;
+                        lVoucherList.add(temp);
+                    }
+                    temp.AccountApproved="vaou";
+                    temp.ConveyanceAmount="snksjdska";
+                    temp.DistanceTravel="dmcm";
+                    temp.FromDate="mlxckmlxck";
+                    temp.ToDate="cmzxcmz";
+                    temp.SeniorApproved="skkdssdk";
+                    temp.VoucherNumber="zlsczslc";
+                    temp.VoucherId="zcmdklc";
+                    temp.Id="zcmdklc";
                     lVoucherList.add(temp);
-                }
-                temp.AccountApproved="vaou";
-                temp.ConveyanceAmount="snksjdska";
-                temp.DistanceTravel="dmcm";
-                temp.FromDate="mlxckmlxck";
-                temp.ToDate="cmzxcmz";
-                temp.SeniorApproved="skkdssdk";
-                temp.VoucherNumber="zlsczslc";
-                temp.VoucherId="zcmdklc";
-                temp.Id="zcmdklc";
-                lVoucherList.add(temp);
-                mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-                mRecyclerView.setLayoutManager(mLayoutManager);
-                mAdapter = new PendingVoucherAdpater(lVoucherList,R.drawable.cardbk_green);
-                mRecyclerView.setAdapter(mAdapter);
+                    mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+                    mRecyclerView.setLayoutManager(mLayoutManager);
+                    mAdapter = new PendingVoucherAdpater(lVoucherList,R.drawable.cardbk_green);
+                    mRecyclerView.setAdapter(mAdapter);
+                }catch (Exception e){}
             }
             @Override
             public void onFailure(Call<ApiResult.VoucherList> call, Throwable t) {

@@ -15,19 +15,20 @@ import java.util.List;
 
 public class NewTaskActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager mLayoutManager;
-   NewTaskAdapter newtaskAdapter;
+    NewTaskAdapter newtaskAdapter;
     public static final int TASK = 0;
     RecyclerView mRecyclerView;
-    List<String> mStatus=new ArrayList<String>();
-    List<String> mTime=new ArrayList<String>();
-    List<String> mSub=new ArrayList<String>();
-    List<String> mLoc=new ArrayList<String>();
-    List<Integer> mDatasetTypes=new ArrayList<Integer>();
-    List<String> mIssueID=new ArrayList<String>();
-    List<String> mTicketNumber=new ArrayList<String>();
+    List<String> mStatus = new ArrayList<String>();
+    List<String> mTime = new ArrayList<String>();
+    List<String> mSub = new ArrayList<String>();
+    List<String> mLoc = new ArrayList<String>();
+    List<Integer> mDatasetTypes = new ArrayList<Integer>();
+    List<String> mIssueID = new ArrayList<String>();
+    List<String> mTicketNumber = new ArrayList<String>();
     //List<StatusInfoClass> statusList=new ArrayList<StatusInfoClass>();
     SQLiteDatabase sql;
     Cursor cquery;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,11 +56,12 @@ public class NewTaskActivity extends AppCompatActivity {
 
         }
         mRecyclerView = (RecyclerView) findViewById(R.id.new_task_view);
-        mLayoutManager = new LinearLayoutManager(NewTaskActivity.this,LinearLayoutManager.VERTICAL,false);
+        mLayoutManager = new LinearLayoutManager(NewTaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        newtaskAdapter=new NewTaskAdapter(mIssueID,mTime,mLoc,mSub, mStatus,mDatasetTypes,mTicketNumber,NewTaskActivity.this);
+        newtaskAdapter = new NewTaskAdapter(mIssueID, mTime, mLoc, mSub, mStatus, mDatasetTypes, mTicketNumber, NewTaskActivity.this);
         mRecyclerView.setAdapter(newtaskAdapter);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {

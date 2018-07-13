@@ -3,50 +3,51 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    android:paddingLeft="10dip" >
+    android:paddingLeft="10dip">
 
     <Spinner
         android:id="@+id/viewSpin"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="wrap_content" />
+
     <EditText
+        android:id="@+id/comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:hint="Comment"
         android:ems="10"
-        android:id="@+id/comment"
-        android:visibility="invisible"/>
+        android:hint="Comment"
+        android:inputType="textPersonName"
+        android:visibility="invisible" />
 
     <LinearLayout
+        android:id="@+id/id_transportlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone"
-        android:id="@+id/id_transportlayout">
+        android:visibility="gone">
+
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Enter Transport Mode"
             android:textColor="#000"
-            android:typeface="serif"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:typeface="serif" />
+
         <Spinner
             android:id="@+id/id_transportMode"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            />
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 
     <EditText
+        android:id="@+id/amount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:hint="Enter Amount"
         android:ems="10"
-        android:id="@+id/amount"
-        android:visibility="gone"/>
+        android:hint="Enter Amount"
+        android:inputType="textPersonName"
+        android:visibility="gone" />
 
 
 </LinearLayout>

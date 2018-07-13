@@ -93,13 +93,14 @@ public class TicketInfo extends AppCompatActivity {
     private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int MEDIA_TYPE_IMAGE = 1;
     public Uri fileUri;
-    LinearLayout lyServiceItem,lyAssetSerial;
+    LinearLayout lyServiceItem, lyAssetSerial;
     String selectedPath;
     static String sFinalImagePath;
-    TextView tCname,tMNumber,tTIssue,tCAdrs,tTStatus,tExpectedTime,tCreatedDate,tUpdatedDate,tCAssetName,tCAssetType,tCAssetSubtype,tCAssetSerialNumber,tCorporateName,tidOEMInfo,tAssetDescription,tServiceType,tServiceSubType,tIssueText;
-    RadioButton vCamera,vGallery;
+    TextView tCname, tMNumber, tTIssue, tCAdrs, tTStatus, tExpectedTime, tCreatedDate, tUpdatedDate, tCAssetName, tCAssetType, tCAssetSubtype, tCAssetSerialNumber, tCorporateName, tidOEMInfo, tAssetDescription, tServiceType, tServiceSubType, tIssueText;
+    RadioButton vCamera, vGallery;
+    TextView txt_alternate_number, txt_email;
     EditText comment;
-    Map<String,String> postTktStatus=new HashMap<String, String>();
+    Map<String, String> postTktStatus = new HashMap<String, String>();
     Button Submit;
     String mcardType;
     ImageView iImageIcon;
@@ -107,102 +108,103 @@ public class TicketInfo extends AppCompatActivity {
     Cursor cquery;
     String ID;
     AppBarLayout app;
-    String cname,mNumber,tIssue,cAdrs,tStatus,expectedTime,createdDate,updatedDate,cAssetName,cAssetType,cAssetSubtype,cAssetSerialNumber,corporateName,sidOEMInfo,sAssetDesc,sServiceType,sServiceSubtype,sIssueText;
+    String cname, mNumber, tIssue, cAdrs, tStatus, expectedTime, createdDate, updatedDate, cAssetName, cAssetType, cAssetSubtype, cAssetSerialNumber, corporateName, sidOEMInfo, sAssetDesc, sServiceType, sServiceSubtype, sIssueText;
     public int iFlag;
     SharedPreferences pref;
-    private String nh_userid,sStatusId;
-    String sParentComapnyId,DepartmentId;
+    private String nh_userid, sStatusId;
+    String sParentComapnyId, DepartmentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         pref = getSharedPreferences("login", 0);
-        nh_userid=pref.getString("userid","userid");
+        nh_userid = pref.getString("userid", "userid");
         sParentComapnyId = pref.getString("ParentCompanyId", "ParentCompanyId");
         DepartmentId = pref.getString("DepartmentId", "DepartmentId");
 
         setContentView(R.layout.activity_ticket_info);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
-        app=(AppBarLayout)findViewById(R.id.app_bar);
-        iImageIcon=(ImageView)findViewById(R.id.imageuplaodicon);
-        tCname=(TextView)findViewById(R.id.contactpersonname);
-        tCAdrs=(TextView)findViewById(R.id.adrs);
-        tMNumber=(TextView)findViewById(R.id.cntctprsnmob);
-        tExpectedTime=(TextView)findViewById(R.id.beontime);
-        tTIssue=(TextView)findViewById(R.id.subject);
-        tTStatus=(TextView)findViewById(R.id.status);
-        tCreatedDate=(TextView)findViewById(R.id.createddate);
-        tUpdatedDate=(TextView)findViewById(R.id.updateddate);
-        tCAssetName=(TextView)findViewById(R.id.assetName);
-        tCAssetType=(TextView)findViewById(R.id.assetType);
-        tCAssetSubtype=(TextView)findViewById(R.id.assetSubType);
-        tCAssetSerialNumber=(TextView)findViewById(R.id.assetserialNumber);
-        lyAssetSerial=(LinearLayout)findViewById(R.id.idSRnumberLayout);
-        lyServiceItem=(LinearLayout)findViewById(R.id.idSIlayout);
-        tCorporateName=(TextView)findViewById(R.id.corporateName);
-        tidOEMInfo=(TextView)findViewById(R.id.idOEMInfo);
-        vCamera=(RadioButton)findViewById(R.id.vCam);
-        vGallery=(RadioButton)findViewById(R.id.vGal);
-        tAssetDescription=(TextView)findViewById(R.id.idAssetDescription);
-        tServiceType=(TextView)findViewById(R.id.idServiceType);
-        tServiceSubType=(TextView)findViewById(R.id.idServiceSubType);
-        tIssueText=(TextView)findViewById(R.id.issueText);
+        app = (AppBarLayout) findViewById(R.id.app_bar);
+        iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
+        tCname = (TextView) findViewById(R.id.contactpersonname);
+        tCAdrs = (TextView) findViewById(R.id.adrs);
+        tMNumber = (TextView) findViewById(R.id.cntctprsnmob);
+        tExpectedTime = (TextView) findViewById(R.id.beontime);
+        tTIssue = (TextView) findViewById(R.id.subject);
+        txt_alternate_number = (TextView) findViewById(R.id.txt_alternate_number);
+        txt_email = (TextView) findViewById(R.id.txt_email);
+        tTStatus = (TextView) findViewById(R.id.status);
+        tCreatedDate = (TextView) findViewById(R.id.createddate);
+        tUpdatedDate = (TextView) findViewById(R.id.updateddate);
+        tCAssetName = (TextView) findViewById(R.id.assetName);
+        tCAssetType = (TextView) findViewById(R.id.assetType);
+        tCAssetSubtype = (TextView) findViewById(R.id.assetSubType);
+        tCAssetSerialNumber = (TextView) findViewById(R.id.assetserialNumber);
+        lyAssetSerial = (LinearLayout) findViewById(R.id.idSRnumberLayout);
+        lyServiceItem = (LinearLayout) findViewById(R.id.idSIlayout);
+        tCorporateName = (TextView) findViewById(R.id.corporateName);
+        tidOEMInfo = (TextView) findViewById(R.id.idOEMInfo);
+        vCamera = (RadioButton) findViewById(R.id.vCam);
+        vGallery = (RadioButton) findViewById(R.id.vGal);
+        tAssetDescription = (TextView) findViewById(R.id.idAssetDescription);
+        tServiceType = (TextView) findViewById(R.id.idServiceType);
+        tServiceSubType = (TextView) findViewById(R.id.idServiceSubType);
+        tIssueText = (TextView) findViewById(R.id.issueText);
 
         //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
-        comment=(EditText)findViewById(R.id.agentComment);
-        Submit=(Button)findViewById(R.id.submit);
-        sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE,null);
+        comment = (EditText) findViewById(R.id.agentComment);
+        Submit = (Button) findViewById(R.id.submit);
+        sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         Bundle bundle = getIntent().getExtras();
-        mcardType=bundle.getString("CardType");
-        if(mcardType.equals("-1")){
+        mcardType = bundle.getString("CardType");
+        if (mcardType.equals("-1")) {
             app.setBackgroundResource(R.color.purple);
-        }else if(mcardType.equals("1")){
+        } else if (mcardType.equals("1")) {
             app.setBackgroundResource(R.color.orange);
-        }else if(mcardType.equals("2")){
+        } else if (mcardType.equals("2")) {
             app.setBackgroundResource(R.color.blue);
-        }else if(mcardType.equals("3")){
+        } else if (mcardType.equals("3")) {
             app.setBackgroundResource(R.color.green);
         }
-        ID=bundle.getString("IssueId");
+        ID = bundle.getString("IssueId");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Id: "+ID);
+        toolbar.setTitle("Id: " + ID);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '"+bundle.getString("IssueId")+"'", null);
+        cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '" + bundle.getString("IssueId") + "'", null);
         cquery.moveToFirst();
-        toolbar.setTitle("Id: "+cquery.getString(20).toString());
-        if(cquery.getString(21).toString().equals("1")){
+        toolbar.setTitle("Id: " + cquery.getString(20).toString());
+        if (cquery.getString(21).toString().equals("1")) {
             lyServiceItem.setVisibility(View.VISIBLE);
             lyAssetSerial.setVisibility(View.VISIBLE);
         }
-        sStatusId=cquery.getString(15).toString();
-        Cursor cqueryForStatus=sql.rawQuery("select StatusName from Issue_Status where StatusId = '"+cquery.getString(15).toString()+"'", null);
-        if(cqueryForStatus.getCount()>0) {
+        sStatusId = cquery.getString(15).toString();
+        Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+        if (cqueryForStatus.getCount() > 0) {
             cqueryForStatus.moveToFirst();
             tStatus = cqueryForStatus.getString(0).toString();
-        }
-        else
+        } else
             tStatus = "NA";
-        cname=cquery.getString(19).toString();
-        mNumber=cquery.getString(13).toString();
-        tIssue=cquery.getString(3).toString();
-        cAdrs=cquery.getString(10).toString();
-        expectedTime=cquery.getString(8);
-        createdDate=cquery.getString(7).toString();
-        updatedDate=cquery.getString(18).toString();
-        cAssetName=cquery.getString(5).toString();
-        cAssetType=cquery.getString(16).toString();
-        cAssetSubtype=cquery.getString(17).toString();
-        cAssetSerialNumber=cquery.getString(6).toString();
-        corporateName=cquery.getString(9).toString();
-        sidOEMInfo=cquery.getString(22).toString();
-        sAssetDesc=cquery.getString(23).toString();
-        sServiceSubtype=cquery.getString(24).toString();
-        sServiceType=cquery.getString(25).toString();
-        sIssueText=cquery.getString(4).toString();
+        cname = cquery.getString(19).toString();
+        mNumber = cquery.getString(13).toString();
+        tIssue = cquery.getString(3).toString();
+        cAdrs = cquery.getString(10).toString();
+        expectedTime = cquery.getString(8);
+        createdDate = cquery.getString(7).toString();
+        updatedDate = cquery.getString(18).toString();
+        cAssetName = cquery.getString(5).toString();
+        cAssetType = cquery.getString(16).toString();
+        cAssetSubtype = cquery.getString(17).toString();
+        cAssetSerialNumber = cquery.getString(6).toString();
+        corporateName = cquery.getString(9).toString();
+        sidOEMInfo = cquery.getString(22).toString();
+        sAssetDesc = cquery.getString(23).toString();
+        sServiceSubtype = cquery.getString(24).toString();
+        sServiceType = cquery.getString(25).toString();
+        sIssueText = cquery.getString(4).toString();
 
         if (!isDeviceSupportCamera()) {
             Toast.makeText(getApplicationContext(),
@@ -215,9 +217,9 @@ public class TicketInfo extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(TicketInfo.this,FollowUpHistory.class);
-                i.putExtra("ID",ID);
-                i.putExtra("TNumber",cquery.getString(20).toString());
+                Intent i = new Intent(TicketInfo.this, FollowUpHistory.class);
+                i.putExtra("ID", ID);
+                i.putExtra("TNumber", cquery.getString(20).toString());
                 startActivity(i);
             }
         });
@@ -230,12 +232,11 @@ public class TicketInfo extends AppCompatActivity {
         tIssueText.setText(sIssueText);
         //tExpectedTime.setText(expectedTime);
 
-        if(expectedTime.equals(""))
+        if (expectedTime.equals(""))
             tExpectedTime.setText("NA!!");
-        else if(mcardType.equals("3")){
+        else if (mcardType.equals("3")) {
             tExpectedTime.setText("--");
-        }
-        else {
+        } else {
             Date dSLAdate = null, dCurrentDate = null;
             String dtStart = expectedTime;
             Log.e("onBindViewHolder: ", dtStart);
@@ -255,7 +256,7 @@ public class TicketInfo extends AppCompatActivity {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            SchedulingAdapter saTemp= new SchedulingAdapter();
+            SchedulingAdapter saTemp = new SchedulingAdapter();
             long l = saTemp.printDifference(dSLAdate, dCurrentDate);
             final long secondsInMilli = 1000;
             final long minutesInMilli = secondsInMilli * 60;
@@ -294,7 +295,7 @@ public class TicketInfo extends AppCompatActivity {
         vCamera.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     call_permissions();
                     vGallery.setChecked(false);
                     captureImage();
@@ -304,7 +305,7 @@ public class TicketInfo extends AppCompatActivity {
         vGallery.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     call_permissions();
                     vCamera.setChecked(false);
                     openGallery(200);
@@ -314,46 +315,48 @@ public class TicketInfo extends AppCompatActivity {
         Submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sFinalImagePath==null){
-                String currentTime;
-                Date cDate = new Date();
-                currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                ContentValues newValues = new ContentValues();
-                newValues.put("UpdatedDate",currentTime);
-                sql.update("Issue_Detail", newValues,"IssueId="+ID, null);
+                if (sFinalImagePath == null) {
+                    String currentTime;
+                    Date cDate = new Date();
+                    currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    ContentValues newValues = new ContentValues();
+                    newValues.put("UpdatedDate", currentTime);
+                    sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
 
-                postTktStatus.put("UserId", nh_userid);
-                postTktStatus.put("ParentCompanyId", sParentComapnyId);
-                postTktStatus.put("TicketId",ID);
-                postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
-                postTktStatus.put("Comment", comment.getText().toString());
-                postTktStatus.put("ActivityDate", currentTime);
-                postTktStatus.put("DepartmentId", DepartmentId);
-                postTktStatus.put("RealtimeUpdate", "true");
+                    postTktStatus.put("UserId", nh_userid);
+                    postTktStatus.put("ParentCompanyId", sParentComapnyId);
+                    postTktStatus.put("TicketId", ID);
+                    postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
+                    postTktStatus.put("Comment", comment.getText().toString());
+                    postTktStatus.put("ActivityDate", currentTime);
+                    postTktStatus.put("DepartmentId", DepartmentId);
+                    postTktStatus.put("RealtimeUpdate", "true");
 
-                String tktStatus = new Gson().toJson(postTktStatus);
-                new UpdateTask(TicketInfo.this,tktStatus).execute();
-                }
-                else {
+                    String tktStatus = new Gson().toJson(postTktStatus);
+                    new UpdateTask(TicketInfo.this, tktStatus).execute();
+                } else {
                     new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
 
             }
         });
     }
+
     public class UpdateTask extends AsyncTask<String, Void, String> {
         String jsonString;
         SQLiteDatabase sql;
-        public UpdateTask(Context ctx,String jsonString) {
-            this.jsonString=jsonString;
-            sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE,null);
-            Log.e("onPostExecute: ",jsonString );
+
+        public UpdateTask(Context ctx, String jsonString) {
+            this.jsonString = jsonString;
+            sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+            Log.e("onPostExecute: ", jsonString);
 
         }
+
         @Override
         protected String doInBackground(String... params) {
-            String uri = PostUrl.sUrl+"PostTicketStatus";
-            String result ="";
+            String uri = PostUrl.sUrl + "PostTicketStatus";
+            String result = "";
             try {
                 //Connect
                 HttpURLConnection urlConnection = (HttpURLConnection) ((new URL(uri).openConnection()));
@@ -381,38 +384,39 @@ public class TicketInfo extends AppCompatActivity {
                 }
                 bufferedReader.close();
                 result = sb.toString();
-            } catch (UnsupportedEncodingException e){
+            } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }catch (RejectedExecutionException e){
+            } catch (RejectedExecutionException e) {
                 e.printStackTrace();
             }
             return result;
         }
+
         @Override
         protected void onPostExecute(String s) {
-            JSONObject jsonObject=null;
+            JSONObject jsonObject = null;
             Date cDate = new Date();
             String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
             super.onPostExecute(s);
             try {
                 jsonObject = new JSONObject(jsonString);
-                if (s == null || s.equals("0\n")||s.equals("")) {
-                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES"+
-                            "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId")+ "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment")+ "','" + jsonObject.getString("ActivityDate") + "','0')");
-                }
-                else {
-                    Toast.makeText(getApplicationContext()," Comment Updated!!!",Toast.LENGTH_LONG).show();
+                if (s == null || s.equals("0\n") || s.equals("")) {
+                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+                            "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
+                } else {
+                    Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();
                     comment.setText("");
                     tUpdatedDate.setText(currentTime);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Log.e("Post Login",s);
+            Log.e("Post Login", s);
         }
     }
+
     public void openGallery(int req_code) {
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -425,8 +429,7 @@ public class TicketInfo extends AppCompatActivity {
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent,
                         "Select file to upload "), req_code);
-            }
-            else {
+            } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         1);
@@ -437,6 +440,7 @@ public class TicketInfo extends AppCompatActivity {
                     1);
         }
     }
+
     private boolean isDeviceSupportCamera() {
         if (getApplicationContext().getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_CAMERA)) {
@@ -447,6 +451,7 @@ public class TicketInfo extends AppCompatActivity {
             return false;
         }
     }
+
     private void captureImage() {
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 Manifest.permission.CAMERA)
@@ -463,8 +468,7 @@ public class TicketInfo extends AppCompatActivity {
 
                 // start the image capture Intent
                 startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
-            }
-            else {
+            } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         1);
@@ -477,10 +481,12 @@ public class TicketInfo extends AppCompatActivity {
         }
 
     }
+
     public Uri getOutputMediaFileUri(int type) {
 
         return Uri.fromFile(getOutputMediaFile(type));
     }
+
     private static File getOutputMediaFile(int type) {
         // External sdcard location
         File mediaStorageDir = new File(
@@ -508,6 +514,7 @@ public class TicketInfo extends AppCompatActivity {
         }
         return mediaFile;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -518,6 +525,7 @@ public class TicketInfo extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -532,6 +540,7 @@ public class TicketInfo extends AppCompatActivity {
         // get the file url
         fileUri = savedInstanceState.getParcelable("file_uri");
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // if the result is capturing Image
@@ -551,12 +560,11 @@ public class TicketInfo extends AppCompatActivity {
                         "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
                         .show();
             }
-        }
-        else {
+        } else {
             Uri selectedImageUri = data.getData();
             if (requestCode == 200) {
                 try {
-                    selectedPath = getPath(getApplicationContext(),selectedImageUri);
+                    selectedPath = getPath(getApplicationContext(), selectedImageUri);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
@@ -573,7 +581,6 @@ public class TicketInfo extends AppCompatActivity {
         }
 
     }
-
 
 
     @SuppressLint("NewApi")
@@ -665,20 +672,20 @@ public class TicketInfo extends AppCompatActivity {
             }
         }*//*
 
-       *//* String[] projection = { MediaStore.Images.Media.DATA };
+     *//* String[] projection = { MediaStore.Images.Media.DATA };
         Cursor cursor = managedQuery(uri, projection, null, null, null);
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);*//*
     }*/
-    private void launchUploadActivity(final String sImagePath){
+    private void launchUploadActivity(final String sImagePath) {
 
         final AlertDialog.Builder Dialog = new AlertDialog.Builder(TicketInfo.this);
         Dialog.setTitle("Image Selector ");
         Dialog.setCancelable(false);
         LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View dialogView = li.inflate(R.layout.imagedialogue, null);
-        final ImageView upImage =(ImageView) dialogView.findViewById(R.id.imagedia);
+        final ImageView upImage = (ImageView) dialogView.findViewById(R.id.imagedia);
         Dialog.setView(dialogView);
         BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -692,16 +699,16 @@ public class TicketInfo extends AppCompatActivity {
         Dialog.setPositiveButton("Ok",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        sFinalImagePath=sImagePath;
+                        sFinalImagePath = sImagePath;
                         iImageIcon.setVisibility(View.VISIBLE);
-                        Toast.makeText(getApplicationContext(),"Image uploaded successfully!!!",Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
                     }
                 });
 
         Dialog.setNegativeButton("Cancel",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        sFinalImagePath="";
+                        sFinalImagePath = "";
                         dialog.dismiss();
                     }
                 });
@@ -721,7 +728,7 @@ public class TicketInfo extends AppCompatActivity {
             // setting progress bar to zero
             //progressBar.setProgress(0);
             super.onPreExecute();
-            if(getApplicationContext()!=null) {
+            if (getApplicationContext() != null) {
                 Toast.makeText(getApplicationContext(), "Loading data, Please wait...", Toast.LENGTH_LONG).show();
             }
             //progress = ProgressDialog.show(TicketInfo.this,"Loading data", "Please wait...");
@@ -750,7 +757,7 @@ public class TicketInfo extends AppCompatActivity {
 
             HttpClient httpclient = new DefaultHttpClient();
             //HttpPost httppost = new HttpPost("http://192.168.0.20/TrackEngine/api/Post/PostTicketAttachment");
-            HttpPost httppost = new HttpPost(PostUrl.sUrl+"PostTicketAttachment");
+            HttpPost httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
 
             try {
 
@@ -770,10 +777,10 @@ public class TicketInfo extends AppCompatActivity {
                 // Adding file data to http body
                 entity.addPart("Files", new FileBody(sourceFile));
                 // Extra parameters if you want to pass to server
-                entity.addPart("AttachedBy",new StringBody(MainActivity.LOGINID));
-                entity.addPart("TicketId",new StringBody(ID));
-                entity.addPart("Comment",new StringBody(comment.getText().toString()));
-                entity.addPart("ActivityDate",new StringBody(currentTime));
+                entity.addPart("AttachedBy", new StringBody(MainActivity.LOGINID));
+                entity.addPart("TicketId", new StringBody(ID));
+                entity.addPart("Comment", new StringBody(comment.getText().toString()));
+                entity.addPart("ActivityDate", new StringBody(currentTime));
 
                 totalSize = entity.getContentLength();
                 httppost.setEntity(entity);
@@ -799,27 +806,28 @@ public class TicketInfo extends AppCompatActivity {
 
             return responseString;
         }
+
         @Override
         protected void onPostExecute(String result) {
             Log.e("TAG", "Response from server: " + result);
             //progress.dismiss();
             // showing the server response in an alert dialog
             showAlert(result);
-            sFinalImagePath=null;
+            sFinalImagePath = null;
             super.onPostExecute(result);
         }
     }
+
     /**
      * Method to show alert dialog
-     * */
+     */
     private void showAlert(String message) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         String msg;
-        if(message.equals("")) {
+        if (message.equals("")) {
             msg = "Data has been sent successfully!!!";
-        }
-        else
-            msg="Something went wrong!!!\n"+message;
+        } else
+            msg = "Something went wrong!!!\n" + message;
         builder.setMessage(msg).setTitle("Response from Server")
                 .setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -827,7 +835,7 @@ public class TicketInfo extends AppCompatActivity {
                         // do nothing
                         comment.setText("");
                         iImageIcon.setVisibility(View.GONE);
-                        sFinalImagePath="";
+                        sFinalImagePath = "";
                         vCamera.setChecked(false);
                         vGallery.setChecked(false);
                         dialog.dismiss();
@@ -836,6 +844,7 @@ public class TicketInfo extends AppCompatActivity {
         AlertDialog alert = builder.create();
         alert.show();
     }
+
     private void call_permissions() {
         int result;
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -851,6 +860,7 @@ public class TicketInfo extends AppCompatActivity {
         }
         return;
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {

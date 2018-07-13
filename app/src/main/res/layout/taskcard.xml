@@ -1,42 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-     android:id="@+id/cardview"
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:layout_marginTop="@dimen/_5sdp"
-     card_view:cardCornerRadius="@dimen/_10sdp"
-     android:elevation="@dimen/_100sdp"
-     card_view:cardBackgroundColor="#00ffffff"
-     android:layout_marginLeft="@dimen/_5sdp">
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="@dimen/_5sdp"
+    android:layout_marginTop="@dimen/_5sdp"
+    android:elevation="@dimen/_100sdp"
+    card_view:cardBackgroundColor="#00ffffff"
+    card_view:cardCornerRadius="@dimen/_10sdp">
 
     <RelativeLayout
+        android:id="@+id/r1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/r1"
         android:orientation="horizontal"
         android:padding="@dimen/_8sdp">
+
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#000"
-            android:typeface="serif"
-            android:text="5"
-            android:layout_marginBottom="@dimen/_20sdp"
             android:id="@+id/task"
-            android:textSize="@dimen/_9ssp"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true" />
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/_25ssp"
-            android:typeface="serif"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
             android:layout_marginBottom="@dimen/_20sdp"
-            android:textColor="#000"
             android:text="5"
+            android:textColor="#000"
+            android:textSize="@dimen/_9ssp"
+            android:typeface="serif" />
+
+        <TextView
             android:id="@+id/taskCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_marginBottom="@dimen/_20sdp"
+            android:text="5"
+            android:textColor="#000"
+            android:textSize="@dimen/_25ssp"
+            android:typeface="serif" />
     </RelativeLayout>
 </android.support.v7.widget.CardView>

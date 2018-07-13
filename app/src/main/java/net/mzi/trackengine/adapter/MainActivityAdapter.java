@@ -22,36 +22,38 @@ import java.util.List;
  * Created by Roam12 on 11/28/2016.
  */
 public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapter.ViewHolder> {
-    private List<String> mDataSet=new ArrayList<String>();
-    List<String> mDatasetCount=new ArrayList<String>();
+    private List<String> mDataSet = new ArrayList<String>();
+    List<String> mDatasetCount = new ArrayList<String>();
     //private String[] mDataSetCount;
     private List<Integer> mDataSetTypes;
-    List<Integer> mCardColor=new ArrayList<Integer>();
+    List<Integer> mCardColor = new ArrayList<Integer>();
     Context mContext;
 
 
-    public MainActivityAdapter(){
+    public MainActivityAdapter() {
 
     }
+
     public MainActivityAdapter(List<String> mDataset, List<String> dataSetCount, List<Integer> cardColor, List<Integer> dataSetTypes, Context current) {
         mDataSet = mDataset;
-        mDatasetCount=dataSetCount;
+        mDatasetCount = dataSetCount;
         mDataSetTypes = dataSetTypes;
-        mCardColor=cardColor;
-        this.mContext=current;
+        mCardColor = cardColor;
+        this.mContext = current;
     }
 
     public class TaskViewHolder extends ViewHolder {
-        TextView task,taskCount;
+        TextView task, taskCount;
         RelativeLayout r1;
 
         public TaskViewHolder(View v) {
             super(v);
             this.task = (TextView) v.findViewById(R.id.task);
-            this.taskCount=(TextView)v.findViewById(R.id.taskCounter);
-            this.r1=(RelativeLayout)v.findViewById(R.id.r1);
+            this.taskCount = (TextView) v.findViewById(R.id.taskCounter);
+            this.r1 = (RelativeLayout) v.findViewById(R.id.r1);
         }
     }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
@@ -59,6 +61,7 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
                 .inflate(R.layout.taskcard, parent, false);
         return new TaskViewHolder(v);
     }
+
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
@@ -70,12 +73,13 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
         taskholder.r1.setBackgroundResource(mCardColor.get(position));
         taskholder.taskCount.setText(mDatasetCount.get(position));
 
-        }
+    }
 
     @Override
     public int getItemCount() {
         return mDataSetTypes.size();
     }
+
     @Override
     public int getItemViewType(int position) {
         return mDataSetTypes.get(position);
@@ -85,15 +89,15 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
     public class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            View v=itemView;
+            View v = itemView;
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    int pos=getAdapterPosition();
-                    if(pos==0){
+                    int pos = getAdapterPosition();
+                    if (pos == 0) {
                         Intent i = new Intent(view.getContext(), NewTaskActivity.class);
                         view.getContext().startActivity(i);
-                    }else{
+                    } else {
                         Intent i = new Intent(view.getContext(), TaskActivity.class);
                         i.putExtra("cardpos", String.valueOf(pos));
                         view.getContext().startActivity(i);

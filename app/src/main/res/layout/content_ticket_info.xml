@@ -7,62 +7,67 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="net.mzi.trackengine.TicketInfo"
     tools:showIn="@layout/activity_ticket_info">
+
     <LinearLayout
+        android:id="@+id/pendinglayout"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/pendinglayout"
+        android:background="#eff4f5"
         android:orientation="vertical"
         android:paddingBottom="1dp"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:background="#eff4f5">
+        android:paddingRight="15dp">
+
         <TextView
-            android:text="Basic Details"
-            android:typeface="serif"
-            android:background="#aba7a8"
-            android:textStyle="bold"
-            android:padding="5dp"
-            android:textColor="#000"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
-        <LinearLayout
             android:layout_marginTop="10dp"
+            android:background="#aba7a8"
+            android:padding="5dp"
+            android:text="Basic Details"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:typeface="serif" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
 
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="User's Name "
-                android:layout_width="0dp"
-                android:layout_weight="4"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
+                android:typeface="serif" />
+
             <TextView
-                android:text=":"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:textColor="#000"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_weight=".5"
                 android:gravity="center"
-                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
+                android:typeface="serif" />
+
             <TextView
+                android:id="@+id/contactpersonname"
                 android:layout_width="0dp"
-                android:layout_weight="5"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:text="Vaishali"
-                android:layout_marginLeft="15dp"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
-                android:typeface="serif"
-                android:textColor="#000"
 
-                android:id="@+id/contactpersonname" />
+                android:typeface="serif" />
         </LinearLayout>
 
         <LinearLayout
@@ -71,66 +76,146 @@
             android:layout_marginBottom="10dp">
 
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="Mobile Number"
-                android:layout_width="0dp"
                 android:textColor="#000"
-                android:layout_weight="4"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:typeface="serif"/>
+                android:typeface="serif" />
+
             <TextView
-                android:text=":"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:textColor="#000"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_weight=".5"
                 android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:typeface="serif"/>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_marginLeft="15dp"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:text=":"
                 android:textColor="#000"
-                android:typeface="serif"
+                android:textSize="15sp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/cntctprsnmob"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:text="9718729555"
-                android:id="@+id/cntctprsnmob"/>
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
 
             <TextView
-                android:text="Corporate Name"
                 android:layout_width="0dp"
-                android:textColor="#000"
-                android:layout_weight="4"
-                android:textStyle="bold"
                 android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Alternate Number"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:textStyle="bold"
                 android:typeface="serif" />
 
             <TextView
-                android:text=":"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="15sp"
-                android:typeface="serif"/>
+                android:typeface="serif" />
+
             <TextView
+                android:id="@+id/txt_alternate_number"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text="9718729555"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Email"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/txt_email"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
                 android:textColor="#000"
-                android:layout_marginLeft="15dp"
+                android:textSize="15sp"
+                android:typeface="serif" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Corporate Name"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textSize="15sp"
+                android:typeface="serif" />
+
+            <TextView
                 android:id="@+id/corporateName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
                 android:typeface="serif" />
 
         </LinearLayout>
@@ -139,36 +224,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="4"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
+                android:layout_weight="4"
                 android:text="Alotted Task"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
                 android:textSize="15sp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:typeface="serif"/>
-            <TextView
+                android:id="@+id/subject"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:textSize="15sp"
-                android:textColor="#000"
-                android:layout_weight="5"
-                android:typeface="serif"
                 android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:ellipsize="none"
                 android:scrollHorizontally="false"
-                android:id="@+id/subject" />
+                android:text="New Text"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
 
         </LinearLayout>
 
@@ -177,36 +265,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="4"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
+                android:layout_weight="4"
                 android:text="Issue  Desc."
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
                 android:textSize="15sp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:typeface="serif"/>
-            <TextView
+                android:id="@+id/issueText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:textSize="15sp"
-                android:textColor="#000"
-                android:layout_weight="5"
-                android:typeface="serif"
                 android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:ellipsize="none"
                 android:scrollHorizontally="false"
-                android:id="@+id/issueText" />
+                android:text="New Text"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
 
         </LinearLayout>
 
@@ -216,37 +307,38 @@
             android:layout_marginBottom="10dp">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
-                android:text="Location"
-                android:textStyle="bold"
-                android:textColor="#000"
                 android:id="@+id/adress"
-                android:textSize="15sp"
-                android:typeface="serif"
-                />
-            <TextView
-                android:text=":"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:typeface="serif"/>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:text="New Text"
-                android:layout_marginLeft="15dp"
+                android:layout_weight="4"
+                android:text="Location"
                 android:textColor="#000"
                 android:textSize="15sp"
-                android:typeface="serif"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textSize="15sp"
+                android:typeface="serif" />
+
+            <TextView
                 android:id="@+id/adrs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
                 android:ellipsize="none"
-                android:scrollHorizontally="false" />
+                android:scrollHorizontally="false"
+                android:text="New Text"
+                android:textColor="#000"
+                android:textSize="15sp"
+                android:typeface="serif" />
 
         </LinearLayout>
 
@@ -256,470 +348,513 @@
             android:layout_marginBottom="10dp"
             android:background="#7babed"
             android:padding="5dp">
+
             <TextView
-                android:text="Status: "
-                android:layout_width="0dp"
-                android:textColor="#000"
-                android:layout_weight="1.2"
-                android:textStyle="bold"
-                android:layout_height="wrap_content"
                 android:id="@+id/textView5"
-                android:textSize="@dimen/_10ssp"
-                android:typeface="serif" />
-            <TextView
-                android:text="New"
                 android:layout_width="0dp"
-                android:layout_weight="1.8"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:id="@+id/status"
+                android:layout_weight="1.2"
+                android:text="Status: "
+                android:textColor="#000"
                 android:textSize="@dimen/_10ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="2"
-                android:layout_height="wrap_content"
-                android:textColor="#000"
                 android:textStyle="bold"
-                android:text="SLA Time :  "
-                android:id="@+id/textView4"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.8"
+                android:text="New"
+                android:textColor="#000"
                 android:textSize="@dimen/_10ssp"
                 android:typeface="serif" />
+
             <TextView
+                android:id="@+id/textView4"
                 android:layout_width="0dp"
-                android:layout_weight="3"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="SLA Time :  "
+                android:textColor="#000"
+                android:textSize="@dimen/_10ssp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/beontime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
                 android:text="11:30 AM"
                 android:textColor="#000"
                 android:textSize="@dimen/_10ssp"
-                android:typeface="serif"
-                android:id="@+id/beontime"/>
+                android:typeface="serif" />
         </LinearLayout>
+
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorPrimary"
-            android:layout_marginTop="5dp"
             android:id="@+id/view"
-            android:layout_below="@+id/status"
-            android:layout_centerHorizontal="true"></RelativeLayout>
-
-        <TextView
-            android:text="Asset Details"
-            android:typeface="serif"
-            android:background="#aba7a8"
-            android:textStyle="bold"
-            android:padding="5dp"
-            android:textColor="#000"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone"
-            android:id="@+id/idSIlayout">
-            <TextView
-                android:text="S.I. Number"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_height="wrap_content"
-                android:typeface="serif" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:textColor="#000"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_marginLeft="15dp"
-                android:layout_weight="5"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:id="@+id/assetName"
-                android:typeface="serif" />
-
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-            <TextView
-                android:text="Asset Type"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
-                android:layout_marginLeft="15dp"
-                android:typeface="serif"
-                android:id="@+id/assetType" />
-
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:text="Asset SubType"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
-                android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
-                android:textStyle="bold"
-                android:typeface="serif"
-                android:id="@+id/textView20" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_marginLeft="15dp"
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"
-                android:id="@+id/assetSubType" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone"
-            android:id="@+id/idSRnumberLayout">
-            <TextView
-                android:text="Asset Sr Number"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
-                android:layout_marginLeft="15dp"
-                android:typeface="serif"
-                android:id="@+id/assetserialNumber" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
-            <TextView
-                android:text="Asset Desc."
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
-                android:textColor="#000"
-                android:textStyle="bold"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
-                android:layout_marginLeft="15dp"
-                android:typeface="serif"
-                android:id="@+id/idAssetDescription" />
-        </LinearLayout>
-        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/colorPrimary"
-            android:layout_marginTop="5dp"
-            android:id="@+id/viewAsset"
             android:layout_below="@+id/status"
-            android:layout_centerHorizontal="true"></RelativeLayout>
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:background="@color/colorPrimary"></RelativeLayout>
 
         <TextView
-            android:text="Additional Details!!"
-            android:typeface="serif"
-            android:background="#aba7a8"
-            android:textStyle="bold"
-            android:padding="5dp"
-            android:textColor="#000"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="10dp"
+            android:background="#aba7a8"
+            android:padding="5dp"
+            android:text="Asset Details"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:typeface="serif" />
+
+        <LinearLayout
+            android:id="@+id/idSIlayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="S.I. Number"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/assetName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:typeface="serif" />
+
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Asset Type"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/assetType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/textView20"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Asset SubType"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/assetSubType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/idSRnumberLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Asset Sr Number"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/assetserialNumber"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Asset Desc."
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/idAssetDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/viewAsset"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/status"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:background="@color/colorPrimary"></RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:background="#aba7a8"
+            android:padding="5dp"
+            android:text="Additional Details!!"
+            android:textColor="#000"
+            android:textStyle="bold"
+            android:typeface="serif" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="Created On"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
                 android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:textColor="#000"
-                android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_marginLeft="15dp"
-                android:textColor="#000"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
                 android:id="@+id/createddate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:typeface="serif" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="Updated On"
-                android:layout_width="0dp"
-                android:layout_weight="4"
                 android:textColor="#000"
-                android:layout_height="wrap_content"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
+                android:id="@+id/updateddate"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
                 android:layout_marginLeft="15dp"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
+                android:layout_weight="5"
+                android:text=""
                 android:textColor="#000"
-                android:typeface="serif"
-                android:id="@+id/updateddate" />
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="Priority"
-                android:layout_width="0dp"
-                android:layout_weight="4"
                 android:textColor="#000"
                 android:textStyle="bold"
-                android:layout_height="wrap_content"
                 android:typeface="serif" />
-            <TextView
-                android:text=":"
-                android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:textColor="#000"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
 
             <TextView
-                android:text=""
                 android:layout_width="0dp"
-                android:layout_marginLeft="15dp"
-                android:layout_weight="5"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
                 android:id="@+id/idPriority"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
                 android:typeface="serif" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="OEM Info"
-                android:layout_width="0dp"
-                android:layout_weight="4"
                 android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
+                android:id="@+id/idOEMInfo"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
                 android:layout_marginLeft="15dp"
-                android:typeface="serif"
-                android:id="@+id/idOEMInfo" />
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
 
             <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
                 android:text="Service Type"
-                android:layout_width="0dp"
-                android:layout_weight="4"
-                android:layout_height="wrap_content"
                 android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_weight=".5"
                 android:gravity="center"
+                android:text=":"
                 android:textColor="#000"
-                android:layout_height="wrap_content"
                 android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
+                android:typeface="serif" />
+
             <TextView
-                android:text=""
-                android:layout_marginLeft="15dp"
+                android:id="@+id/idServiceType"
                 android:layout_width="0dp"
-                android:layout_weight="5"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
-                android:typeface="serif"
-                android:id="@+id/idServiceType" />
+                android:typeface="serif" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp">
+
             <TextView
-                android:text="Service Sub Type"
                 android:layout_width="0dp"
-                android:layout_weight="4"
                 android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Service Sub Type"
                 android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
                 android:textSize="@dimen/_12ssp"
                 android:typeface="serif" />
+
             <TextView
-                android:text=":"
+                android:id="@+id/idServiceSubType"
                 android:layout_width="0dp"
-                android:layout_weight=".5"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textColor="#000"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:typeface="serif"/>
-            <TextView
-                android:text=""
-                android:layout_width="0dp"
-                android:layout_weight="5"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
                 android:layout_marginLeft="15dp"
-                android:typeface="serif"
-                android:id="@+id/idServiceSubType" />
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
         </LinearLayout>
 
         <LinearLayout
@@ -730,25 +865,27 @@
 
 
             <TextView
-                android:text="Upload Image"
+                android:id="@+id/textView15"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/_12ssp"
-                android:textColor="#000"
                 android:layout_gravity="center"
+                android:text="Upload Image"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
-                android:typeface="serif"
-                android:id="@+id/textView15" />
+                android:typeface="serif" />
+
             <ImageView
+                android:id="@+id/imageuplaodicon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tint="#319705"
                 android:visibility="gone"
-                app:srcCompat="@drawable/tickwhite"
-                android:id="@+id/imageuplaodicon"/>
+                app:srcCompat="@drawable/tickwhite" />
 
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -756,67 +893,67 @@
             android:orientation="horizontal">
 
             <RadioButton
+                android:id="@+id/vCam"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/vCam"
-                android:layout_marginLeft="@dimen/_25sdp"
                 android:layout_gravity="center"
-                android:gravity="center"
+                android:layout_marginLeft="@dimen/_25sdp"
                 android:checked="false"
+                android:gravity="center"
                 android:paddingRight="@dimen/_45sdp"
                 android:text="Via Camera" />
 
             <RadioButton
+                android:id="@+id/vGal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="false"
-                android:id="@+id/vGal"
                 android:text="Via Gallery" />
-
 
 
         </LinearLayout>
 
         <TextView
-            android:text="Add Comment:"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textSize="@dimen/_12ssp"
-            android:padding="5dp"
-            android:textColor="#000"
-            android:typeface="serif"
+            android:layout_marginTop="16dp"
             android:background="#aba7a8"
-            android:layout_marginTop="16dp" />
+            android:padding="5dp"
+            android:text="Add Comment:"
+            android:textColor="#000"
+            android:textSize="@dimen/_12ssp"
+            android:typeface="serif" />
 
         <EditText
+            android:id="@+id/agentComment"
             android:layout_width="350dp"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:ems="10"
-            android:textSize="@dimen/_12ssp"
-            android:windowSoftInputMode="stateVisible"
-            android:typeface="serif"
-            android:id="@+id/agentComment"
-            android:hint="Add Comment, if necessary"
             android:layout_marginBottom="10dp"
+            android:ems="10"
             android:focusableInTouchMode="true"
-            />
+            android:hint="Add Comment, if necessary"
+            android:inputType="textPersonName"
+            android:textSize="@dimen/_12ssp"
+            android:typeface="serif"
+            android:windowSoftInputMode="stateVisible" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center">
+
             <Button
-                android:text="Submit"
+                android:id="@+id/submit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="#fcebbf"
                 android:paddingLeft="50dp"
                 android:paddingRight="50dp"
+                android:text="Submit"
                 android:textColor="#000"
-                android:background="#fcebbf"
                 android:textSize="@dimen/_12ssp"
-                android:typeface="serif"
-                android:layout_marginBottom="10dp"
-                android:id="@+id/submit" />
+                android:typeface="serif" />
         </LinearLayout>
     </LinearLayout>
 
