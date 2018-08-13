@@ -1,13 +1,13 @@
 package net.mzi.trackengine;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import net.mzi.trackengine.adapter.TabsPagerAdapter;
 
-public class HistoryActivity extends ActionBarActivity implements ActionBar.TabListener {
+public class HistoryActivity extends AppCompatActivity implements ActionBar.TabListener {
     private ViewPager viewPager;
     private TabsPagerAdapter mAdapter;
     private ActionBar actionBar;

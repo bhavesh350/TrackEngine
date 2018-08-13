@@ -551,32 +551,30 @@ public class TicketInfo extends AppCompatActivity {
                 launchUploadActivity(fileUri.getPath());
             } else if (resultCode == RESULT_CANCELED) {
                 // user cancelled Image capture
-                Toast.makeText(getApplicationContext(),
-                        "User cancelled image capture", Toast.LENGTH_SHORT)
-                        .show();
+                SOMTracker.showMassage(getApplicationContext(), "User cancelled image capture");
             } else {
                 // failed to capture image
-                Toast.makeText(getApplicationContext(),
-                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
-                        .show();
+                SOMTracker.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
             }
         } else {
-            Uri selectedImageUri = data.getData();
-            if (requestCode == 200) {
-                try {
-                    selectedPath = getPath(getApplicationContext(), selectedImageUri);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-                launchUploadActivity(selectedPath);
+            try {
+                Uri selectedImageUri = data.getData();
+                if (requestCode == 200) {
+                    try {
+                        selectedPath = getPath(getApplicationContext(), selectedImageUri);
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                    launchUploadActivity(selectedPath);
 
-                Log.e("selectedPath1 : ", selectedPath);
-            } else if (resultCode == RESULT_CANCELED) {
-                // user cancelled Image capture
-                Toast.makeText(getApplicationContext(),
-                        "User cancelled image capture", Toast.LENGTH_SHORT)
-                        .show();
-                //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
+                    Log.e("selectedPath1 : ", selectedPath);
+                } else if (resultCode == RESULT_CANCELED) {
+                    // user cancelled Image capture
+                    SOMTracker.showMassage(getApplicationContext(), "User cancelled image capture");
+                    //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
+                }
+            } catch (Exception e) {
+                SOMTracker.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
             }
         }
 

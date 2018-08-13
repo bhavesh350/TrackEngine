@@ -35,13 +35,14 @@ public class History_Battery extends Fragment {
     public static final int TASK = 0;
     String API_URL = null;
     RecyclerView mRecyclerView;
-    List<String> mDeviceId=new ArrayList<String>();
-    List<String> mBatterylevel=new ArrayList<String>();
-    List<String> mAutocaptured=new ArrayList<String>();
-    List<String> mUpdatedDate=new ArrayList<String>();
-    List<Integer> mDatasetTypes=new ArrayList<Integer>();
+    List<String> mDeviceId = new ArrayList<String>();
+    List<String> mBatterylevel = new ArrayList<String>();
+    List<String> mAutocaptured = new ArrayList<String>();
+    List<String> mUpdatedDate = new ArrayList<String>();
+    List<Integer> mDatasetTypes = new ArrayList<Integer>();
+
     //ProgressDialog progress;
-    public History_Battery(){
+    public History_Battery() {
 
     }
 
@@ -53,8 +54,8 @@ public class History_Battery extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.historybattery, container, false);
-        API_URL = PostUrl.sUrl+"GetBetteryLevelHistory?iUserId="+MainActivity.LOGINID;
+        View view = inflater.inflate(R.layout.historybattery, container, false);
+        API_URL = PostUrl.sUrl + "GetBetteryLevelHistory?iUserId=" + MainActivity.LOGINID;
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
         new UserBattery().execute();
         return view;
@@ -68,7 +69,7 @@ public class History_Battery extends Fragment {
             /*if(!((Activity) getActivity()).isFinishing()) {
                 progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");
             } */
-            if(getContext()!=null) {
+            if (getContext() != null) {
                 Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             mDatasetTypes.clear();
@@ -108,7 +109,7 @@ public class History_Battery extends Fragment {
             super.onPostExecute(s);
 
             if (s == null) {
-                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getActivity(), getActivity().getString(R.string.internet_error));
                 return;
             }
             Log.i("INFO", s);
@@ -117,9 +118,8 @@ public class History_Battery extends Fragment {
 
                 JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
                 JSONArray jdata = jsonObject.getJSONArray("UserBatteryLevelHistory");
-                for(int i=0;i<jdata.length();i++)
-                {
-                    JSONObject object=jdata.getJSONObject(i);
+                for (int i = 0; i < jdata.length(); i++) {
+                    JSONObject object = jdata.getJSONObject(i);
                     mDeviceId.add(object.getString("DeviceId"));
                     mUpdatedDate.add(object.getString("ActionTime"));
                     mBatterylevel.add(object.getString("BatteryLevel"));
@@ -131,9 +131,9 @@ public class History_Battery extends Fragment {
                 e.printStackTrace();
             }
 
-            mLayoutManager = new LinearLayoutManager(getActivity(),LinearLayoutManager.VERTICAL,false);
+            mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
             mRecyclerView.setLayoutManager(mLayoutManager);
-            mAdapter = new UserLocationBatteryHistoryAdapter(mDeviceId,mUpdatedDate,mBatterylevel,mAutocaptured, mDatasetTypes,"Battery Level");
+            mAdapter = new UserLocationBatteryHistoryAdapter(mDeviceId, mUpdatedDate, mBatterylevel, mAutocaptured, mDatasetTypes, "Battery Level");
             mRecyclerView.setAdapter(mAdapter);
         }
     }

@@ -370,10 +370,19 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     sAcceptStatus = cquery.getString(0).toString();
                                 } else
                                     sAcceptStatus = "0";
-//                                Firstfrag f = new Firstfrag();
+                                Firstfrag f = new Firstfrag();
                                 //Log.e( "onClick:accept ",data.get(position).IssueID );
                                 Date cDate = new Date();
                                 String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                             /*   postTktStatus.put("UserId", nh_userid);
+                                postTktStatus.put("ParentCompanyId", sParentComapnyId);
+                                postTktStatus.put("TicketId", mIssueID.get(position));
+                                postTktStatus.put("StatusId", sAcceptStatus);//cquery.getString(0).toString();
+                                postTktStatus.put("Comment", commemt.getText().toString());
+                                postTktStatus.put("ActivityDate", currentDateTimeString);
+                                postTktStatus.put("DepartmentId", DepartmentId);
+                                postTktStatus.put("RealtimeUpdate", "true");
+                                String tktStatus = new Gson().toJson(postTktStatus);*/
                                 NewTaskAdapter s = new NewTaskAdapter();
                                 sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
                                         "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + sParentComapnyId + "','" + commemt.getText().toString() + "','" + currentDateTimeString + "','-1')");
@@ -395,9 +404,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     @Override
                                     public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
                                         ApiResult.IssueDetail iData = response.body();
-                                        if (iData.resData.Status == null
-                                                || iData.resData.Status.equals("")
-                                                || iData.resData.Status.equals("0")) {
+                                        if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                             try {
                                                 Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                             } catch (Exception e) {
@@ -946,7 +953,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
                         cquery.moveToFirst();
                         sSelectedStatus = statusListIds.get(poss);
-                        ;
                         Date cDate = new Date();
                         currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                         //if (cquery.getString(1).toString().equals("1")) {
@@ -1170,10 +1176,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                 public void onItemSelected(AdapterView<?> parent, View arg1,
                                            int arg2, long arg3) {
-                    poss = arg2;
-                    cquery = sql.rawQuery("select CommentRequired,StartingForSite from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
-                    cquery.moveToFirst();
+
                     try {
+                        poss = arg2;
+                        cquery = sql.rawQuery("select CommentRequired,StartingForSite from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
+                        cquery.moveToFirst();
                         if (cquery.getCount() > 0) {
                             cquery.moveToFirst();
                             if (cquery.getString(0).toString().equals("true")) {
@@ -1190,6 +1197,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             }
                         }
                     } catch (Exception e) {
+                        SOMTracker.showMassage(context, "Local database Problem found with status id = " + statusListIds.get(poss));
                         return;
                     }
 
@@ -1315,7 +1323,22 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         final ApiResult apiResult = new ApiResult();
         //final ApiResult.IssueDetail issueDetail=apiResult.new IssueDetail(postTktStatus.get("UserId"),sParentComapnyId,id, sSelectedStatus ,commemt.getText().toString(),currentTime,DepartmentId,String.valueOf(latitude),String.valueOf(longitude),sAssetVerificationText,sDeviceId,"-1");
         try {
-            final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId").toString(), postTktStatus.get("ParentCompanyId").toString(), postTktStatus.get("TicketId").toString(), postTktStatus.get("StatusId").toString(), postTktStatus.get("Comment").toString(), postTktStatus.get("ActivityDate").toString(), postTktStatus.get("DepartmentId").toString(), postTktStatus.get("Latitude").toString(), postTktStatus.get("Longitude").toString(), postTktStatus.get("AssetSerialNo").toString(), postTktStatus.get("DeviceId").toString(), postTktStatus.get("RealtimeUpdate").toString(), postTktStatus.get("ModeOfTransport").toString(), postTktStatus.get("Expense").toString(), postTktStatus.get("AssignedUserId").toString());
+            final ApiResult.IssueDetail issueDetail =
+                    apiResult.new IssueDetail(postTktStatus.get("UserId").toString(),
+                            postTktStatus.get("ParentCompanyId").toString(),
+                            postTktStatus.get("TicketId").toString(),
+                            postTktStatus.get("StatusId").toString(),
+                            postTktStatus.get("Comment").toString(),
+                            postTktStatus.get("ActivityDate").toString(),
+                            postTktStatus.get("DepartmentId").toString(),
+                            postTktStatus.get("Latitude").toString(),
+                            postTktStatus.get("Longitude").toString(),
+                            postTktStatus.get("AssetSerialNo").toString(),
+                            postTktStatus.get("DeviceId").toString(),
+                            postTktStatus.get("RealtimeUpdate").toString(),
+                            postTktStatus.get("ModeOfTransport").toString(),
+                            postTktStatus.get("Expense").toString(),
+                            postTktStatus.get("AssignedUserId").toString());
 
             final String finalColumnId = sColumnId;
             if (postTktStatus.get("ModeOfTransport").toString().equals("0")) ;

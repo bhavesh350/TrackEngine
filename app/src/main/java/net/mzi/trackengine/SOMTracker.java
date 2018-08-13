@@ -1,6 +1,7 @@
 package net.mzi.trackengine;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -10,10 +11,13 @@ import android.content.pm.ActivityInfo;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.support.multidex.MultiDexApplication;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.acra.ACRA;
 import org.acra.ReportField;
@@ -23,8 +27,6 @@ import org.acra.sender.HttpSender;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import static net.mzi.trackengine.MyApp.SHARED_PREF_NAME;
 
 /**
  * Created by Poonam on 5/1/2017.
@@ -53,8 +55,10 @@ import static net.mzi.trackengine.MyApp.SHARED_PREF_NAME;
 )
 public class SOMTracker extends MultiDexApplication {
     SharedPreferences pref;
+    public static String SHARED_PREF_NAME = "RS_PREF";
     private static SOMTracker myApplication = null;
     public static boolean activityVisible; // Variable that will check the
+    private Context c;
     // current activity state
 
     public static boolean isActivityVisible() {
@@ -73,6 +77,7 @@ public class SOMTracker extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         myApplication = this;
+        c = this;
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -123,9 +128,134 @@ public class SOMTracker extends MultiDexApplication {
             }
         }, 1000 * 60 * 2);
 
+
+        try {
+            mSensorService = new ServiceLocation(c);
+            mServiceIntentLocation = new Intent(c, mSensorService.getClass());
+            if (!isMyServiceRunning(mSensorService.getClass())) {
+//                startService(mServiceIntent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(mServiceIntentLocation);
+                } else {
+                    startService(mServiceIntentLocation);
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        try {
+            betteryService = new ServiceBattery(c);
+            mServiceIntentBattery = new Intent(c, betteryService.getClass());
+            if (!isMyServiceRunning(betteryService.getClass()))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(mServiceIntentBattery);
+                } else {
+                    startService(mServiceIntentBattery);
+                }
+        } catch (Exception e) {
+        }
     }
 
+
+    Intent mServiceIntentBattery;
+    Intent mServiceIntentLocation;
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i("isMyServiceRunning?", true + "");
+                return true;
+            }
+        }
+        Log.i("isMyServiceRunning?", false + "");
+        return false;
+    }
+
+
+    ServiceLocation mSensorService;
+    ServiceBattery betteryService;
     private Handler h = new Handler();
+
+    public static void showMassage(Context ctx, String msg) {
+        try {
+            Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
+        } catch (Exception w) {
+        }
+    }
+
+    public static long getSharedPrefLong(String preffConstant) {
+        long longValue = 0;
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        longValue = sp.getLong(preffConstant, 0);
+        return longValue;
+    }
+
+    public static void setSharedPrefLong(String preffConstant, long longValue) {
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putLong(preffConstant, longValue);
+        editor.commit();
+    }
+
+    public static String getSharedPrefString(String preffConstant) {
+        String stringValue = "";
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        stringValue = sp.getString(preffConstant, "");
+        return stringValue;
+    }
+
+    public static void setSharedPrefString(String preffConstant,
+                                           String stringValue) {
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(preffConstant, stringValue);
+        editor.commit();
+    }
+
+    public static int getSharedPrefInteger(String preffConstant) {
+        int intValue = 0;
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        intValue = sp.getInt(preffConstant, 0);
+        return intValue;
+    }
+
+    public static void setSharedPrefInteger(String preffConstant, int value) {
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                SHARED_PREF_NAME, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt(preffConstant, value);
+        editor.commit();
+    }
+
+    public static float getSharedPrefFloat(String preffConstant) {
+        float floatValue = 0;
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                preffConstant, 0);
+        floatValue = sp.getFloat(preffConstant, 0);
+        return floatValue;
+    }
+
+    public static void setSharedPrefFloat(String preffConstant, float floatValue) {
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                preffConstant, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putFloat(preffConstant, floatValue);
+        editor.commit();
+    }
+
+    public static void setSharedPrefArray(String preffConstant, float floatValue) {
+        SharedPreferences sp = myApplication.getSharedPreferences(
+                preffConstant, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putFloat(preffConstant, floatValue);
+        editor.commit();
+    }
 
     public static boolean getStatus(String name) {
         boolean status;

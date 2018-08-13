@@ -1,6 +1,7 @@
 package net.mzi.trackengine;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -26,6 +27,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -56,6 +58,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -110,8 +113,9 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener, SharedPreferences.OnSharedPreferenceChangeListener {
     BroadcastReceiver brOfflineData;
+    private FusedLocationProviderClient mFusedLocationClient;
     private static final String TAG = MainActivity.class.getSimpleName();
     ApiInterface apiInterface;
     Map<String, String> mMobileDataInfo = new HashMap<String, String>();
@@ -128,7 +132,7 @@ public class MainActivity extends AppCompatActivity
     TextView timer, currTime;
     static RelativeLayout newtkt;
     String currentDateTimeString;
-    static String currentDateTimeStringCheckIN;
+    static String currentDateTimeStringCheckIN = "";
     TextView viewAll, h_uname, tCheckIntTime, tCheckInStatus;
     static TextView showAlert;
     LocationManager locationManager;
@@ -196,7 +200,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
 
@@ -233,7 +237,8 @@ public class MainActivity extends AppCompatActivity
                             appCheckInInfo.put("ActivityDate", currentDateTimeString);
                             appCheckInInfo.put("RealTimeUpdate", "true");
                             String sPostCheckIn = new Gson().toJson(appCheckInInfo);
-                            // new appCheckINOperation(sPostCheckIn).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//                            appCheckINOpemmmration(appCheckInInfo, cquery.getString(0).toString());
+                            // new appCheckINOmmmperation(sPostCheckIn).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                         NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                         nMgr.cancelAll();
@@ -325,8 +330,8 @@ public class MainActivity extends AppCompatActivity
                                         sColumnId = cquery.getString(0).toString();
                                     }
                                     PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
-                                }catch (Exception e){}
-
+                                } catch (Exception e) {
+                                }
 
 
                             } else {
@@ -497,6 +502,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 Log.e(TAG, "onClick: ");
                 if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
+                    SOMTracker.setStatus("isCheckin", true);
                     Log.e(TAG, "onClick: ");
                     Date cDate = new Date();
                     currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -516,14 +522,17 @@ public class MainActivity extends AppCompatActivity
                     //tAt.setTextColor(getResources().getColor(R.color.green));
                     setData();
                 } else {
-
+                    SOMTracker.setStatus("isCheckin", false);
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                     batteryAlarmManager.cancel(batteryPendingIntent);
-                    locationAlarmManager.cancel(locationPendingIntent);
-                    //stopService(intent);
-                    stopService(locationIntent);
-                    stopService(batteryIntent);
+                    try {
+                        locationAlarmManager.cancel(locationPendingIntent);
+//                        stopService(locationIntent);
+                    } catch (Exception e) {
+                    }
+//                    stopService(intent);
+//                    stopService(batteryIntent);
 
                     Log.e(TAG, "setData:Checked-IN " + currentDateTimeString);
                     isCheckIn = "false";
@@ -554,8 +563,17 @@ public class MainActivity extends AppCompatActivity
                     if (gps.canGetLocation) {
                         user_location = getLocation();
                     } else {
-                        user_location.Latitude = 0.0;
-                        user_location.Longitude = 0.0;
+                        if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                            user_location.Latitude = 0.0;
+                            user_location.Longitude = 0.0;
+                        } else {
+                            try {
+                                user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                            } catch (Exception e) {
+                            }
+                        }
+
                     }
                     Geocoder geocoder;
                     List<Address> addresses;
@@ -684,8 +702,16 @@ public class MainActivity extends AppCompatActivity
                                     user_location = getLocation();
 
                                 } else {
-                                    user_location.Latitude = 0.0;
-                                    user_location.Longitude = 0.0;
+                                    if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                                        user_location.Latitude = 0.0;
+                                        user_location.Longitude = 0.0;
+                                    } else {
+                                        try {
+                                            user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                            user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                        } catch (Exception e) {
+                                        }
+                                    }
                                 }
                                 Geocoder geocoder;
                                 List<Address> addresses;
@@ -758,8 +784,11 @@ public class MainActivity extends AppCompatActivity
                                     sColumnId = cquery.getString(0).toString();
                                 }
                                 if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
-
                                     Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
+                                    user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                    user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                    ServiceLocation m = new ServiceLocation();
+                                    m.LocationOperation(locationInfo, getApplicationContext(), sColumnId);
                                 } else {
                                     Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
                                     ServiceLocation m = new ServiceLocation();
@@ -800,10 +829,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     public static void removeTkt() {
-        MainActivity.newtkt.setVisibility(View.GONE);
-        LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        buttonLayoutParams.setMargins(0, 130, 0, 0);
-        RLay.setLayoutParams(buttonLayoutParams);
+        try {
+            MainActivity.newtkt.setVisibility(View.GONE);
+            LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            buttonLayoutParams.setMargins(0, 130, 0, 0);
+            RLay.setLayoutParams(buttonLayoutParams);
+        } catch (Exception e) {
+        }
     }
 
     public static void showTkt() {
@@ -828,6 +860,8 @@ public class MainActivity extends AppCompatActivity
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
             Log.v(TAG, "Starting and binding service");
         }
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -877,23 +911,65 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void setData() {
-
         isCheckIn = "true";
         Log.e(TAG, "setData:Checked-IN " + currentDateTimeStringCheckIN);
         currTime.setText("Checked-In:" + currentDateTimeStringCheckIN);
+//        Calendar cur_cal = Calendar.getInstance();
+//        cur_cal.setTimeInMillis(System.currentTimeMillis());
+//        cur_cal.add(Calendar.MILLISECOND, 120 * 1000);
+//
+//        Calendar cur_cal1 = Calendar.getInstance();
+//        cur_cal1.setTimeInMillis(System.currentTimeMillis());
+//        cur_cal1.add(Calendar.MILLISECOND, 900 * 1000);
+
+        long locationTime = System.currentTimeMillis() + (120 * 1000);
+        long batteryTime = System.currentTimeMillis() + (900 * 1000);
+
         int sIntervalLocation = pref.getInt("AppLocationSendingFrequency", 120);
         int sIntervalBattery = pref.getInt("AppBatterySendingFrequency", 900);
         batteryIntent = new Intent(MainActivity.this, ServiceBattery.class);
-        batteryPendingIntent = PendingIntent.getService(MainActivity.this, 0, batteryIntent, 0);
+        batteryPendingIntent = PendingIntent.getService(MainActivity.this, 5, batteryIntent, 0);
         batteryAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        batteryAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, (System.currentTimeMillis() + (sIntervalBattery * 1000)), sIntervalBattery * 1000, batteryPendingIntent);
+        batteryAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, batteryTime, 60 * 1000, batteryPendingIntent);
 
-        locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
-        locationPendingIntent = PendingIntent.getService(MainActivity.this, 0, locationIntent, 0);
-        locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, (System.currentTimeMillis() + (sIntervalLocation * 1000)), sIntervalLocation * 1000, locationPendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Utils.setRequestingLocationUpdates(this, true);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
+        } else {
+            locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
+            locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
+            locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
+        }
+
+    }
+
+    private PendingIntent getPendingIntent() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
+            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
+            return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        } else {
+            Intent intent = new Intent(this, LocationUpdatesIntentService.class);
+            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
+            return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+
     }
 
     @Override
@@ -1058,6 +1134,20 @@ public class MainActivity extends AppCompatActivity
             getDeviceLocation();
         }
         updateMarkers();
+        Utils.getLocationUpdatesResult(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
     }
 
     // AddonVisoin Infotech integrated to call api in every 10 minutes
@@ -1082,7 +1172,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -1161,6 +1252,19 @@ public class MainActivity extends AppCompatActivity
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             mMap.getUiSettings().setZoomControlsEnabled(true);
         }
+
+        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+            @Override
+            public void onMyLocationChange(Location location) {
+                user_location.Latitude = location.getLatitude();
+                user_location.Longitude = location.getLongitude();
+                SOMTracker.setSharedPrefString("lat", user_location.Latitude + "");
+                SOMTracker.setSharedPrefString("lng", user_location.Longitude + "");
+//                mCameraPosition = new CameraPosition.Builder().target(new LatLng(location.getLatitude(),
+//                        location.getLongitude())).build();
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+            }
+        });
     }
 
     private synchronized void buildGoogleApiClient() {
@@ -1302,6 +1406,29 @@ public class MainActivity extends AppCompatActivity
                 startActivity(i);
             }
         });
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if (s.equals(Utils.KEY_LOCATION_UPDATES_RESULT)) {
+            Utils.getLocationUpdatesResult(this);
+        } else if (s.equals(Utils.KEY_LOCATION_UPDATES_REQUESTED)) {
+            Utils.getLocationUpdatesResult(this);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
     }
 
     private class FetchStatus extends AsyncTask<String, Void, String> {
@@ -1495,7 +1622,7 @@ public class MainActivity extends AppCompatActivity
             mCardColor.remove(i);
             mDatasetCount.remove(i);
         }
-        try{
+        try {
             Cursor cquery1 = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);//new
             mDatasetCount.add(String.valueOf(cquery1.getCount()));
             mCardColor.add(R.drawable.cardbk_purple);
@@ -1521,7 +1648,8 @@ public class MainActivity extends AppCompatActivity
 
             maCounter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, mContext);
             mRecyclerView.setAdapter(maCounter);
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
 
         //maCounter.updateCounter();
 
@@ -1538,7 +1666,7 @@ public class MainActivity extends AppCompatActivity
         call1.enqueue(new Callback<ApiResult.User_MobileData>() {
             @Override
             public void onResponse(Call<ApiResult.User_MobileData> call, Response<ApiResult.User_MobileData> response) {
-                try{
+                try {
                     ApiResult.User_MobileData iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
@@ -1551,7 +1679,8 @@ public class MainActivity extends AppCompatActivity
                         newValues.put("SyncStatus", "true");
                         sql.update("User_MobileData", newValues, "Id=" + sColumnId, null);
                     }
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
             }
 
             @Override
@@ -1642,6 +1771,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setHideAlert() {
-        showAlert.setVisibility(View.INVISIBLE);
+        try {
+            showAlert.setVisibility(View.INVISIBLE);
+        } catch (Exception e) {
+        }
     }
 }

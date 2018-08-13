@@ -9,30 +9,16 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.gson.Gson;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.RejectedExecutionException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,27 +28,36 @@ import retrofit2.Response;
  * Created by Poonam on 4/19/2017.
  */
 public class ServiceBattery extends Service {
-    Map<String,String> batteryInfo=new HashMap<String, String>();
+
+    public ServiceBattery(Context c) {
+        super();
+    }
+
+    public ServiceBattery() {
+    }
+
+    Map<String, String> batteryInfo = new HashMap<String, String>();
     ApiInterface apiInterface;
     Cursor cquery;
     String currentDateTimeString;
     static int BatteryLevel;
     SharedPreferences pref;
     String nh_userid;
-    String sDeviceId,sDuration;
+    String sDeviceId, sDuration;
     SQLiteDatabase sql;
     SharedPreferences.Editor editor;
+
     @Override
     public void onCreate() {
         super.onCreate();
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE,null);
+        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
         //editor = pref.edit();
-        nh_userid=pref.getString("userid","userid");
-        sDeviceId=pref.getString("DeviceId","0");
-        sDuration=pref.getString("CheckedInDuration",currentDateTimeString);
+        nh_userid = pref.getString("userid", "userid");
+        sDeviceId = pref.getString("DeviceId", "0");
+        sDuration = pref.getString("CheckedInDuration", currentDateTimeString);
         this.registerReceiver(this.mBatInfoReceiver,
                 new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
@@ -74,7 +69,7 @@ public class ServiceBattery extends Service {
         this.registerReceiver(this.mBatInfoReceiver,
                 new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         Date cDate = new Date();
-        if(BatteryLevel==0);
+        if (BatteryLevel == 0) ;
         else {
             SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date localDate = null;
@@ -110,17 +105,19 @@ public class ServiceBattery extends Service {
                     editor.putString("CheckedInDuration", currentDateTimeString);
                     editor.commit();
                 }
-            }catch (ParseException e){
+            } catch (ParseException e) {
                 e.printStackTrace();
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
         }
 
 
-        return Service.START_NOT_STICKY;
+        flags = START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
 
-    public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+    public BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent intent) {
 
@@ -130,11 +127,21 @@ public class ServiceBattery extends Service {
 
         }
     };
+
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        Log.e("TAG", "battryonDestrcalled" );
-        //this.unregisterReceiver(this.mBatInfoReceiver);
+//        super.onDestroy();
+        Log.e("TAG", "battryonDestrcalled");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(new Intent(getApplicationContext(), ServiceBattery.class));
+        } else {
+            startService(new Intent(getApplicationContext(), ServiceBattery.class));
+        }
+//        Intent broadcastIntent = new Intent("net.mzi.trackengine.BootReceiverBattery");
+//        sendBroadcast(broadcastIntent);
+//        //this.unregisterReceiver(this.mBatInfoReceiver);
+//        Intent myIntent = new Intent(getApplicationContext(), ServiceBattery.class);
+//        startService(myIntent);
     }
 
     @Nullable
@@ -143,8 +150,9 @@ public class ServiceBattery extends Service {
 
         return null;
     }
+
     public void BatteryOperation(Map batteryInfo, final Context ctx, final String sColumnId) {
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE,null);
+        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         Log.e("BatteryOperation: ", batteryInfo.toString());
         final ApiResult apiResult = new ApiResult();
@@ -155,16 +163,20 @@ public class ServiceBattery extends Service {
         call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
             @Override
             public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
-                ApiResult.User_BatteryLevel iData = response.body();
-                if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                try {
+                    ApiResult.User_BatteryLevel iData = response.body();
+                    if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "false");
-                    sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
-                } else {
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "true");
-                    sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "false");
+                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                    } else {
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "true");
+                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                    }
+                } catch (Exception e) {
+//                   MyApp.showMassage();
                 }
             }
 

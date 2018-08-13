@@ -109,7 +109,7 @@ public class History_Location extends Fragment {
                 progress.dismiss();
             }*/
             if (s == null) {
-                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getActivity(), getString(R.string.internet_error));
 
             } else {
                 Log.i("INFO", s);

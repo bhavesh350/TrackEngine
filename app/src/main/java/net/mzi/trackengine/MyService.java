@@ -1,9 +1,14 @@
 package net.mzi.trackengine;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
+import android.app.job.JobInfo;
+import android.app.job.JobParameters;
+import android.app.job.JobScheduler;
+import android.app.job.JobService;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -18,9 +23,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
@@ -43,17 +45,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Created by Poonam on 4/19/2017.
+ * Created by root on 12/2/18.
  */
-public class ServiceLocation extends Service {
-
-    public ServiceLocation(Context c) {
-        super();
-    }
-
-    public ServiceLocation() {
-    }
-
+@SuppressLint("NewApi")
+public class MyService extends JobService {
     Map<String, String> locationInfo = new HashMap<String, String>();
     ApiInterface apiInterface;
     Gps gps;
@@ -61,65 +56,67 @@ public class ServiceLocation extends Service {
     String sDeviceId, sDuration;
     String nh_userid;
     String sAddressLine, sCity, sState, sCountry, sPostalCode, sKnownName, sPremises, sSubLocality, sSubAdminArea;
-    private static int LOCATION_INTERVAL = 10 * 2 * 1000;
-    private static final float LOCATION_DISTANCE = 0f;
-    private LocationManager mLocationManager = null;
-    String TAG = "service_location";
+    String TAG = "MyService";
     SharedPreferences.Editor editor;
     String currentDateTimeString;
+    private static int LOCATION_INTERVAL = 10 * 2 * 1000;
+    private static final float LOCATION_DISTANCE = 0f;
     // private DatabaseReference mDatabase;
     static double latitude, longitude;
     SharedPreferences pref;
     SQLiteDatabase sql;
+    private LocationManager mLocationManager = null;
+    /**
+     * The Job scheduler.
+     */
+    JobScheduler jobScheduler;
 
-    private class LocationListener implements android.location.LocationListener {
-        Location mLastLocation;
+    /**
+     * The Tag.
+     */
+//    String TAG = "MyService";
 
-        public LocationListener(String provider) {
-            Log.e("TAG", "LocationListener " + provider);
-            sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
-            mLastLocation = new Location(provider);
-        }
+    /**
+     * LocationRequest instance
+     */
+    /**
+     * Location instance
+     */
+    private Location lastLocation;
 
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-        @Override
-        public void onLocationChanged(Location location) {
-            String sProvider = location.getProvider();
-            Log.e(TAG, "onLocationChanged: " + sProvider);
-            Log.e(TAG, "onLocationChanged: " + String.valueOf(location.getLatitude()));
-
-            mLastLocation.set(location);
-            latitude = mLastLocation.getLatitude();
-            longitude = mLastLocation.getLongitude();
-            SOMTracker.setSharedPrefString("lat", latitude + "");
-            SOMTracker.setSharedPrefString("lng", longitude + "");
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            Log.e(TAG, "onStatusChanged: " + provider + status);
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-            Log.e(TAG, "onProviderEnabled: " + provider);
-        }
-
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
+    /**
+     * this method writes location to text view or shared preferences
+     *
+     * @param location - location from fused location provider
+     */
+    @SuppressLint("SetTextI18n")
+    private void writeActualLocation(Location location) {
+        Log.d(TAG, location.getLatitude() + ", " + location.getLongitude());
+        //here in this method you can use web service or any other thing
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public void onCreate() {
-        super.onCreate();
-        Log.d("LocationService", "Oncreate for locatoin service has been called");
+    /**
+     * this method only provokes writeActualLocation().
+     */
+    private void writeLastLocation() {
+        writeActualLocation(lastLocation);
+    }
+
+
+    /**
+     * Default method of service
+     *
+     * @param params - JobParameters params
+     * @return boolean
+     */
+    @Override
+    public boolean onStartJob(JobParameters params) {
+        startJobAgain();
+
+//        createGoogleApi();
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        isLocationCalled = false;
-        h.postDelayed(check2MinTask, 60 * 1000);
+//        isLocationCalled = false;
+//        h.postDelayed(check2MinTask, 60 * 1000);
 
         initializeLocationManager();
         try {
@@ -141,14 +138,6 @@ public class ServiceLocation extends Service {
             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
         }
 
-        /*SchedulingAdapter s= new SchedulingAdapter();
-        s.getLocation();*/
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
         FirebaseApp.initializeApp(getApplicationContext());
 //        h.postDelayed(check2MinTask, 2 * 60 * 1000);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
@@ -165,7 +154,7 @@ public class ServiceLocation extends Service {
         sDeviceId = pref.getString("DeviceId", "0");
         sDuration = pref.getString("CheckedInDuration", currentDateTimeString);
         gps = new Gps(getApplicationContext());
-        initializeLocationManager();
+//        initializeLocationManager();
         SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date localDate = null;
         Date liveDate = cDate;
@@ -394,61 +383,64 @@ public class ServiceLocation extends Service {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        flags = START_STICKY;
-        return super.onStartCommand(intent, flags, startId);
-//        return Service.START_STICKY;
+        return false;
     }
 
-    private Handler h = new Handler();
-    private boolean isLocationCalled = false;
-    private Runnable check2MinTask = new Runnable() {
-        @Override
-        public void run() {
-            if (isLocationCalled) {
-                isLocationCalled = false;
-            }
-            h.postDelayed(check2MinTask, 30 * 1000);
-        }
-    };
+    /**
+     * Create google api instance
+     */
+//    private void createGoogleApi() {
+//        //Log.d(TAG, "createGoogleApi()");
+//        if (googleApiClient == null) {
+//            googleApiClient = new GoogleApiClient.Builder(this)
+//                    .addConnectionCallbacks(this)
+//                    .addOnConnectionFailedListener(this)
+//                    .addApi(LocationServices.API)
+//                    .build();
+//        }
+//
+//        //connect google api
+//        googleApiClient.connect();
+//
+//    }
 
+    /**
+     * disconnect google api
+     *
+     * @param params - JobParameters params
+     * @return result
+     */
     @Override
-    public void onDestroy() {
-//        super.onDestroy();
-        h.removeCallbacks(check2MinTask);
-//        Intent broadcastIntent = new Intent("net.mzi.trackengine.BootReceiver");
-//        sendBroadcast(broadcastIntent);
-        Log.e("TAG", "locationServiceOnDestroyCalled");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(new Intent(getApplicationContext(), ServiceLocation.class));
-        } else {
-            startService(new Intent(getApplicationContext(), ServiceLocation.class));
-        }
-//        Intent myIntent = new Intent(getApplicationContext(), ServiceLocation.class);
-//        startService(myIntent);
+    public boolean onStopJob(JobParameters params) {
+//        googleApiClient.disconnect();
+        return false;
     }
+
+    /**
+     * starting job again
+     */
+    private void startJobAgain() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(TAG, "Job Started");
+            ComponentName componentName = new ComponentName(getApplicationContext(),
+                    MyService.class);
+            jobScheduler = (JobScheduler) getApplicationContext().getSystemService(JOB_SCHEDULER_SERVICE);
+            JobInfo jobInfo = new JobInfo.Builder(1, componentName)
+                    .setMinimumLatency(10000) //10 sec interval
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setRequiresCharging(false).build();
+            jobScheduler.schedule(jobInfo);
+        }
+    }
+
+
 
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
 //        if (!SOMTracker.getStatus("isCheckin")) {
 //            return;
 //        }
-        try {
-            if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
-                    || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
-                Log.e("LocationOperation: ", "Not executed dut to wrong user id");
-                return;
-            }
-        } catch (Exception e) {
-            Log.e("LocationOperation: ", "Not executed dut to wrong user id");
-            return;
-        }
         Log.e("LocationOperation: ", "Method called LocationOperation");
-        if (isLocationCalled) {
-            isLocationCalled = false;
-            return;
-        }
-        isLocationCalled = false;
+
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
         sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
@@ -465,8 +457,7 @@ public class ServiceLocation extends Service {
                 sublocalityString = "NA";
             }
 
-            final ApiResult.User_Location user_location = apiResult.new User_Location("true",
-                    locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(), locationInfo.get("City").toString(), locationInfo.get("State").toString(), locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
+            final ApiResult.User_Location user_location = apiResult.new User_Location("true", locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(), locationInfo.get("City").toString(), locationInfo.get("State").toString(), locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
             Call<ApiResult.User_Location> call1 = apiInterface.PostCoordinates(user_location);
             final String finalColumnId = sColumnId;
             call1.enqueue(new Callback<ApiResult.User_Location>() {
@@ -499,25 +490,6 @@ public class ServiceLocation extends Service {
         }
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    LocationListener[] mLocationListeners = new LocationListener[]{
-            new LocationListener(LocationManager.GPS_PROVIDER),
-            new LocationListener(LocationManager.NETWORK_PROVIDER)
-    };
-
-    private void initializeLocationManager() {
-        Log.e(TAG, "initializeLocationManager");
-        if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void showSettingsAlert() {
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Toast.makeText(this, "GPS is off", Toast.LENGTH_SHORT).show();
@@ -537,4 +509,54 @@ public class ServiceLocation extends Service {
         notificationManager.notify(0, noti);
     }
 
+    private void initializeLocationManager() {
+        Log.e(TAG, "initializeLocationManager");
+        if (mLocationManager == null) {
+            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        }
+    }
+    LocationListener[] mLocationListeners = new LocationListener[]{
+            new LocationListener(LocationManager.GPS_PROVIDER),
+            new LocationListener(LocationManager.NETWORK_PROVIDER)
+    };
+    private class LocationListener implements android.location.LocationListener {
+        Location mLastLocation;
+
+        public LocationListener(String provider) {
+            Log.e("TAG", "LocationListener " + provider);
+            sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
+            mLastLocation = new Location(provider);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void onLocationChanged(Location location) {
+            String sProvider = location.getProvider();
+            Log.e(TAG, "onLocationChanged: " + sProvider);
+            Log.e(TAG, "onLocationChanged: " + String.valueOf(location.getLatitude()));
+
+            mLastLocation.set(location);
+            latitude = mLastLocation.getLatitude();
+            longitude = mLastLocation.getLongitude();
+            SOMTracker.setSharedPrefString("lat", latitude + "");
+            SOMTracker.setSharedPrefString("lng", longitude + "");
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            Log.e(TAG, "onStatusChanged: " + provider + status);
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+            Log.e(TAG, "onProviderEnabled: " + provider);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    }
 }

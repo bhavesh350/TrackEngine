@@ -3,13 +3,13 @@ package net.mzi.trackengine;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import net.mzi.trackengine.adapter.OfflneTabsPagerAdapter;
 
-public class OfflineSyncInfo extends ActionBarActivity implements ActionBar.TabListener {
+public class OfflineSyncInfo extends AppCompatActivity implements ActionBar.TabListener {
     private ViewPager viewPager;
     private OfflneTabsPagerAdapter mAdapter;
     private ActionBar actionBar;

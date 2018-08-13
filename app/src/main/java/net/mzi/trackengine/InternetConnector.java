@@ -149,7 +149,8 @@ public class InternetConnector {
                             String id = cquery.getString(0).toString();
                             sql.delete("User_Location", "Id" + "=" + id, null);
                         } else {
-                            if (cquery.getString(15).toString().equals("-1") || cquery.getString(15).toString().equals("false")) {
+                            if (cquery.getString(15).toString().equals("-1")
+                                    || cquery.getString(15).toString().equals("false")) {
                                 locationInfo.put("RealTimeUpdate", "false");
                             }
                             locationInfo.put("UserId", cquery.getString(1).toString());

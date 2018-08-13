@@ -82,9 +82,9 @@ public class LoginActivity extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            try{
+            try {
                 sDeviceId = getUniqueID();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
 //                sDeviceId = "";
             }
@@ -153,9 +153,9 @@ public class LoginActivity extends AppCompatActivity {
                             android.Manifest.permission.READ_PHONE_STATE)
                             == PackageManager.PERMISSION_GRANTED) {
                         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-                        try{
-                            sDeviceId =  getUniqueID();
-                        }catch (Exception e){
+                        try {
+                            sDeviceId = getUniqueID();
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     } else {
@@ -195,7 +195,7 @@ public class LoginActivity extends AppCompatActivity {
                                         for (int i = 0; i < user.data.dataStatus.length; i++) {
                                             Log.e("TAG", "onPostExecute: " + user.data.dataStatus[i]);
                                             sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
-                                                    "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "')");
+                                                    "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "" + "')");
                                             String sAllParentStatuses = user.data.dataStatus[i].ParentStatuses;
                                             List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
                                             for (int j = 0; j < listsAllParentStatuses.size(); j++) {
@@ -211,7 +211,7 @@ public class LoginActivity extends AppCompatActivity {
                                         try {
                                             for (int i = 0; i < user.data.modeOfTrasportList.length; i++) {
                                                 sql.execSQL("INSERT INTO ModeOfTrasportList(TransportId,TransportMode,IsPublic)VALUES" +
-                                                        "('" + user.data.modeOfTrasportList[i].Id + "','" + user.data.modeOfTrasportList[i].TransportMode + "','" + user.data.modeOfTrasportList[i].IsPublic + "')");
+                                                        "('" + user.data.modeOfTrasportList[i].Id + "','" + user.data.modeOfTrasportList[i].TransportMode + "','" + user.data.modeOfTrasportList[i].IsPublic + "" + "')");
                                             }
                                         } catch (Exception e) {
                                         }
@@ -318,12 +318,18 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public String getUniqueID(){
+    public String getUniqueID() {
         String myAndroidDeviceId = "";
         TelephonyManager mTelephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (mTelephony.getDeviceId() != null){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        if (mTelephony.getDeviceId() != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return null;
+            }
             myAndroidDeviceId = mTelephony.getDeviceId();
-        }else{
+        } else {
             myAndroidDeviceId = Settings.Secure.getString(getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
         }
         return myAndroidDeviceId;

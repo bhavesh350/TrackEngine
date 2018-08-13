@@ -38,16 +38,18 @@ public class History_CheckIn extends Fragment {
     public static final int TASK = 0;
     RecyclerView mRecyclerView;
     String API_URL = null;
-    List<String> lCheckInTime=new ArrayList<String>();
-    List<String> lCheckOutTime=new ArrayList<String>();
-    List<String> lCheckInLocation=new ArrayList<String>();
-    List<String> lCheckOutLocation=new ArrayList<String>();
-    List<String> lDuration=new ArrayList<String>();
-    List<Integer> mDatasetTypes=new ArrayList<Integer>();
+    List<String> lCheckInTime = new ArrayList<String>();
+    List<String> lCheckOutTime = new ArrayList<String>();
+    List<String> lCheckInLocation = new ArrayList<String>();
+    List<String> lCheckOutLocation = new ArrayList<String>();
+    List<String> lDuration = new ArrayList<String>();
+    List<Integer> mDatasetTypes = new ArrayList<Integer>();
+
     //ProgressDialog progress;
-    public History_CheckIn(){
+    public History_CheckIn() {
 
     }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,24 +58,25 @@ public class History_CheckIn extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.historycheckin, container, false);
+        View view = inflater.inflate(R.layout.historycheckin, container, false);
         Date cDate = new Date();
         String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd").format(cDate);
 
         //API_URL = "http://192.168.1.20/TrackEngine/api/Post/GetCheckInCheckoutReport?iUserId="+MainActivity.LOGINID+"&dtFromDate="+"2017-04-13"+"&dtToDate="+"2017-04-13";
-        API_URL = PostUrl.sUrl+"GetCheckInCheckoutReport?iUserId="+MainActivity.LOGINID+"&dtFromDate="+currentDateTimeString+"&dtToDate="+currentDateTimeString;
+        API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + MainActivity.LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
-        Log.e( "onCreateView: ",API_URL);
+        Log.e("onCreateView: ", API_URL);
 
         new History_CheckIn.CheckInInfo().execute();
         return view;
     }
+
     private class CheckInInfo extends AsyncTask<String, Void, String> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if(getContext()!=null){
-                Toast.makeText(getContext(),"Loading data!!!",Toast.LENGTH_LONG).show();
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             /*if(!((Activity) getActivity()).isFinishing()) {
                 progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");
@@ -85,6 +88,7 @@ public class History_CheckIn extends Fragment {
             lCheckOutTime.clear();
             lDuration.clear();
         }
+
         @Override
         protected String doInBackground(String... params) {
             try {
@@ -115,7 +119,7 @@ public class History_CheckIn extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if (s == null) {
-                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getActivity(), "Internet is not working properly, may not synced with server!!!");
             } else {
                 Log.i("INFO", s);
                 try {
@@ -136,7 +140,7 @@ public class History_CheckIn extends Fragment {
                 }
                 mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
                 mRecyclerView.setLayoutManager(mLayoutManager);
-                mAdapter = new CheckInHistoryAdapter(lCheckInTime, lCheckOutTime, lCheckInLocation, lCheckOutLocation,lDuration, mDatasetTypes);
+                mAdapter = new CheckInHistoryAdapter(lCheckInTime, lCheckOutTime, lCheckInLocation, lCheckOutLocation, lDuration, mDatasetTypes);
                 mRecyclerView.setAdapter(mAdapter);
             }
         }
