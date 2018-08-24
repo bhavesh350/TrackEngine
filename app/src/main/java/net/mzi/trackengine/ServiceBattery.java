@@ -132,11 +132,11 @@ public class ServiceBattery extends Service {
     public void onDestroy() {
 //        super.onDestroy();
         Log.e("TAG", "battryonDestrcalled");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(new Intent(getApplicationContext(), ServiceBattery.class));
-        } else {
-            startService(new Intent(getApplicationContext(), ServiceBattery.class));
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            startForegroundService(new Intent(getApplicationContext(), ServiceBattery.class));
+//        } else {
+//            startService(new Intent(getApplicationContext(), ServiceBattery.class));
+//        }
 //        Intent broadcastIntent = new Intent("net.mzi.trackengine.BootReceiverBattery");
 //        sendBroadcast(broadcastIntent);
 //        //this.unregisterReceiver(this.mBatInfoReceiver);
@@ -152,6 +152,15 @@ public class ServiceBattery extends Service {
     }
 
     public void BatteryOperation(Map batteryInfo, final Context ctx, final String sColumnId) {
+        long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+        if (lastBatteryTime == 0) {
+            SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+        }
+        long differ = System.currentTimeMillis() - lastBatteryTime;
+        if (differ < (15 * 60 * 1000)) {
+            return;
+        }
+        SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
         sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         Log.e("BatteryOperation: ", batteryInfo.toString());

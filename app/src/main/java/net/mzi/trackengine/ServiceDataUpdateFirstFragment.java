@@ -93,54 +93,56 @@ public class ServiceDataUpdateFirstFragment extends Service {
             sLastAction = pref.getString("LastAction", "2017-01-01");
         }
 
-        drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
-        drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
-            @Override
-            public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
-                sTicketIds = "";
-                for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Pi = postSnapshot.getValue(FirebaseTicketData.class);
-                    //firebaseIssueData.add(P);
-                    Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                    if (cquery.getCount() > 0) {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("Action", Pi.getAction());
-                        newValues.put("IssueId", postSnapshot.getKey());
-                        sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                    } else {
-                        sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
+        try{
+            drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
+            drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                @Override
+                public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
+                    sTicketIds = "";
+                    for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        Pi = postSnapshot.getValue(FirebaseTicketData.class);
+                        //firebaseIssueData.add(P);
+                        Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                        if (cquery.getCount() > 0) {
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("Action", Pi.getAction());
+                            newValues.put("IssueId", postSnapshot.getKey());
+                            sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                        } else {
+                            sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                    "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
+                        }
+                        sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
+                        //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
+                        //}
                     }
-                    sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
-                    //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
-                    //}
-                }
-                String sAsset;
-                if (sIsAssetVerification)
-                    sAsset = "true";
-                else
-                    sAsset = "false";
+                    String sAsset;
+                    if (sIsAssetVerification)
+                        sAsset = "true";
+                    else
+                        sAsset = "false";
 
-                mTicketIdList.put("IssueIds", sTicketIds);
-                mTicketIdList.put("UserId", nh_userid);
-                mTicketIdList.put("IsAssetVerificationEnable", sAsset);
-                mTicketIdList.put("DepartmentId", DepartmentId);
-                mTicketIdList.put("LastAction", sLastAction);
+                    mTicketIdList.put("IssueIds", sTicketIds);
+                    mTicketIdList.put("UserId", nh_userid);
+                    mTicketIdList.put("IsAssetVerificationEnable", sAsset);
+                    mTicketIdList.put("DepartmentId", DepartmentId);
+                    mTicketIdList.put("LastAction", sLastAction);
 
-                if (!(nh_userid.equals("0"))) ;
-                {
-                    String sTktInJson = new Gson().toJson(mTicketIdList);
-                    NewTicketsInfo(mTicketIdList);
+                    if (!(nh_userid.equals("0"))) ;
+                    {
+                        String sTktInJson = new Gson().toJson(mTicketIdList);
+                        NewTicketsInfo(mTicketIdList);
+                    }
+
                 }
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("onCancelled: ", "firebase issue");
-            }
-        });
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e("onCancelled: ", "firebase issue");
+                }
+            });
+        }catch (Exception e){}
 
 
         return Service.START_STICKY;

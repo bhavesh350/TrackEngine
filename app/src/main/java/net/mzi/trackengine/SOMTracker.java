@@ -134,11 +134,9 @@ public class SOMTracker extends MultiDexApplication {
             mServiceIntentLocation = new Intent(c, mSensorService.getClass());
             if (!isMyServiceRunning(mSensorService.getClass())) {
 //                startService(mServiceIntent);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(mServiceIntentLocation);
-                } else {
+
                     startService(mServiceIntentLocation);
-                }
+
             }
         } catch (Exception e) {
         }
@@ -147,11 +145,9 @@ public class SOMTracker extends MultiDexApplication {
             betteryService = new ServiceBattery(c);
             mServiceIntentBattery = new Intent(c, betteryService.getClass());
             if (!isMyServiceRunning(betteryService.getClass()))
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(mServiceIntentBattery);
-                } else {
+
                     startService(mServiceIntentBattery);
-                }
+
         } catch (Exception e) {
         }
     }

@@ -1,28 +1,15 @@
 package net.mzi.trackengine;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.location.Address;
-import android.location.Geocoder;
-import android.net.NetworkInfo;
-import android.support.v4.content.ContextCompat;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -171,7 +158,7 @@ public class InternetConnector {
                             locationInfo.put("Provider", "NA");
                             ServiceLocation m = new ServiceLocation();
                             //insert
-                            m.LocationOperation(locationInfo, context, cquery.getString(0).toString());
+                            m.LocationOperationOffline(locationInfo, context, cquery.getString(0).toString());
 
 
                         }

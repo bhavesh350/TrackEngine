@@ -2,6 +2,7 @@ package net.mzi.trackengine;
 
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -12,6 +13,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.AudioAttributes;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -224,7 +226,8 @@ public class Firstfrag extends Fragment {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void sendNotification(String sNotificationMessage, Context activity) {
+    private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
+        int ticket = Integer.parseInt(ticketNumber.replace("TAGIT", ""));
         //Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Intent intent = new Intent(getActivity(), MainActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(getActivity(), (int) System.currentTimeMillis(), intent, 0);
@@ -238,10 +241,30 @@ public class Firstfrag extends Fragment {
         NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         // hide the notification after its selected
         noti.flags |= Notification.FLAG_AUTO_CANCEL;
-        notificationManager.notify(MULTIPLE_NOTIFICATION, noti);
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            noti = new Notification.Builder(getContext()).setContentTitle("MZS Notifier")
+                    //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+                    .setSmallIcon(R.mipmap.som)
+                    .setContentText(sNotificationMessage)
+                    .setContentIntent(pIntent)
+                    .setChannelId(ticket+"")
+                    .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
+                    .addAction(R.drawable.som, "View", pIntent).build();
+            CharSequence name = getActivity().getString(R.string.app_name);
+            NotificationChannel mChannel = new NotificationChannel(ticket+"", name, importance);
+//            AudioAttributes att = new AudioAttributes.Builder()
+//                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+//                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+//                    .build();
+//            mChannel.setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone),att);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+            notificationManager.notify(ticket, noti);
         //
 
-        MULTIPLE_NOTIFICATION++;
+        ++MULTIPLE_NOTIFICATION;
     }
 
     private void fetchDataFromLocal() {
@@ -272,8 +295,17 @@ public class Firstfrag extends Fragment {
             MainActivity.showTkt();
             MainActivity m = new MainActivity();
             m.updateCounter(ctx);
-            final SwipeDeckAdapter adapter = new SwipeDeckAdapter(newTickets, (MainActivity) getActivity());
+            final SwipeDeckAdapter adapter = new SwipeDeckAdapter(newTickets, getActivity());
             cardStack.setAdapter(adapter);
+            for (int i = 0; i < newTickets.size(); i++) {
+                sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
+            }
+//            try {
+//                sendNotification("New Ticket: " + newTickets.get(0).TicketNumber, ctx);
+//            } catch (Exception e) {
+//                Log.e("Notification error ", "at 280");
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -394,10 +426,16 @@ public class Firstfrag extends Fragment {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
                                         if (forMainTable.getCount() > 0) {
                                         } else {
-                                            sendNotification("New Ticket: " + t.TicketNumber, ctx);
+                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                                             sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                     "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                         }
+                                        try {
+                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                        } catch (Exception e) {
+                                            Log.e("Notification error ", "at 280");
+                                        }
+                                        // comment if upper one is not commented
                                     } else if (cquery.getString(0).toString().equals("Update") || cquery.getString(0).toString().equals("update")) {
                                         char str = cquery.getString(0).toString().charAt(0);
                                         if (str == 'W') {
@@ -481,16 +519,6 @@ public class Firstfrag extends Fragment {
         }
     }
 
-//    // addonVisoin Infotech
-//    private Runnable dataReSendEvery10Mins = new Runnable() {
-//        @Override
-//        public void run() {
-//            NewTicketsInfo(mTicketIdList);
-//            h.postDelayed(dataReSendEvery10Mins, 10 * 60 * 1000);
-//        }
-//    };
-
-//    private Handler h = new Handler();
 
     public class NetworkChangeReceiver extends BroadcastReceiver {
         @Override
@@ -571,5 +599,11 @@ public class Firstfrag extends Fragment {
                 return false;
             }
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        sendNotification("test",getActivity());
     }
 }

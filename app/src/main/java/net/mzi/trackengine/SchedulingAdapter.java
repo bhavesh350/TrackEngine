@@ -998,13 +998,17 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("RealtimeUpdate", "true");
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
-                                postTktStatus.put("Latitude", String.valueOf(latitude));
+                                postTktStatus.put("Longitude", String.valueOf(longitude));
                                 postTktStatus.put("AssetVerificationText", sAssetVerificationText);
                                 postTktStatus.put("Expense", eTransport.getText().toString());
                                 String tktStatus = new Gson().toJson(postTktStatus);
                                 try {
                                     sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                            "('" + postTktStatus.get("TicketId") + "','" + postTktStatus.get("UserId") + "','" + postTktStatus.get("StatusId") + "','" + postTktStatus.get("Comment") + "','" + postTktStatus.get("ActivityDate") + "','-1')");
+                                            "('" + postTktStatus.get("TicketId")
+                                            + "','" + postTktStatus.get("UserId")
+                                            + "','" + postTktStatus.get("StatusId")
+                                            + "','" + postTktStatus.get("Comment")
+                                            + "','" + postTktStatus.get("ActivityDate") + "','-1')");
                                 } catch (Exception e) {
                                 }
                                 Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
@@ -1113,7 +1117,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("DepartmentId", DepartmentId);
                                 postTktStatus.put("RealtimeUpdate", "true");
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
-                                postTktStatus.put("Longitude", String.valueOf(latitude));
+                                postTktStatus.put("Longitude", String.valueOf(longitude));
                                 postTktStatus.put("AssetSerialNo", sAssetVerificationText);
                                 postTktStatus.put("DeviceId", sDeviceId);
                                 postTktStatus.put("Expense", eTransport.getText().toString());

@@ -2,6 +2,7 @@ package net.mzi.trackengine;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -24,6 +25,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -497,6 +499,7 @@ public class MainActivity extends AppCompatActivity
 
 
         tCheckInStatus.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View v) {
@@ -575,7 +578,7 @@ public class MainActivity extends AppCompatActivity
                         }
 
                     }
-                    Geocoder geocoder;
+                    Geocoder geocoder = null;
                     List<Address> addresses;
                     geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
@@ -605,6 +608,17 @@ public class MainActivity extends AppCompatActivity
 
                     } catch (IOException e) {
                         e.printStackTrace();
+                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                        sCity = "NA";
+                        sState = "NA";
+                        sCountry = "NA";
+                        sPostalCode = "NA";
+                        sKnownName = "NA";
+                        sPremises = "NA";
+                        sSubLocality = "NA";
+                        sSubAdminArea = "NA";
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
                         sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
                         sCity = "NA";
                         sState = "NA";
@@ -674,6 +688,25 @@ public class MainActivity extends AppCompatActivity
                     sColumnId = cquery.getString(0).toString();
                 }
                 appCheckINOperation(appCheckInInfo, sColumnId);
+
+                BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+                int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+
+                try {
+                    Log.d("battery", batLevel + "%");
+                    Log.d("battery2", getBatteryPercentage(MainActivity.this) + "%");
+                    if (batLevel > 0) {
+                        sendBatteryCheckinLevel(batLevel);
+                    } else {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    }
+                } catch (Exception e) {
+                    try {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    } catch (Exception eee) {
+                    }
+                }
+
             }
         });
 
@@ -713,7 +746,7 @@ public class MainActivity extends AppCompatActivity
                                         }
                                     }
                                 }
-                                Geocoder geocoder;
+                                Geocoder geocoder = null;
                                 List<Address> addresses;
                                 geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
@@ -745,6 +778,17 @@ public class MainActivity extends AppCompatActivity
 
                                 } catch (IOException e) {
                                     e.printStackTrace();
+                                    sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                    sCity = "NA";
+                                    sState = "NA";
+                                    sCountry = "NA";
+                                    sPostalCode = "NA";
+                                    sKnownName = "NA";
+                                    sPremises = "NA";
+                                    sSubLocality = "NA";
+                                    sSubAdminArea = "NA";
+                                } catch (Exception ee) {
+                                    ee.printStackTrace();
                                     sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
                                     sCity = "NA";
                                     sState = "NA";
@@ -828,6 +872,28 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private void sendBatteryCheckinLevel(int batLevel) {
+        Map<String, String> batteryInfo = new HashMap<>();
+
+        batteryInfo.put("UserId", LOGINID);
+        batteryInfo.put("DeviceId", sDeviceId);
+        batteryInfo.put("Battery", String.valueOf(batLevel));
+        batteryInfo.put("ActivityDate", currentDateTimeString);
+        batteryInfo.put("AutoCaptured", "false");
+        batteryInfo.put("RealTimeUpdate", "true");
+        String jsonBatteryString = new Gson().toJson(batteryInfo);
+        ServiceBattery serviceBattery = new ServiceBattery();
+//              serviceBattery.registerReceiver(serviceBattery.mBatInfoReceiver)
+        sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + batLevel + "','true','" + currentDateTimeString + "','-1')");
+        Cursor cquery = sql.rawQuery("select * from User_Login ", null);
+        String sColumnId = null;
+        if (cquery.getCount() > 0) {
+            cquery.moveToLast();
+            sColumnId = cquery.getString(0).toString();
+        }
+        serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
+    }
+
     public static void removeTkt() {
         try {
             MainActivity.newtkt.setVisibility(View.GONE);
@@ -886,30 +952,30 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    BroadcastReceiver broadcastreceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Map<String, String> batteryInfo = new HashMap<String, String>();
-            int BatteryLevel = intent.getIntExtra("level", 0);
-            batteryInfo.put("UserId", LOGINID);
-            batteryInfo.put("DeviceId", sDeviceId);
-            batteryInfo.put("Battery", String.valueOf(BatteryLevel));
-            batteryInfo.put("ActivityDate", currentDateTimeString);
-            batteryInfo.put("AutoCaptured", "false");
-            batteryInfo.put("RealTimeUpdate", "true");
-            String jsonBatteryString = new Gson().toJson(batteryInfo);
-            ServiceBattery serviceBattery = new ServiceBattery();
-//              serviceBattery.registerReceiver(serviceBattery.mBatInfoReceiver)
-            sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + BatteryLevel + "','true','" + currentDateTimeString + "','-1')");
-            Cursor cquery = sql.rawQuery("select * from User_Login ", null);
-            String sColumnId = null;
-            if (cquery.getCount() > 0) {
-                cquery.moveToLast();
-                sColumnId = cquery.getString(0).toString();
-            }
-            serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
-        }
-    };
+//    BroadcastReceiver broadcastreceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            Map<String, String> batteryInfo = new HashMap<String, String>();
+//            int BatteryLevel = intent.getIntExtra("level", 0);
+//            batteryInfo.put("UserId", LOGINID);
+//            batteryInfo.put("DeviceId", sDeviceId);
+//            batteryInfo.put("Battery", String.valueOf(BatteryLevel));
+//            batteryInfo.put("ActivityDate", currentDateTimeString);
+//            batteryInfo.put("AutoCaptured", "false");
+//            batteryInfo.put("RealTimeUpdate", "true");
+//            String jsonBatteryString = new Gson().toJson(batteryInfo);
+//            ServiceBattery serviceBattery = new ServiceBattery();
+////              serviceBattery.registerReceiver(serviceBattery.mBatInfoReceiver)
+//            sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + BatteryLevel + "','true','" + currentDateTimeString + "','-1')");
+//            Cursor cquery = sql.rawQuery("select * from User_Login ", null);
+//            String sColumnId = null;
+//            if (cquery.getCount() > 0) {
+//                cquery.moveToLast();
+//                sColumnId = cquery.getString(0).toString();
+//            }
+//            serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
+//        }
+//    };
 
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -917,23 +983,18 @@ public class MainActivity extends AppCompatActivity
         isCheckIn = "true";
         Log.e(TAG, "setData:Checked-IN " + currentDateTimeStringCheckIN);
         currTime.setText("Checked-In:" + currentDateTimeStringCheckIN);
-//        Calendar cur_cal = Calendar.getInstance();
-//        cur_cal.setTimeInMillis(System.currentTimeMillis());
-//        cur_cal.add(Calendar.MILLISECOND, 120 * 1000);
-//
-//        Calendar cur_cal1 = Calendar.getInstance();
-//        cur_cal1.setTimeInMillis(System.currentTimeMillis());
-//        cur_cal1.add(Calendar.MILLISECOND, 900 * 1000);
+
 
         long locationTime = System.currentTimeMillis() + (120 * 1000);
         long batteryTime = System.currentTimeMillis() + (900 * 1000);
 
-        int sIntervalLocation = pref.getInt("AppLocationSendingFrequency", 120);
-        int sIntervalBattery = pref.getInt("AppBatterySendingFrequency", 900);
+//        int sIntervalLocation = pref.getInt("AppLocationSendingFrequency", 120);
+//        int sIntervalBattery = pref.getInt("AppBatterySendingFrequency", 900);
+
         batteryIntent = new Intent(MainActivity.this, ServiceBattery.class);
         batteryPendingIntent = PendingIntent.getService(MainActivity.this, 5, batteryIntent, 0);
         batteryAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        batteryAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, batteryTime, 60 * 1000, batteryPendingIntent);
+        batteryAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, batteryTime, 15 * 1000, batteryPendingIntent);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Utils.setRequestingLocationUpdates(this, true);
@@ -941,12 +1002,6 @@ public class MainActivity extends AppCompatActivity
                     != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return;
             }
             mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
@@ -954,7 +1009,7 @@ public class MainActivity extends AppCompatActivity
             locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
             locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
             locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
+            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 2 * 1000, locationPendingIntent);
         }
 
     }
@@ -1020,11 +1075,14 @@ public class MainActivity extends AppCompatActivity
             postLogin.put("RealTimeUpdate", "true");
             String sPostLogin = new Gson().toJson(postLogin);
             if (isCheckIn.equals("true")) {
-                batteryAlarmManager.cancel(batteryPendingIntent);
-                locationAlarmManager.cancel(locationPendingIntent);
-                //stopService(intent);
-                stopService(locationIntent);
-                stopService(batteryIntent);
+                try {
+                    batteryAlarmManager.cancel(batteryPendingIntent);
+                    stopService(batteryIntent);
+
+                    locationAlarmManager.cancel(locationPendingIntent);
+                    stopService(locationIntent);
+                } catch (Exception e) {
+                }
                 appCheckInInfo.put("UserId", LOGINID);
                 appCheckInInfo.put("DeviceId", sDeviceId);
                 appCheckInInfo.put("IsCheckedIn", "false");
@@ -1775,5 +1833,18 @@ public class MainActivity extends AppCompatActivity
             showAlert.setVisibility(View.INVISIBLE);
         } catch (Exception e) {
         }
+    }
+
+    public static int getBatteryPercentage(Context context) {
+
+        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = context.registerReceiver(null, iFilter);
+
+        int level = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : -1;
+        int scale = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1) : -1;
+
+        float batteryPct = level / (float) scale;
+
+        return (int) (batteryPct * 100);
     }
 }

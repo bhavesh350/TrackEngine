@@ -179,7 +179,7 @@ public class TicketInfoAdapter extends RecyclerView.Adapter<TicketInfoAdapter.Vi
                 postTktStatus.put("ActivityDate",currentTime);
                 postTktStatus.put("RealtimeUpdate","true");
                 postTktStatus.put("Latitude", String.valueOf(SchedulingAdapter.latitude));
-                postTktStatus.put("Latitude", String.valueOf(SchedulingAdapter.latitude));
+                postTktStatus.put("Longitude", String.valueOf(SchedulingAdapter.longitude));
                 postTktStatus.put("AssetVerificationText","-");
                 postTktStatus.put("ModeOfTransport","0");
                 postTktStatus.put("Expense","0");

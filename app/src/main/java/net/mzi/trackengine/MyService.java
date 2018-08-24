@@ -206,9 +206,17 @@ public class MyService extends JobService {
                         } else {
                             user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
                             user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                            Geocoder geocoder;
+                            Geocoder geocoder=null;
                             List<Address> addresses;
-                            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                            long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                            if (lastLocTime == 0) {
+                                SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                            }
+                            long differLoc = System.currentTimeMillis() - lastLocTime;
+                            if (differLoc > (10 * 60 * 1000)) {
+                                geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                                SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                            }
 
                             try {
                                 sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
@@ -285,9 +293,17 @@ public class MyService extends JobService {
                             }
                         }
                     } else {
-                        Geocoder geocoder;
+                        Geocoder geocoder=null;
                         List<Address> addresses;
-                        geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                        long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                        if (lastLocTime == 0) {
+                            SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                        }
+                        long differLoc = System.currentTimeMillis() - lastLocTime;
+                        if (differLoc > (10 * 60 * 1000)) {
+                            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                            SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                        }
 
                         try {
                             sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
@@ -439,6 +455,14 @@ public class MyService extends JobService {
 //        if (!SOMTracker.getStatus("isCheckin")) {
 //            return;
 //        }
+        long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
+        if (lastLocTime == 0) {
+            SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+        }
+        long differLoc = System.currentTimeMillis() - lastLocTime;
+        if (differLoc < (2 * 58* 1000)) {
+            return;
+        }
         Log.e("LocationOperation: ", "Method called LocationOperation");
 
         apiInterface = ApiClient.getClient().create(ApiInterface.class);

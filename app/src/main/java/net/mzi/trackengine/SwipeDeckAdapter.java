@@ -325,13 +325,15 @@ public class SwipeDeckAdapter extends BaseAdapter {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                                Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
-                                ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                if (cqueryTemp.getCount() > 0) {
-                                    cqueryTemp.moveToFirst();
-                                    ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Update");
+                               try{
+                                   Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
+                                   ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                                   if (cqueryTemp.getCount() > 0) {
+                                       cqueryTemp.moveToFirst();
+                                       ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Update");
 
-                                }
+                                   }
+                               }catch (Exception e){}
                             }
                         }
 
