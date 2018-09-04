@@ -199,7 +199,8 @@ public class SwipeDeckAdapter extends BaseAdapter {
                                     ApiResult.IssueDetail  iData = response.body();
                                     if(iData.resData.Status==null||iData.resData.Status.equals("")||iData.resData.Status.equals("0")){
                                         try {
-                                            Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                            SOMTracker.showMassage(context, context.getString(R.string.internet_error));
+//                                            Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                         }catch (Exception e){
                                             e.getMessage();
                                         }

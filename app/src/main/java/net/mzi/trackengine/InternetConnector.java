@@ -158,9 +158,8 @@ public class InternetConnector {
                             locationInfo.put("Provider", "NA");
                             ServiceLocation m = new ServiceLocation();
                             //insert
+                            Log.d("postcoordinat","offline syncing from internet connector at 161");
                             m.LocationOperationOffline(locationInfo, context, cquery.getString(0).toString());
-
-
                         }
                     }
                 }

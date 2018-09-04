@@ -285,7 +285,8 @@ public class RaiseTicket extends AppCompatActivity {
             super.onPostExecute(s);
             String sStatus = null;
             if (s == null && s.equals("0\n")) {
-                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getApplicationContext(), getApplicationContext().getString(R.string.internet_error));
+//                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
             } else {
                 try {
                     String msg = null;
@@ -299,7 +300,8 @@ public class RaiseTicket extends AppCompatActivity {
                         sTicketId = object.getString("Id");
                     }
                     if (msg != null) {
-                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+                        SOMTracker.showMassage(getApplication(),msg);
+//                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     }
 
                     Log.e("onPostExecute: ", msg);
@@ -490,7 +492,8 @@ public class RaiseTicket extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         sFinalImagePath_create = sImagePath;
                         iImageIcon.setVisibility(View.VISIBLE);
-                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
+                        SOMTracker.showMassage(getApplicationContext(), "Image uploaded successfully!!!");
+//                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -517,14 +520,16 @@ public class RaiseTicket extends AppCompatActivity {
                 launchUploadActivity(fileUri.getPath());
             } else if (resultCode == RESULT_CANCELED) {
                 // user cancelled Image capture
-                Toast.makeText(getApplicationContext(),
-                        "User cancelled image capture", Toast.LENGTH_SHORT)
-                        .show();
+                SOMTracker.showMassage(this, "User cancelled image capture");
+//                Toast.makeText(getApplicationContext(),
+//                        "User cancelled image capture", Toast.LENGTH_SHORT)
+//                        .show();
             } else {
+                SOMTracker.showMassage(this, "Sorry! Failed to capture image");
                 // failed to capture image
-                Toast.makeText(getApplicationContext(),
-                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
-                        .show();
+//                Toast.makeText(getApplicationContext(),
+//                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
+//                        .show();
             }
         } else {
             if (data != null) {
@@ -536,13 +541,15 @@ public class RaiseTicket extends AppCompatActivity {
                     Log.e("selectedPath1 : ", selectedPath);
                 } else if (resultCode == RESULT_CANCELED) {
                     // user cancelled Image capture
-                    Toast.makeText(getApplicationContext(),
-                            "User cancelled image capture", Toast.LENGTH_SHORT)
-                            .show();
+                    SOMTracker.showMassage(this, "User cancelled image capture");
+//                    Toast.makeText(getApplicationContext(),
+//                            "User cancelled image capture", Toast.LENGTH_SHORT)
+//                            .show();
                     //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
                 }
             } else {
-                Toast.makeText(this, "Something went wrong in Image Upload of Ticket Creation", Toast.LENGTH_SHORT).show();
+                SOMTracker.showMassage(this, "Something went wrong in Image Upload of Ticket Creation");
+//                Toast.makeText(this, "Something went wrong in Image Upload of Ticket Creation", Toast.LENGTH_SHORT).show();
             }
 
         }

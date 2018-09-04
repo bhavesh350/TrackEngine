@@ -76,7 +76,8 @@ public class History_CheckIn extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getContext(),"Loading data!!!");
+//                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             /*if(!((Activity) getActivity()).isFinishing()) {
                 progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");

@@ -66,7 +66,8 @@ public class History_Location extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getContext(),"Loading data!!!");
+//                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             mDatasetTypes.clear();
             mDeviceId.clear();

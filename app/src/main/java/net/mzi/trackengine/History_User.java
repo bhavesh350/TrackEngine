@@ -67,7 +67,8 @@ public class History_User extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getContext(),"Loading data!!!");
+//                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
            /* if(!((Activity) getActivity()).isFinishing()) {
                 progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");
@@ -112,7 +113,8 @@ public class History_User extends Fragment {
                 progress.dismiss();
             }
             if (s == null) {
-                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getContext(), getContext().getString(R.string.internet_error));
+//                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
                 return;
             }
             Log.i("INFO", s);

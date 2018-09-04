@@ -139,7 +139,6 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                         SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
                                     }
 
-
                                     try {
                                         sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
                                         addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
@@ -321,105 +320,123 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
-//        if (!SOMTracker.getStatus("isCheckin")) {
-//            return;
-//        }
+        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
+        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
 
-        long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
-        if (lastLocTime == 0) {
+            long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
+            if (lastLocTime == 0) {
+                SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+            }
+            long differLoc = System.currentTimeMillis() - lastLocTime;
+            if (differLoc < (2 * 58 * 1000)) {
+                return;
+            }
             SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
-        }
-        long differLoc = System.currentTimeMillis() - lastLocTime;
-        if (differLoc < (2 * 58 * 1000)) {
-            return;
-        }
-        SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
-        try {
-            if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
-                    || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
+            try {
+                if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
+                        || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
+                    Log.e("LocationOperation: ", "Not executed dut to wrong user id");
+                    return;
+                }
+            } catch (Exception e) {
                 Log.e("LocationOperation: ", "Not executed dut to wrong user id");
                 return;
             }
-        } catch (Exception e) {
-            Log.e("LocationOperation: ", "Not executed dut to wrong user id");
-            return;
-        }
-        Log.e("LocationOperation: ", "Method called LocationUpdatesBroadCastReceiver");
+            Log.e("LocationOperation: ", "Method called LocationUpdatesBroadCastReceiver");
 
-        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+            apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-        sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
-        final ApiResult apiResult = new ApiResult();
-        try {
-            Log.e("LocationOperation: ", locationInfo.toString());
-            String sublocalityString = "";
+            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+            final ApiResult apiResult = new ApiResult();
             try {
-                sublocalityString = locationInfo.get("SubLocality").toString();
-                if (sublocalityString.length() == 0 || sublocalityString.isEmpty()) {
+                Log.e("LocationOperation: ", locationInfo.toString());
+                String sublocalityString = "";
+                try {
+                    sublocalityString = locationInfo.get("SubLocality").toString();
+                    if (sublocalityString.length() == 0 || sublocalityString.isEmpty()) {
+                        sublocalityString = "NA";
+                    }
+                } catch (Exception eee) {
                     sublocalityString = "NA";
                 }
-            } catch (Exception eee) {
-                sublocalityString = "NA";
-            }
 
-            final ApiResult.User_Location user_location = apiResult.new User_Location("true", locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(), locationInfo.get("City").toString(), locationInfo.get("State").toString(), locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
-            Call<ApiResult.User_Location> call1 = apiInterface.PostCoordinates(user_location);
-            final String finalColumnId = sColumnId;
-            call1.enqueue(new Callback<ApiResult.User_Location>() {
-                @Override
-                public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
-                    try {
-                        ApiResult.User_Location iData = response.body();
-                        if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                final ApiResult.User_Location user_location ;
+                Log.e("postcoordinat", "LocationUpdateBroadcastReceiver at 364");
+                Call<ApiResult.User_Location> call1;
+                if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
+                    user_location = apiResult.new User_Location("true",
+                            locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                            locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                            locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString());
 
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("SyncStatus", "false");
-                            sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                        } else {
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("SyncStatus", "true");
-                            sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
-                    call.cancel();
-
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
-        if (lastBatteryTime == 0) {
-            SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
-        }
-        long differ = System.currentTimeMillis() - lastBatteryTime;
-        if (differ >= (15 * 60 * 1000)) {
-            SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
-
-            BatteryManager bm = (BatteryManager) ctx.getSystemService(BATTERY_SERVICE);
-            int batLevel = 0;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-            }
-
-            try {
-                Log.d("battery", batLevel + "%");
-                Log.d("battery2", getBatteryPercentage(ctx) + "%");
-                if (batLevel > 0) {
-                    sendBatteryCheckinLevel(batLevel, ctx);
+                    call1 = apiInterface.PostCoordinatesShorten(user_location);
                 } else {
-                    sendBatteryCheckinLevel(getBatteryPercentage(ctx), ctx);
+                    user_location = apiResult.new User_Location("true", locationInfo.get("UserId").toString(),
+                            locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(),
+                            locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(),
+                            locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(),
+                            sublocalityString, locationInfo.get("PostalCode").toString(), locationInfo.get("City").toString(),
+                            locationInfo.get("State").toString(), locationInfo.get("Country").toString(),
+                            locationInfo.get("KnownName").toString(), "NA");
+                    call1 = apiInterface.PostCoordinates(user_location);
                 }
+                final String finalColumnId = sColumnId;
+                call1.enqueue(new Callback<ApiResult.User_Location>() {
+                    @Override
+                    public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
+                        try {
+                            ApiResult.User_Location iData = response.body();
+                            if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+
+                                ContentValues newValues = new ContentValues();
+                                newValues.put("SyncStatus", "false");
+                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                            } else {
+                                ContentValues newValues = new ContentValues();
+                                newValues.put("SyncStatus", "true");
+                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
+                        call.cancel();
+
+                    }
+                });
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+            long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+            if (lastBatteryTime == 0) {
+                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+            }
+            long differ = System.currentTimeMillis() - lastBatteryTime;
+            if (differ >= (15 * 58 * 1000)) {
+                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+
+                BatteryManager bm = (BatteryManager) ctx.getSystemService(BATTERY_SERVICE);
+                int batLevel = 0;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                }
+
                 try {
-                    sendBatteryCheckinLevel(getBatteryPercentage(ctx), ctx);
-                } catch (Exception eee) {
+                    Log.d("battery", batLevel + "%");
+                    Log.d("battery2", getBatteryPercentage(ctx) + "%");
+                    if (batLevel > 0) {
+                        sendBatteryCheckinLevel(batLevel, ctx);
+                    } else {
+                        sendBatteryCheckinLevel(getBatteryPercentage(ctx), ctx);
+                    }
+                } catch (Exception e) {
+                    try {
+                        sendBatteryCheckinLevel(getBatteryPercentage(ctx), ctx);
+                    } catch (Exception eee) {
+                    }
                 }
             }
         }

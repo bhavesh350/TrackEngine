@@ -99,7 +99,8 @@ public class Paid_Vouchers extends Fragment {
             public void onFailure(Call<ApiResult.VoucherList> call, Throwable t) {
                 call.cancel();
                 try {
-                    Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(getContext(),getContext().getString(R.string.internet_error));
+//                    Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
                 }catch (Exception e){
                     e.getMessage();
                 }

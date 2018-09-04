@@ -109,7 +109,10 @@ public class History_Battery extends Fragment {
             super.onPostExecute(s);
 
             if (s == null) {
-                SOMTracker.showMassage(getActivity(), getActivity().getString(R.string.internet_error));
+                try {
+                    SOMTracker.showMassage(getActivity(), getActivity().getString(R.string.internet_error));
+                } catch (Exception e) {
+                }
                 return;
             }
             Log.i("INFO", s);

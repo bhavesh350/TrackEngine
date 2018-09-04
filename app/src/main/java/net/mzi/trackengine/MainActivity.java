@@ -337,7 +337,8 @@ public class MainActivity extends AppCompatActivity
 
 
                             } else {
-                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
+                                SOMTracker.showMassage(MainActivity.this, "Internet connection is Off");
+//                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
                                 mMobileDataInfo.put("UserId", LOGINID);
                                 mMobileDataInfo.put("DeviceId", sDeviceId);
                                 mMobileDataInfo.put("Enabled", "false");
@@ -523,6 +524,16 @@ public class MainActivity extends AppCompatActivity
                     tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
                     //tCheckInStatus.setTextColor(getResources().getColor(R.color.green));
                     //tAt.setTextColor(getResources().getColor(R.color.green));
+                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                    if (cquery.getCount() > 0) {
+
+                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                            String id = cquery.getString(0).toString();
+                            sql.delete("User_Location", "Id" + "=" + id, null);
+                        }
+                    }
                     setData();
                 } else {
                     SOMTracker.setStatus("isCheckin", false);
@@ -553,7 +564,16 @@ public class MainActivity extends AppCompatActivity
 
                     NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                     nMgr.cancel(12345);
+                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                    if (cquery.getCount() > 0) {
 
+                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                            String id = cquery.getString(0).toString();
+                            sql.delete("User_Location", "Id" + "=" + id, null);
+                        }
+                    }
                     //tAt.setTextColor(getResources().getColor(R.color.red));
                 }
                 Map<String, String> locationInfo = new HashMap<String, String>();
@@ -660,14 +680,16 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     ServiceLocation m = new ServiceLocation();
-                    m.LocationOperation(locationInfo, getApplicationContext(), sColumnId);
-                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
+                    Log.d("postcoordinat", "from main activity at 663");
+                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+//                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
                 }
 
                 String jsonString = new Gson().toJson(locationInfo);
                 Log.e(TAG, "run: " + jsonString);
-
-                Toast.makeText(getApplicationContext(), "CheckIn-Out Info sent successfully!!!", Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
+//                Toast.makeText(getApplicationContext(), "CheckIn-Out Info sent successfully!!!", Toast.LENGTH_LONG).show();
                 Date cDate = new Date();
                 currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
 
@@ -711,10 +733,14 @@ public class MainActivity extends AppCompatActivity
         });
 
         mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.colorPrimaryDark);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+
+        {
             mSwipeRefreshLayout.setProgressViewOffset(false, 0, 200);
         }
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
+
+        {
             @Override
             public void onRefresh() {
                 //handling swipe refresh
@@ -828,15 +854,19 @@ public class MainActivity extends AppCompatActivity
                                     sColumnId = cquery.getString(0).toString();
                                 }
                                 if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
-                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
+//                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
+                                    SOMTracker.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
                                     user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
                                     user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
                                     ServiceLocation m = new ServiceLocation();
-                                    m.LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                                    Log.d("postcoordinat", "from main activity at 836");
+                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
                                 } else {
-                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
+                                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
+//                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
                                     ServiceLocation m = new ServiceLocation();
-                                    m.LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                                    Log.d("postcoordinat", "from main activity at 841");
+                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
                                 }
                                 //MainActivity.this.registerReceiver(broadcastreceiver,intentfilter);
                             }
@@ -849,7 +879,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener()
+
+        {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, TicketCreation.class);
@@ -1036,8 +1068,9 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).
-                    show();
+            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+//            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).
+//                    show();
             return true;
         /*} else if (id == R.id.myswitch) {
             return true;*/
@@ -1156,7 +1189,8 @@ public class MainActivity extends AppCompatActivity
             Intent i = new Intent(MainActivity.this, OfflineSyncInfo.class);
             startActivity(i);
         } else if (id == R.id.nav_sendLog) {
-            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).show();
+            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+//            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).show();
             /*Intent i=new Intent(MainActivity.this,OfflineSyncInfo.class);
             startActivity(i);*/
         } else if (id == R.id.nav_aboutus) {
@@ -1164,7 +1198,8 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
 
         } else if (id == R.id.nav_contactus) {
-            Toast.makeText(getApplicationContext(), "Coming Soon!!!", Toast.LENGTH_LONG).show();
+            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+//            Toast.makeText(getApplicationContext(), "Coming Soon!!!", Toast.LENGTH_LONG).show();
         } else if (id == R.id.nav_share) {
             try {
                 Intent i = new Intent(Intent.ACTION_SEND);
@@ -1389,7 +1424,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mLocationPermissionGranted = false;
         switch (requestCode) {
@@ -1837,14 +1873,18 @@ public class MainActivity extends AppCompatActivity
 
     public static int getBatteryPercentage(Context context) {
 
-        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = context.registerReceiver(null, iFilter);
+        try {
+            IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            Intent batteryStatus = context.registerReceiver(null, iFilter);
 
-        int level = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : -1;
-        int scale = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1) : -1;
+            int level = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : -1;
+            int scale = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1) : -1;
 
-        float batteryPct = level / (float) scale;
+            float batteryPct = level / (float) scale;
 
-        return (int) (batteryPct * 100);
+            return (int) (batteryPct * 100);
+        } catch (Exception e) {
+            return 50;
+        }
     }
 }

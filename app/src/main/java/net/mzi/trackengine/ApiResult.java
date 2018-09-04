@@ -249,6 +249,9 @@ public class ApiResult {
         @SerializedName("LastTransportMode")
         public String LastTransportMode;
 
+        @SerializedName("ModeOfTransport")
+        public String ModeOfTransport;
+
         @SerializedName("Expense")
         public String Expense;
 
@@ -281,6 +284,7 @@ public class ApiResult {
             this.LastAction = LastAction;
             this.Expense = Expense;
             this.LastTransportMode = LastTransportMode;
+            this.ModeOfTransport = LastTransportMode;
 
         }
 
@@ -782,6 +786,16 @@ public class ApiResult {
             this.Country = Country;
             this.KnownName = KnownName;
             this.Provider = Provider;
+        }
+
+        public User_Location(String RealTimeUpdate, String UserId, String DeviceId, String Latitude, String Longitude, String ActivityDate, String AutoCaptured) {
+            this.RealTimeUpdate = RealTimeUpdate;
+            this.UserId = UserId;
+            this.DeviceId = DeviceId;
+            this.Latitude = Latitude;
+            this.Longitude = Longitude;
+            this.ActivityDate = ActivityDate;
+            this.AutoCaptured = AutoCaptured;
 
         }
     }

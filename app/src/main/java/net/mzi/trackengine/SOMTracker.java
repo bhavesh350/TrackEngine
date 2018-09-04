@@ -135,7 +135,7 @@ public class SOMTracker extends MultiDexApplication {
             if (!isMyServiceRunning(mSensorService.getClass())) {
 //                startService(mServiceIntent);
 
-                    startService(mServiceIntentLocation);
+                startService(mServiceIntentLocation);
 
             }
         } catch (Exception e) {
@@ -146,7 +146,7 @@ public class SOMTracker extends MultiDexApplication {
             mServiceIntentBattery = new Intent(c, betteryService.getClass());
             if (!isMyServiceRunning(betteryService.getClass()))
 
-                    startService(mServiceIntentBattery);
+                startService(mServiceIntentBattery);
 
         } catch (Exception e) {
         }
@@ -177,6 +177,7 @@ public class SOMTracker extends MultiDexApplication {
         try {
             Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
         } catch (Exception w) {
+        } catch (StackOverflowError ee) {
         }
     }
 

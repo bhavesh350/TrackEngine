@@ -178,7 +178,8 @@ public class ServiceDataUpdateFirstFragment extends Service {
                         try {
                             MainActivity m = new MainActivity();
                             m.updateCounter(getApplicationContext());
-                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(ctx,getString(R.string.internet_error));
+//                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();
                         }

@@ -33,6 +33,10 @@ public interface ApiInterface {
     //@POST("/TrackEngine/api/post/PostCoordinates")
     Call<ApiResult.User_Location> PostCoordinates(@Body ApiResult.User_Location user_location);
 
+    @POST("/api/Post/PostCoordinatesPlain")
+    //@POST("/TrackEngine/api/post/PostCoordinates")
+    Call<ApiResult.User_Location> PostCoordinatesShorten(@Body ApiResult.User_Location user_location);
+
     @POST("/api/post/PostTicketStatus")
     //@POST("/TrackEngine/api/post/PostTicketStatus")
     Call<ApiResult.IssueDetail> PostTicketStatus(@Body ApiResult.IssueDetail issueDetail);

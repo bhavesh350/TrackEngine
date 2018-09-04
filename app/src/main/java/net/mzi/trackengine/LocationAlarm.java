@@ -144,7 +144,8 @@ public class LocationAlarm extends BroadcastReceiver {
                 Log.i(TAG, "fail to request location update, ignore", ex);
                 Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
             } catch (IllegalArgumentException ex) {
-                Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(context, "GPS is not Enable!!");
+//                Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
                 Log.d(TAG, "network provider does not exist, " + ex.getMessage());
             }
             try {
@@ -287,35 +288,66 @@ public class LocationAlarm extends BroadcastReceiver {
     };
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
-        apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Log.e("LocationOperation: ", locationInfo.toString());
-        sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
-        final ApiResult apiResult = new ApiResult();
-        final ApiResult.User_Location user_location = apiResult.new User_Location("true", locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(), locationInfo.get("SubLocality").toString(), locationInfo.get("PostalCode").toString(), locationInfo.get("City").toString(), locationInfo.get("State").toString(), locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
-        Call<ApiResult.User_Location> call1 = apiInterface.PostCoordinates(user_location);
-        final String finalColumnId = sColumnId;
-        call1.enqueue(new Callback<ApiResult.User_Location>() {
-            @Override
-            public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
-                ApiResult.User_Location iData = response.body();
-                if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
+        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+            long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
+            if (lastLocTime == 0) {
+                SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+            }
+            long differLoc = System.currentTimeMillis() - lastLocTime;
+            if (differLoc < (2 * 58 * 1000)) {
+                return;
+            }
+            SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+            apiInterface = ApiClient.getClient().create(ApiInterface.class);
+            Log.e("LocationOperation: ", locationInfo.toString());
+            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+            final ApiResult apiResult = new ApiResult();
+            final ApiResult.User_Location user_location ;
+            Log.e("postcoordinat", "Location alarm at 306");
+            Call<ApiResult.User_Location> call1;
+            if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
+                user_location = apiResult.new User_Location("true",
+                        locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                        locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                        locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString());
 
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "false");
-                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                } else {
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "true");
-                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                call1 = apiInterface.PostCoordinatesShorten(user_location);
+            } else {
+                user_location =
+                        apiResult.new User_Location("true", locationInfo.get("UserId").toString(),
+                                locationInfo.get("DeviceId").toString(), locationInfo.get("Latitude").toString(),
+                                locationInfo.get("Longitude").toString(), locationInfo.get("ActivityDate").toString(),
+                                locationInfo.get("AutoCaptured").toString(), locationInfo.get("AddressLine").toString(),
+                                locationInfo.get("SubLocality").toString(), locationInfo.get("PostalCode").toString(),
+                                locationInfo.get("City").toString(), locationInfo.get("State").toString(),
+                                locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
+                call1 = apiInterface.PostCoordinates(user_location);
+            }
+            final String finalColumnId = sColumnId;
+            call1.enqueue(new Callback<ApiResult.User_Location>() {
+                @Override
+                public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
+                    ApiResult.User_Location iData = response.body();
+                    if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "false");
+                        sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                    } else {
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "true");
+                        sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
-                call.cancel();
+                @Override
+                public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
+                    call.cancel();
 
-            }
-        });
+                }
+            });
+        }
     }
     /*@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void showSettingsAlert(){

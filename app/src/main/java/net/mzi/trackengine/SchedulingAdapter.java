@@ -298,7 +298,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             if (iData.resData.Status == null || iData.resData.Status.equals("")
                                     || iData.resData.Status.equals("0")) {
                                 try {
-                                    Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                    SOMTracker.showMassage(context,context.getString(R.string.internet_error));
+//                                    Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                 } catch (Exception e) {
                                     e.getMessage();
                                 }
@@ -406,7 +407,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                         ApiResult.IssueDetail iData = response.body();
                                         if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                             try {
-                                                Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                                SOMTracker.showMassage(context,context.getString(R.string.internet_error));
+//                                                Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                             } catch (Exception e) {
                                                 e.getMessage();
                                             }
@@ -590,6 +592,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(searchAddress);
                             return true;
                         case R.id.atkt:
+
                             Toast.makeText(ctx, "Coming Soon!!!", Toast.LENGTH_LONG).show();
                             return true;
                         case R.id.ctc:
@@ -731,7 +734,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            Toast.makeText(ctx, "Loading Data!!!", Toast.LENGTH_LONG).show();
+            SOMTracker.showMassage(context,"Loading Data!!!");
+//            Toast.makeText(ctx, "Loading Data!!!", Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -786,9 +790,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
 
                 if (s == null) {
-                    Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(ctx,ctx.getString(R.string.internet_error));
+//                    Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(ctx, "OEM Updated Successfully!!!", Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(ctx,"OEM Updated Successfully!!!");
+//                    Toast.makeText(ctx, "OEM Updated Successfully!!!", Toast.LENGTH_LONG).show();
                     ContentValues newValues = new ContentValues();
                     newValues.put("OEMNumber", jsonObject.getString("OEMTicketId"));
                     sql.update("Issue_Detail", newValues, "IssueId=" + jsonObject.getString("TicketId"), null);
@@ -908,7 +914,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         String sCardType = cquery.getString(0).toString();
         sCurrentStatusId = cquery.getString(1).toString();
         if (sCardType.equals("3"))
-            Toast.makeText(ctx, "This ticket is already closed!!!", Toast.LENGTH_LONG).show();
+            SOMTracker.showMassage(ctx,"This ticket is already closed!!!");
+//            Toast.makeText(ctx, "This ticket is already closed!!!", Toast.LENGTH_LONG).show();
         else {
             fetchStatus(currentStatus, id, sCurrentStatusId);
             fetchTransportMode();
@@ -1239,8 +1246,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     postTktStatus.put("ModeOfTransport", mtTransportlistIds.get(arg2));
                     postTktStatus.put("Expense", "0");
                     postTktStatus.put("AssignedUserId", nh_userid);
-
-                    Toast.makeText(ctx, String.valueOf(arg2 + arg3), Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(ctx, String.valueOf(arg2 + arg3));
+//                    Toast.makeText(ctx, String.valueOf(arg2 + arg3), Toast.LENGTH_LONG).show();
                 }
 
                 public void onNothingSelected(AdapterView<?> arg0) {
@@ -1360,7 +1367,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         ApiResult.IssueDetail iData = response.body();
                         if (iData.resData.Status == null || iData.resData.Status.toString().equals("") || iData.resData.Status.toString().equals("0")) {
                             try {
-                                Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                SOMTracker.showMassage(ctx,ctx.getString(R.string.internet_error));
+//                                Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                             } catch (Exception e) {
                                 e.getMessage();
                             }

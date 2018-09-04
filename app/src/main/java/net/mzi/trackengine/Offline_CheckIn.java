@@ -113,6 +113,7 @@ public class Offline_CheckIn extends Fragment {
             }).start();
 
         } else {
+            SOMTracker.showMassage(getContext(), "Data is already synced!!!");
             Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
         }
 
