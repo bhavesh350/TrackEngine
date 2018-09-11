@@ -125,13 +125,35 @@ public class InternetConnector {
                 }
                 //if (networkInfo.isConnected()) {
                 Toast.makeText(context, "Offline data syncing!!!", Toast.LENGTH_LONG).show();
+                int counter = 0;
                 sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
                 cquery = sql.rawQuery("select * from User_Location", null);
                 if (cquery.getCount() > 0) {
+                    String sCheckInStatus = pref.getString("CheckedInStatus", "0");
+                    if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+
+                    } else {
+                        Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                        if (cquery.getCount() > 0) {
+
+                            Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                                String id = cquery.getString(0).toString();
+                                sql.delete("User_Location", "Id" + "=" + id, null);
+                            }
+                        }
+                        return;
+                    }
 
                     Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
 
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                        ++counter;
+                        if (counter >= 50) {
+                            cquery.moveToLast();
+                            break;
+                        }
                         if (cquery.getString(15).toString().equals("true")) {
                             String id = cquery.getString(0).toString();
                             sql.delete("User_Location", "Id" + "=" + id, null);
@@ -158,10 +180,14 @@ public class InternetConnector {
                             locationInfo.put("Provider", "NA");
                             ServiceLocation m = new ServiceLocation();
                             //insert
-                            Log.d("postcoordinat","offline syncing from internet connector at 161");
+                            Log.d("postcoordinat", "offline syncing from internet connector at 161");
                             m.LocationOperationOffline(locationInfo, context, cquery.getString(0).toString());
                         }
+                        if (counter >= 50) {
+                            break;
+                        }
                     }
+
                 }
 
 

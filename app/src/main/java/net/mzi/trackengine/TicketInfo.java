@@ -15,6 +15,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -31,6 +33,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -315,28 +318,65 @@ public class TicketInfo extends AppCompatActivity {
         Submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sFinalImagePath == null) {
-                    String currentTime;
-                    Date cDate = new Date();
-                    currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("UpdatedDate", currentTime);
-                    sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
 
-                    postTktStatus.put("UserId", nh_userid);
-                    postTktStatus.put("ParentCompanyId", sParentComapnyId);
-                    postTktStatus.put("TicketId", ID);
-                    postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
-                    postTktStatus.put("Comment", comment.getText().toString());
-                    postTktStatus.put("ActivityDate", currentTime);
-                    postTktStatus.put("DepartmentId", DepartmentId);
-                    postTktStatus.put("RealtimeUpdate", "true");
+                ConnectivityManager cm =
+                        (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo networkInfo = cm.getActiveNetworkInfo();
 
-                    String tktStatus = new Gson().toJson(postTktStatus);
-                    new UpdateTask(TicketInfo.this, tktStatus).execute();
-                } else {
-                    new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                if (networkInfo != null) {
+                    if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                        // do something
+                        Log.e("TEST Internet", "WIFI");
+                    } else if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                        // check NetworkInfo subtype
+                        Log.e("TEST Internet", "Mobile");
+                        if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_HSPAP) {
+                            // Bandwidth between 100 kbps and below
+                            Log.e("TEST Internet", "LOW");
+                        } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_GPRS) {
+                            // Bandwidth between 100 kbps and below
+                            Log.e("TEST Internet", "LOW");
+                        } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EDGE) {
+                            // Bandwidth between 50-100 kbps
+                            Log.e("TEST Internet", "MEDIUM");
+                        } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_0) {
+                            // Bandwidth between 400-1000 kbps
+                            Log.e("TEST Internet", "NORMAL");
+                        } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_A) {
+                            // Bandwidth between 600-1400 kbps
+                            Log.e("TEST Internet", "HIGH");
+                        }
+                    }
+
+
+                    if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
+                        if (sFinalImagePath == null) {
+                            String currentTime;
+                            Date cDate = new Date();
+                            currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("UpdatedDate", currentTime);
+                            sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
+
+                            postTktStatus.put("UserId", nh_userid);
+                            postTktStatus.put("ParentCompanyId", sParentComapnyId);
+                            postTktStatus.put("TicketId", ID);
+                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
+                            postTktStatus.put("Comment", comment.getText().toString());
+                            postTktStatus.put("ActivityDate", currentTime);
+                            postTktStatus.put("DepartmentId", DepartmentId);
+                            postTktStatus.put("RealtimeUpdate", "true");
+
+                            String tktStatus = new Gson().toJson(postTktStatus);
+                            new UpdateTask(TicketInfo.this, tktStatus).execute();
+                        } else {
+                            new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        }
+                    }else{
+                        SOMTracker.showMassage(TicketInfo.this,"Internet not connected");
+                    }
                 }
+
 
             }
         });
@@ -820,27 +860,30 @@ public class TicketInfo extends AppCompatActivity {
      * Method to show alert dialog
      */
     private void showAlert(String message) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        String msg;
-        if (message.equals("")) {
-            msg = "Data has been sent successfully!!!";
-        } else
-            msg = "Something went wrong!!!\n" + message;
-        builder.setMessage(msg).setTitle("Response from Server")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // do nothing
-                        comment.setText("");
-                        iImageIcon.setVisibility(View.GONE);
-                        sFinalImagePath = "";
-                        vCamera.setChecked(false);
-                        vGallery.setChecked(false);
-                        dialog.dismiss();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
+        try {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            String msg;
+            if (message.equals("")) {
+                msg = "Data has been sent successfully!!!";
+            } else
+                msg = "Something went wrong!!!\n" + message;
+            builder.setMessage(msg).setTitle("Response from Server")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // do nothing
+                            comment.setText("");
+                            iImageIcon.setVisibility(View.GONE);
+                            sFinalImagePath = "";
+                            vCamera.setChecked(false);
+                            vGallery.setChecked(false);
+                            dialog.dismiss();
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
+        } catch (Exception e) {
+        }
     }
 
     private void call_permissions() {

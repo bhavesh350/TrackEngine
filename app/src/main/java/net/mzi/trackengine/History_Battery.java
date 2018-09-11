@@ -84,8 +84,8 @@ public class History_Battery extends Fragment {
             try {
                 URL url = new URL(API_URL);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
+                urlConnection.setConnectTimeout(15000);
+                urlConnection.setReadTimeout(15000);
                 try {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     StringBuilder stringBuilder = new StringBuilder();

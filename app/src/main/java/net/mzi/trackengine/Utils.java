@@ -29,7 +29,7 @@ class Utils {
     static void setRequestingLocationUpdates(Context context, boolean value) {
         PreferenceManager.getDefaultSharedPreferences(context)
                 .edit()
-                .putBoolean(KEY_LOCATION_UPDATES_REQUESTED, value)
+                .putBoolean(KEY_LOCATION_UPDATES_REQUESTED, true)
                 .apply();
     }
 

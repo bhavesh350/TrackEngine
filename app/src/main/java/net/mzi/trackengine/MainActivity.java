@@ -17,6 +17,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
@@ -195,6 +196,8 @@ public class MainActivity extends AppCompatActivity
 
     //static Context mainAtctivityctx;
     private SessionManager session;
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
@@ -564,16 +567,19 @@ public class MainActivity extends AppCompatActivity
 
                     NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                     nMgr.cancel(12345);
-                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                    if (cquery.getCount() > 0) {
+                   try{
+                       Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                       if (cquery.getCount() > 0) {
 
-                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+                           Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
 
-                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_Location", "Id" + "=" + id, null);
-                        }
-                    }
+                           for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                               String id = cquery.getString(0).toString();
+                               sql.delete("User_Location", "Id" + "=" + id, null);
+                           }
+                       }
+                   }catch (Exception e){
+                   }
                     //tAt.setTextColor(getResources().getColor(R.color.red));
                 }
                 Map<String, String> locationInfo = new HashMap<String, String>();
@@ -670,18 +676,24 @@ public class MainActivity extends AppCompatActivity
                     String jsonString = new Gson().toJson(locationInfo);
                     Log.e(TAG, "run:" + jsonString);
 
-                    sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                            "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                    Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                    String sColumnId = null;
-                    if (cquery.getCount() > 0) {
-                        cquery.moveToLast();
-                        sColumnId = cquery.getString(0).toString();
-                    }
+                   try{
+                       sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+                               "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                       Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+                       String sColumnId = null;
+                       if (cquery.getCount() > 0) {
+                           cquery.moveToLast();
+                           sColumnId = cquery.getString(0).toString();
+                       }
 
-                    ServiceLocation m = new ServiceLocation();
-                    Log.d("postcoordinat", "from main activity at 663");
-                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                       ServiceLocation m = new ServiceLocation();
+                       Log.d("postcoordinat", "from main activity at 663");
+                       m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                   }catch (Exception e){
+                       ServiceLocation m = new ServiceLocation();
+                       Log.d("postcoordinat", "from main activity at 663");
+                       m.LocationOperationOffline(locationInfo, getApplicationContext(), "");
+                   }
 //                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
                     SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
                 }
@@ -713,7 +725,7 @@ public class MainActivity extends AppCompatActivity
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
                 int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-
+                Log.d(">>>>>>>>>>","sending battery");
                 try {
                     Log.d("battery", batLevel + "%");
                     Log.d("battery2", getBatteryPercentage(MainActivity.this) + "%");
@@ -923,6 +935,8 @@ public class MainActivity extends AppCompatActivity
             cquery.moveToLast();
             sColumnId = cquery.getString(0).toString();
         }
+        SOMTracker.setSharedPrefLong("BAT", 0);
+        Log.d(">>>>>>>>>>","send battery method called");
         serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
     }
 
@@ -1037,11 +1051,17 @@ public class MainActivity extends AppCompatActivity
                 return;
             }
             mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
+//           if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+               locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
+               locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
+               locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+               locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 630 * 1000, locationPendingIntent);
+//           }
         } else {
             locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
             locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
             locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 2 * 1000, locationPendingIntent);
+            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
         }
 
     }

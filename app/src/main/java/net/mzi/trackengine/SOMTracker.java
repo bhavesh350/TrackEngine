@@ -19,6 +19,8 @@ import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import org.acra.ACRA;
 import org.acra.ReportField;
 import org.acra.ReportingInteractionMode;
@@ -76,6 +78,7 @@ public class SOMTracker extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
         myApplication = this;
         c = this;
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();

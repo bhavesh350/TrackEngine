@@ -1,9 +1,6 @@
 package net.mzi.trackengine;
 
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,15 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.BatteryManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.android.gms.location.LocationResult;
@@ -212,6 +202,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
 
                                         LocationOperation(locationInfo, context, sColumnId);
                                     } catch (Exception e) {
+                                        LocationOperation(locationInfo, context, "");
                                         e.printStackTrace();
                                     }
                                 }
@@ -289,9 +280,11 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                     //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
                                     Log.e("onReceive: USERID", nh_userid);
                                     //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
+
                                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                             "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
                                             + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+
                                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                     String sColumnId = null;
@@ -302,6 +295,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
 
                                     LocationOperation(locationInfo, context, sColumnId);
                                 } catch (Exception e) {
+                                    LocationOperation(locationInfo, context, "");
                                     e.printStackTrace();
                                 }
                             }
@@ -360,7 +354,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                     sublocalityString = "NA";
                 }
 
-                final ApiResult.User_Location user_location ;
+                final ApiResult.User_Location user_location;
                 Log.e("postcoordinat", "LocationUpdateBroadcastReceiver at 364");
                 Call<ApiResult.User_Location> call1;
                 if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
@@ -390,11 +384,13 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
 
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "false");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

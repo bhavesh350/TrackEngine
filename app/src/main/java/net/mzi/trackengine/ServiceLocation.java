@@ -97,7 +97,106 @@ public class ServiceLocation extends Service {
             longitude = mLastLocation.getLongitude();
             SOMTracker.setSharedPrefString("lat", latitude + "");
             SOMTracker.setSharedPrefString("lng", longitude + "");
+
+            if (isFirstTime) {
+
+                {
+                    Geocoder geocoder = null;
+                    List<Address> addresses;
+                    long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                    if (lastLocTime == 0) {
+                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+
+                    }
+                    long differLoc = System.currentTimeMillis() - lastLocTime;
+                    if (differLoc > (10 * 60 * 1000)) {
+                        geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                    }
+
+
+                    try {
+                        sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
+                        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+                        if (addresses.size() > 0) {
+                            sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                            sCity = addresses.get(0).getLocality();
+                            sState = addresses.get(0).getAdminArea();
+                            sCountry = addresses.get(0).getCountryName();
+                            sPostalCode = addresses.get(0).getPostalCode();
+                            sKnownName = addresses.get(0).getFeatureName();
+                            sPremises = addresses.get(0).getPremises();
+                            sSubLocality = addresses.get(0).getSubLocality();
+                            sSubAdminArea = addresses.get(0).getSubAdminArea();
+                        } else {
+                            sAddressLine = "NA";
+                            sCity = "NA";
+                            sState = "NA";
+                            sCountry = "NA";
+                            sPostalCode = "NA";
+                            sKnownName = "NA";
+                            sPremises = "NA";
+                            sSubLocality = "NA";
+                            sSubAdminArea = "NA";
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        sAddressLine = "NA";
+                        sCity = "NA";
+                        sState = "NA";
+                        sCountry = "NA";
+                        sPostalCode = "NA";
+                        sKnownName = "NA";
+                        sPremises = "NA";
+                        sSubLocality = "NA";
+                        sSubAdminArea = "NA";
+                    }
+                    locationInfo.put("RealTimeUpdate", "true");
+                    locationInfo.put("UserId", nh_userid);
+                    locationInfo.put("DeviceId", sDeviceId);
+                    locationInfo.put("Latitude", String.valueOf(location.getLatitude()));
+                    locationInfo.put("Longitude", String.valueOf(location.getLongitude()));
+                    locationInfo.put("ActivityDate", currentDateTimeString);
+                    locationInfo.put("AutoCaptured", "true");
+                    locationInfo.put("AddressLine", sAddressLine);
+                    locationInfo.put("Premises", sPremises);
+                    locationInfo.put("SubLocality", sSubLocality);
+                    locationInfo.put("SubAdminArea", sSubAdminArea);
+                    locationInfo.put("PostalCode", sPostalCode);
+                    locationInfo.put("City", sCity);
+                    locationInfo.put("State", sState);
+                    locationInfo.put("Country", sCountry);
+                    locationInfo.put("KnownName", sKnownName);
+                    locationInfo.put("Provider", "NA");
+
+                    try {
+                        //Date cDate = new Date();
+                        //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
+                        Log.e("onReceive: USERID", nh_userid);
+                        //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
+                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+                                "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
+                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+                        String sColumnId = null;
+                        if (cquery.getCount() > 0) {
+                            cquery.moveToLast();
+                            sColumnId = cquery.getString(0).toString();
+                        }
+
+                        LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                    } catch (Exception e) {
+                        LocationOperationOffline(locationInfo, getApplicationContext(), "");
+                    }
+                }
+            }else{
+                isFirstTime = true;
+            }
+
         }
+
+        private boolean isFirstTime = false;
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -126,15 +225,15 @@ public class ServiceLocation extends Service {
 //        h.postDelayed(check2MinTask, 60 * 1000);
 
         initializeLocationManager();
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[1]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-        }
+//        try {
+//            mLocationManager.requestLocationUpdates(
+//                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+//                    mLocationListeners[1]);
+//        } catch (java.lang.SecurityException ex) {
+//            Log.i(TAG, "fail to request location update, ignore", ex);
+//        } catch (IllegalArgumentException ex) {
+//            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+//        }
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -183,17 +282,17 @@ public class ServiceLocation extends Service {
             long m = different;
             long elapsedMinutes = different / minutesInMilli;
             if (elapsedMinutes >= 2) {
-                try {
-                    mLocationManager.requestLocationUpdates(
-                            LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                            mLocationListeners[1]);
-                } catch (SecurityException ex) {
-                    Log.i(TAG, "fail to request location update, ignore", ex);
-                    showSettingsAlert();
-                } catch (IllegalArgumentException ex) {
-                    showSettingsAlert();
-                    Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-                }
+//                try {
+//                    mLocationManager.requestLocationUpdates(
+//                            LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+//                            mLocationListeners[1]);
+//                } catch (SecurityException ex) {
+//                    Log.i(TAG, "fail to request location update, ignore", ex);
+//                    showSettingsAlert();
+//                } catch (IllegalArgumentException ex) {
+//                    showSettingsAlert();
+//                    Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+//                }
                 try {
                     mLocationManager.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -307,6 +406,7 @@ public class ServiceLocation extends Service {
 
                                 LocationOperation(locationInfo, getApplicationContext(), sColumnId);
                             } catch (Exception e) {
+                                LocationOperation(locationInfo, getApplicationContext(), "");
                             }
                         }
                     } else {
@@ -395,6 +495,7 @@ public class ServiceLocation extends Service {
 
                             LocationOperation(locationInfo, getApplicationContext(), sColumnId);
                         } catch (Exception e) {
+                            LocationOperation(locationInfo, getApplicationContext(), "");
                         }
                     }
                 } else {
@@ -531,11 +632,13 @@ public class ServiceLocation extends Service {
 
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "false");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             }
                         } catch (Exception e) {
                         }
@@ -649,11 +752,13 @@ public class ServiceLocation extends Service {
 
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "false");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                if (!finalColumnId.isEmpty())
+                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             }
                         } catch (Exception e) {
                         }

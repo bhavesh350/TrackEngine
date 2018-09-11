@@ -158,33 +158,40 @@ public class ServiceBattery extends Service {
         }
         long differ = System.currentTimeMillis() - lastBatteryTime;
         if (differ < (15 * 60 * 1000)) {
+            Log.d(">>>>>>>>>>","returned battery less 15");
             return;
         }
+        Log.d(">>>>>>>>>>","not returened");
         SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
+        Log.d(">>>>>>>>>>","reading sql");
+        try{sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);}catch (Exception e){}
+        Log.d(">>>>>>>>>>","read sql");
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Log.e("BatteryOperation: ", batteryInfo.toString());
+        Log.e(">>>>>>>>>>>: ", batteryInfo.toString());
         final ApiResult apiResult = new ApiResult();
 
         final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("true", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
         Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
-        final String finalColumnId = sColumnId;
+//        final String finalColumnId = sColumnId;
+        Log.d(">>>>>>>>>>","eneque called");
         call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
             @Override
             public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
                 try {
                     ApiResult.User_BatteryLevel iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
+                        Log.d(">>>>>>>>>>","Success status null");
                         ContentValues newValues = new ContentValues();
                         newValues.put("SyncStatus", "false");
                         sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
                     } else {
+                        Log.d(">>>>>>>>>>","success status is true "+response.body().toString());
                         ContentValues newValues = new ContentValues();
                         newValues.put("SyncStatus", "true");
                         sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
                     }
                 } catch (Exception e) {
+                    Log.d(">>>>>>>>>>","success but exception"+e.getMessage()+" \n"+e.getLocalizedMessage());
 //                   MyApp.showMassage();
                 }
             }
@@ -193,6 +200,7 @@ public class ServiceBattery extends Service {
             public void onFailure(Call<ApiResult.User_BatteryLevel> call, Throwable t) {
                 call.cancel();
 
+                Log.d(">>>>>>>>>>","failed");
             }
         });
     }
