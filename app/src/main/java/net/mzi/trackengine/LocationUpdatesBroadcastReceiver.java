@@ -192,6 +192,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                         sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                                 "('" + nh_userid + "','" + locations.get(0).getLatitude()
                                                 + "','" + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                                        Log.e("Location insertion","Inserted by LocationUpdateBoradcastReceiver at 195");
                                         //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                         Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                         String sColumnId = null;
@@ -284,7 +285,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                             "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
                                             + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-
+                                    Log.e("Location insertion","Inserted by LocationUpdateBoradcastReceiver at 288");
                                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                     String sColumnId = null;
@@ -383,7 +384,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
                                 ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
+                                newValues.put("SyncStatus", "true");
                                 if (!finalColumnId.isEmpty())
                                     sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {

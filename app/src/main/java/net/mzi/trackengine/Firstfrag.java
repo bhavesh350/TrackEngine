@@ -227,7 +227,9 @@ public class Firstfrag extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
-        int ticket = Integer.parseInt(ticketNumber.replace("TAGIT", ""));
+        String str = ticketNumber;
+        str = str.replaceAll("[^\\d.]", "");
+        int ticket = Integer.parseInt(str);
         //Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Intent intent = new Intent(getActivity(), MainActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(getActivity(), (int) System.currentTimeMillis(), intent, 0);
@@ -249,11 +251,11 @@ public class Firstfrag extends Fragment {
                     .setSmallIcon(R.mipmap.som)
                     .setContentText(sNotificationMessage)
                     .setContentIntent(pIntent)
-                    .setChannelId(ticket+"")
+                    .setChannelId(ticket + "")
                     .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
                     .addAction(R.drawable.som, "View", pIntent).build();
             CharSequence name = getActivity().getString(R.string.app_name);
-            NotificationChannel mChannel = new NotificationChannel(ticket+"", name, importance);
+            NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
 //            AudioAttributes att = new AudioAttributes.Builder()
 //                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
 //                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
@@ -261,7 +263,7 @@ public class Firstfrag extends Fragment {
 //            mChannel.setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone),att);
             notificationManager.createNotificationChannel(mChannel);
         }
-            notificationManager.notify(ticket, noti);
+        notificationManager.notify(ticket, noti);
         //
 
         ++MULTIPLE_NOTIFICATION;
@@ -336,7 +338,7 @@ public class Firstfrag extends Fragment {
                         try {
                             MainActivity m = new MainActivity();
                             m.updateCounter(getActivity());
-                            SOMTracker.showMassage(ctx,getString(R.string.internet_error));
+                            SOMTracker.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();
@@ -388,7 +390,6 @@ public class Firstfrag extends Fragment {
 //                        t.StatusId = object.getString("StatusId");
                                 t.IssueID = resData.IssueDetail[i].Id;
                                 //t.Address=object.getString("StatusName");
-                                Log.e("FirstFrag", "StatusId:" + t.StatusId + "IssueID:" + t.IssueID);
                                 t.AssetSubType = resData.IssueDetail[i].AssetSubType;
                                 t.AssetType = resData.IssueDetail[i].AssetType;
                                 t.AssetSerialNumber = resData.IssueDetail[i].AssetSerialNo;
@@ -422,13 +423,14 @@ public class Firstfrag extends Fragment {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
                                         if (forMainTable.getCount() > 0) {
                                         } else {
-                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
-                                           try{
-                                               sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                       "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                           }catch (Exception e){
-                                               e.printStackTrace();
-                                           }
+
+                                            try {
+                                                sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                        "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                         try {
                                             sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
@@ -512,7 +514,6 @@ public class Firstfrag extends Fragment {
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
                     call.cancel();
                     obj.setHideAlert();
-
                 }
             });
         } catch (Exception e) {

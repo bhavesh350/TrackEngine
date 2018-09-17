@@ -98,7 +98,7 @@ public class ServiceLocation extends Service {
             SOMTracker.setSharedPrefString("lat", latitude + "");
             SOMTracker.setSharedPrefString("lng", longitude + "");
 
-            if (isFirstTime) {
+            if (isFirstTime && false) {
 
                 {
                     Geocoder geocoder = null;
@@ -177,6 +177,7 @@ public class ServiceLocation extends Service {
                         //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                         sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                 "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                        Log.e("Location insertion", "Inserted by ServiceLocation at 180");
                         //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                         Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                         String sColumnId = null;
@@ -190,7 +191,7 @@ public class ServiceLocation extends Service {
                         LocationOperationOffline(locationInfo, getApplicationContext(), "");
                     }
                 }
-            }else{
+            } else {
                 isFirstTime = true;
             }
 
@@ -396,6 +397,7 @@ public class ServiceLocation extends Service {
                                 //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                                 sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                         "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                                Log.e("Location insertion", "Inserted by ServiceLocation at 400");
                                 //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                 Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                 String sColumnId = null;
@@ -485,6 +487,7 @@ public class ServiceLocation extends Service {
                             //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                             sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                     "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                            Log.e("Location insertion", "Inserted by ServiceLocation at 490");
                             //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                             Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                             String sColumnId = null;
@@ -692,7 +695,6 @@ public class ServiceLocation extends Service {
         editor = pref.edit();
         String sCheckInStatus = pref.getString("CheckedInStatus", "0");
         if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
                         || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
@@ -751,7 +753,7 @@ public class ServiceLocation extends Service {
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
                                 ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
+                                newValues.put("SyncStatus", "true");
                                 if (!finalColumnId.isEmpty())
                                     sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {

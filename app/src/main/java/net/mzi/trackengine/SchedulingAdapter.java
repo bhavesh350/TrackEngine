@@ -855,15 +855,20 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
         final int R = 6371; // Radious of the earth
 
-        Double latDistance = deg2rad(lati - lat);
-        Double lonDistance = deg2rad(longi - lon);
-        Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
-                Math.cos(deg2rad(lat)) * Math.cos(deg2rad(lati)) *
-                        Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        Double distance = R * c;
+        try {
+            Double latDistance = deg2rad(lati - lat);
+            Double lonDistance = deg2rad(longi - lon);
+            Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+                    Math.cos(deg2rad(lat)) * Math.cos(deg2rad(lati)) *
+                            Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+            Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            Double distance = R * c;
+            return distance;
+        }catch (Exception e){
+            return 10.0;
+        }
 
-        return distance;
+
     }
 
     private double deg2rad(double deg) {

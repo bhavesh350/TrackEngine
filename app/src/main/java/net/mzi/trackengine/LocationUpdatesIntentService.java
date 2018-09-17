@@ -195,18 +195,27 @@ public class LocationUpdatesIntentService extends IntentService {
                                         //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
                                         Log.e("onReceive: USERID", nh_userid);
                                         //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                                "('" + nh_userid + "','" + locations.get(0).getLatitude()
-                                                + "','" + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                        String sColumnId = null;
-                                        if (cquery.getCount() > 0) {
-                                            cquery.moveToLast();
-                                            sColumnId = cquery.getString(0).toString();
+//                                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+//                                                "('" + nh_userid + "','" + locations.get(0).getLatitude()
+//                                                + "','" + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+//                                        Log.e("Location insertion","Inserted by LocationUpdatesIntentService at 201");
+//                                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
+//                                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+//                                        String sColumnId = null;
+//                                        if (cquery.getCount() > 0) {
+//                                            cquery.moveToLast();
+//                                            sColumnId = cquery.getString(0).toString();
+//                                        }
+                                        long lastInsertLocTime = SOMTracker.getSharedPrefLong("LOCINS");
+                                        if (lastInsertLocTime == 0) {
+                                            SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                         }
-
-                                        LocationOperation(locationInfo, this, sColumnId);
+                                        long differInsertLoc = System.currentTimeMillis() - lastInsertLocTime;
+                                        if (differInsertLoc < (2 * 58 * 1000)) {
+                                            return;
+                                        }
+                                        SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                        LocationOperation(locationInfo, this, "");
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -281,6 +290,15 @@ public class LocationUpdatesIntentService extends IntentService {
                                 locationInfo.put("Provider", "NA");
 
                                 try {
+                                    long lastInsertLocTime = SOMTracker.getSharedPrefLong("LOCINS");
+                                    if (lastInsertLocTime == 0) {
+                                        SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                    }
+                                    long differInsertLoc = System.currentTimeMillis() - lastInsertLocTime;
+                                    if (differInsertLoc < (2 * 58 * 1000)) {
+                                        return;
+                                    }
+                                    SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                     //Date cDate = new Date();
                                     //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
                                     Log.e("onReceive: USERID", nh_userid);
@@ -288,6 +306,7 @@ public class LocationUpdatesIntentService extends IntentService {
                                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                             "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
                                             + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                                    Log.e("Location insertion","Inserted by LocationUpdatesIntentService at 292");
                                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                     String sColumnId = null;
@@ -383,13 +402,13 @@ public class LocationUpdatesIntentService extends IntentService {
                             ApiResult.User_Location iData = response.body();
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+//                                ContentValues newValues = new ContentValues();
+//                                newValues.put("SyncStatus", "true");
+//                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+//                                ContentValues newValues = new ContentValues();
+//                                newValues.put("SyncStatus", "true");
+//                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

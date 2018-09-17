@@ -123,7 +123,9 @@ public class ServiceBattery extends Service {
 
             BatteryLevel = intent.getIntExtra("level", 0);
             Log.e("testlow", String.valueOf(BatteryLevel) + "%");
-            unregisterReceiver(this);
+            try{
+                unregisterReceiver(this);
+            }catch (Exception e){}
 
         }
     };

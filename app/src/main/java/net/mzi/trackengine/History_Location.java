@@ -110,7 +110,9 @@ public class History_Location extends Fragment {
                 progress.dismiss();
             }*/
             if (s == null) {
-                SOMTracker.showMassage(getActivity(), getString(R.string.internet_error));
+                try{
+                    SOMTracker.showMassage(getActivity(), getString(R.string.internet_error));
+                }catch (Exception e){}
 
             } else {
                 Log.i("INFO", s);

@@ -1,6 +1,7 @@
 package net.mzi.trackengine;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -131,7 +132,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
 
                     if (!(nh_userid.equals("0"))) ;
                     {
-                        String sTktInJson = new Gson().toJson(mTicketIdList);
+//                        String sTktInJson = new Gson().toJson(mTicketIdList);
                         NewTicketsInfo(mTicketIdList);
                     }
 
@@ -163,7 +164,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
     }
 
     public void NewTicketsInfo(Map mTicketIdList) {
-        Log.d("Bhavesh call", "updating data by service for the ticketes info");
+        Log.d("Bhavesh call", "updating data by fragment for the ticketes info");
         try {
             final MainActivity obj = new MainActivity();
             final ApiResult apiResult = new ApiResult();
@@ -177,8 +178,8 @@ public class ServiceDataUpdateFirstFragment extends Service {
                     if (resData == null || resData.equals("") || resData.equals("0")) {
                         try {
                             MainActivity m = new MainActivity();
-                            m.updateCounter(getApplicationContext());
-                            SOMTracker.showMassage(ctx,getString(R.string.internet_error));
+                            m.updateCounter(ctx);
+                            SOMTracker.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();
@@ -230,7 +231,6 @@ public class ServiceDataUpdateFirstFragment extends Service {
 //                        t.StatusId = object.getString("StatusId");
                                 t.IssueID = resData.IssueDetail[i].Id;
                                 //t.Address=object.getString("StatusName");
-                                Log.e("FirstFrag", "StatusId:" + t.StatusId + "IssueID:" + t.IssueID);
                                 t.AssetSubType = resData.IssueDetail[i].AssetSubType;
                                 t.AssetType = resData.IssueDetail[i].AssetType;
                                 t.AssetSerialNumber = resData.IssueDetail[i].AssetSerialNo;
@@ -260,25 +260,25 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                         ref.child(nh_userid).child(t.IssueID).removeValue();
                                         sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
 
-                                        ref.addValueEventListener(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                            }
-
-                                            @Override
-                                            public void onCancelled(FirebaseError firebaseError) {
-
-                                            }
-                                        });
                                     } else if (cquery.getString(0).toString().equals("New") || cquery.getString(0).toString().equals("new")) {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
                                         if (forMainTable.getCount() > 0) {
                                         } else {
-                                            sendNotification("New Ticket: " + t.TicketNumber, ctx);
-                                            sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                    "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+
+                                            try {
+                                                sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                        "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
                                         }
+                                        try {
+                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                        } catch (Exception e) {
+                                            Log.e("Notification error ", "at 280");
+                                        }
+                                        // comment if upper one is not commented
                                     } else if (cquery.getString(0).toString().equals("Update") || cquery.getString(0).toString().equals("update")) {
                                         char str = cquery.getString(0).toString().charAt(0);
                                         if (str == 'W') {
@@ -339,8 +339,10 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                             }
                                         }
                                     }
-                                    MainActivity m = new MainActivity();
-                                    m.updateCounter(getApplicationContext());
+                                   try{
+                                       MainActivity m = new MainActivity();
+                                       m.updateCounter(getApplicationContext());
+                                   }catch (Exception e){}
                                 }
                             }
                             fetchDataFromLocal();
@@ -354,10 +356,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                 @Override
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
                     call.cancel();
-                   try{
-                       obj.setHideAlert();
-                   }catch (Exception e){}
-
+                    obj.setHideAlert();
                 }
             });
         } catch (Exception e) {
@@ -398,11 +397,14 @@ public class ServiceDataUpdateFirstFragment extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void sendNotification(String sNotificationMessage, Context activity) {
+    private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
+        String str = ticketNumber;
+        str = str.replaceAll("[^\\d.]", "");
+        int ticket = Integer.parseInt(str);
         //Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(getApplicationContext(), (int) System.currentTimeMillis(), intent, 0);
-        Notification noti = new Notification.Builder(getApplicationContext()).setContentTitle("MZS Notifier")
+        Intent intent = new Intent(ctx, MainActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(ctx, (int) System.currentTimeMillis(), intent, 0);
+        Notification noti = new Notification.Builder(ctx).setContentTitle("MZS Notifier")
                 //.setContentText("New Updates in your Task Manager for "+ sIssueId)
                 .setSmallIcon(R.mipmap.som)
                 .setContentText(sNotificationMessage)
@@ -412,9 +414,29 @@ public class ServiceDataUpdateFirstFragment extends Service {
         NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
         // hide the notification after its selected
         noti.flags |= Notification.FLAG_AUTO_CANCEL;
-        notificationManager.notify(MULTIPLE_NOTIFICATION, noti);
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            noti = new Notification.Builder(ctx).setContentTitle("MZS Notifier")
+                    //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+                    .setSmallIcon(R.mipmap.som)
+                    .setContentText(sNotificationMessage)
+                    .setContentIntent(pIntent)
+                    .setChannelId(ticket + "")
+                    .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
+                    .addAction(R.drawable.som, "View", pIntent).build();
+            CharSequence name = ctx.getString(R.string.app_name);
+            NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
+//            AudioAttributes att = new AudioAttributes.Builder()
+//                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+//                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+//                    .build();
+//            mChannel.setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone),att);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+        notificationManager.notify(ticket, noti);
         //
 
-        MULTIPLE_NOTIFICATION++;
+        ++MULTIPLE_NOTIFICATION;
     }
 }

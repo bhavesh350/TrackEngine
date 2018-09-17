@@ -180,11 +180,25 @@ public class InternetConnector {
                             locationInfo.put("Provider", "NA");
                             ServiceLocation m = new ServiceLocation();
                             //insert
-                            Log.d("postcoordinat", "offline syncing from internet connector at 161");
+
                             m.LocationOperationOffline(locationInfo, context, cquery.getString(0).toString());
+                            String id = cquery.getString(0).toString();
+                            Log.d("postcoordinat", "offline syncing with id = " + id);
+                            sql.delete("User_Location", "Id" + "=" + id, null);
                         }
                         if (counter >= 50) {
                             break;
+                        }
+                    }
+
+                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                    if (cquery.getCount() > 0) {
+
+                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                            String id = cquery.getString(0).toString();
+                            sql.delete("User_Location", "Id" + "=" + id, null);
                         }
                     }
 

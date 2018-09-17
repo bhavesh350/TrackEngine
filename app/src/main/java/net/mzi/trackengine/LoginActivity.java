@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,6 +35,7 @@ import net.mzi.trackengine.model.PostUrl;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -180,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         //new LongOperation(jsonString, view).execute();
                         final ApiResult apiResult = new ApiResult();
-                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ")", currentDateTimeString);
+                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ") Version("+versionName+")", currentDateTimeString);
 
                         Call<ApiResult.User> call1 = apiInterface.isLogin(loginDetail);
                         call1.enqueue(new Callback<ApiResult.User>() {
@@ -240,7 +242,48 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
+
+        String str = "TCPLIN180904352";
+        str = str.replaceAll("[^\\d.]", "");
+        Log.e("alphanumericString", str);
+
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("android : ").append(Build.VERSION.RELEASE);
+
+        Field[] fields = Build.VERSION_CODES.class.getFields();
+        for (Field field : fields) {
+            String fieldName = field.getName();
+            int fieldValue = -1;
+
+            try {
+                fieldValue = field.getInt(new Object());
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+
+            if (fieldValue == Build.VERSION.SDK_INT) {
+                builder.append(" : ").append(fieldName).append(" : ");
+                builder.append("sdk=").append(fieldValue);
+            }
+        }
+
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            versionName = pInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        androidOsName = "OS: " + builder.toString();
+        Log.d("alphanumericString", "OS: " + builder.toString()+"\n"+versionName);
     }
+
+    private String androidOsName = "";
+    private String versionName = "";
 
     @Override
     public void onBackPressed() {
