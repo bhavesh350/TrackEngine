@@ -65,7 +65,7 @@ public class AgentPerformance extends AppCompatActivity {
         l.setYEntrySpace(5);
         l.setTextSize(12);
         // creating data values<br />
-
+        cquery.close();
 
         pieChart.animateY(5000);
         pieChart.setCenterText("Analysing Performance");

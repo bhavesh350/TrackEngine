@@ -266,6 +266,7 @@ public class SwipeDeckAdapter extends BaseAdapter {
                 }
                 else
                     sAcceptStatus="0";
+                cquery.close();
                 Date cDate = new Date();
                 String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
 
@@ -290,6 +291,7 @@ public class SwipeDeckAdapter extends BaseAdapter {
                     cque.moveToLast();
                     sColumnId=cque.getString(0).toString();
                 }
+                cque.close();
                 Cursor cqueryTemp = sql.rawQuery("select StatusId from Issue_Detail where IssueId ='" + data.get(position).IssueID+ "'", null);
                 if(cqueryTemp.getCount()>0) {
                     cqueryTemp.moveToFirst();
@@ -346,6 +348,7 @@ public class SwipeDeckAdapter extends BaseAdapter {
 
                 }
                 f.swipeLeft(data.get(position).IssueID,context);
+                cqueryTemp.close();
             }
         });
 

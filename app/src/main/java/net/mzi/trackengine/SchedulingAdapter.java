@@ -298,7 +298,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             if (iData.resData.Status == null || iData.resData.Status.equals("")
                                     || iData.resData.Status.equals("0")) {
                                 try {
-                                    SOMTracker.showMassage(context,context.getString(R.string.internet_error));
+                                    SOMTracker.showMassage(context, context.getString(R.string.internet_error));
 //                                    Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                 } catch (Exception e) {
                                     e.getMessage();
@@ -329,6 +329,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6).toString() + "'", null);
                     cqueryForStatus.moveToFirst();
                     addCard(cquery.getString(0).toString(), cquery.getString(1).toString(), cquery.getString(2).toString(), cquery.getString(3).toString(), cquery.getString(4).toString(), cquery.getString(5).toString(), cqueryForStatus.getString(0).toString(), R.color.orange, Pending, position, cquery.getString(7).toString());
+                    cquery.close();
                 }
             });
             ticketHolder.rejectButton.setOnClickListener(new View.OnClickListener() {
@@ -393,7 +394,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     cque.moveToLast();
                                     sColumnId = cquery.getString(0).toString();
                                 }
-
+                                cquery.close();
                                 final ApiResult apiResult = new ApiResult();
                                 final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position), sAcceptStatus, commemt.getText().toString(), currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "-1", "", "", "");
                                 Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
@@ -407,7 +408,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                         ApiResult.IssueDetail iData = response.body();
                                         if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                             try {
-                                                SOMTracker.showMassage(context,context.getString(R.string.internet_error));
+                                                SOMTracker.showMassage(context, context.getString(R.string.internet_error));
 //                                                Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                             } catch (Exception e) {
                                                 e.getMessage();
@@ -427,7 +428,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                                 cqueryTemp.moveToFirst();
                                                 ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Delete");
                                             }
-
+                                            cqueryTemp.close();
                                         }
                                     }
 
@@ -519,6 +520,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     } else {
                         populateStatus(mIssueID.get(position), position, "", sPreviousId);
                     }
+
+                    cqueryIsVerified.close();
                 }
             });
             String sMainStatusIdTemp = null;
@@ -531,9 +534,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     sMainStatusIdTemp = cqueryTemp1.getString(0).toString();
                 } else
                     sMainStatusIdTemp = "4";
+                cqueryTemp1.close();
             } else {
                 sMainStatusIdTemp = "4";
             }
+            cqueryTemp.close();
             if (mTime.get(position).equals(""))
                 schedulingholder.time.setText("NA!!");
             else if (sMainStatusIdTemp.equals("4")) {
@@ -646,6 +651,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             } else {
                                 populateStatus(mIssueID.get(position), position, "", sPreviousId);
                             }
+                            cqueryIsVerified.close();
                             return true;
                         case R.id.showDistance:
                             DecimalFormat df = new DecimalFormat("####.00");
@@ -734,7 +740,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            SOMTracker.showMassage(context,"Loading Data!!!");
+            SOMTracker.showMassage(context, "Loading Data!!!");
 //            Toast.makeText(ctx, "Loading Data!!!", Toast.LENGTH_LONG).show();
         }
 
@@ -790,10 +796,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
 
                 if (s == null) {
-                    SOMTracker.showMassage(ctx,ctx.getString(R.string.internet_error));
+                    SOMTracker.showMassage(ctx, ctx.getString(R.string.internet_error));
 //                    Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                 } else {
-                    SOMTracker.showMassage(ctx,"OEM Updated Successfully!!!");
+                    SOMTracker.showMassage(ctx, "OEM Updated Successfully!!!");
 //                    Toast.makeText(ctx, "OEM Updated Successfully!!!", Toast.LENGTH_LONG).show();
                     ContentValues newValues = new ContentValues();
                     newValues.put("OEMNumber", jsonObject.getString("OEMTicketId"));
@@ -864,7 +870,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             Double distance = R * c;
             return distance;
-        }catch (Exception e){
+        } catch (Exception e) {
             return 10.0;
         }
 
@@ -919,7 +925,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         String sCardType = cquery.getString(0).toString();
         sCurrentStatusId = cquery.getString(1).toString();
         if (sCardType.equals("3"))
-            SOMTracker.showMassage(ctx,"This ticket is already closed!!!");
+            SOMTracker.showMassage(ctx, "This ticket is already closed!!!");
 //            Toast.makeText(ctx, "This ticket is already closed!!!", Toast.LENGTH_LONG).show();
         else {
             fetchStatus(currentStatus, id, sCurrentStatusId);
@@ -1133,8 +1139,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("AssetSerialNo", sAssetVerificationText);
                                 postTktStatus.put("DeviceId", sDeviceId);
                                 postTktStatus.put("Expense", eTransport.getText().toString());
+                                String issueStatus = postTktStatus.get("Comment").replace("'", "''");
                                 sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                        "('" + postTktStatus.get("TicketId") + "','" + postTktStatus.get("UserId") + "','" + postTktStatus.get("StatusId") + "','" + postTktStatus.get("Comment") + "','" + postTktStatus.get("ActivityDate") + "','-1')");
+                                        "('" + postTktStatus.get("TicketId") + "','" + postTktStatus.get("UserId") + "','" + postTktStatus.get("StatusId") + "','" + issueStatus + "','" + postTktStatus.get("ActivityDate") + "','-1')");
                                 Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
                                 String sColumnId = null;
                                 if (cquery.getCount() > 0) {
@@ -1372,7 +1379,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         ApiResult.IssueDetail iData = response.body();
                         if (iData.resData.Status == null || iData.resData.Status.toString().equals("") || iData.resData.Status.toString().equals("0")) {
                             try {
-                                SOMTracker.showMassage(ctx,ctx.getString(R.string.internet_error));
+                                SOMTracker.showMassage(ctx, ctx.getString(R.string.internet_error));
 //                                Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                             } catch (Exception e) {
                                 e.getMessage();

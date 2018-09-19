@@ -107,6 +107,12 @@ public class Offline_CheckIn extends Fragment {
                             mRecyclerView.setAdapter(mAdapter);
                         }
                     });
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            cquery.close();
+                        }
+                    });
                 }
 
 

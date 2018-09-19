@@ -98,102 +98,104 @@ public class ServiceLocation extends Service {
             SOMTracker.setSharedPrefString("lat", latitude + "");
             SOMTracker.setSharedPrefString("lng", longitude + "");
 
-            if (isFirstTime && false) {
-
-                {
-                    Geocoder geocoder = null;
-                    List<Address> addresses;
-                    long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
-                    if (lastLocTime == 0) {
-                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
-
-                    }
-                    long differLoc = System.currentTimeMillis() - lastLocTime;
-                    if (differLoc > (10 * 60 * 1000)) {
-                        geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
-                    }
-
-
-                    try {
-                        sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
-                        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                        if (addresses.size() > 0) {
-                            sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                            sCity = addresses.get(0).getLocality();
-                            sState = addresses.get(0).getAdminArea();
-                            sCountry = addresses.get(0).getCountryName();
-                            sPostalCode = addresses.get(0).getPostalCode();
-                            sKnownName = addresses.get(0).getFeatureName();
-                            sPremises = addresses.get(0).getPremises();
-                            sSubLocality = addresses.get(0).getSubLocality();
-                            sSubAdminArea = addresses.get(0).getSubAdminArea();
-                        } else {
-                            sAddressLine = "NA";
-                            sCity = "NA";
-                            sState = "NA";
-                            sCountry = "NA";
-                            sPostalCode = "NA";
-                            sKnownName = "NA";
-                            sPremises = "NA";
-                            sSubLocality = "NA";
-                            sSubAdminArea = "NA";
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        sAddressLine = "NA";
-                        sCity = "NA";
-                        sState = "NA";
-                        sCountry = "NA";
-                        sPostalCode = "NA";
-                        sKnownName = "NA";
-                        sPremises = "NA";
-                        sSubLocality = "NA";
-                        sSubAdminArea = "NA";
-                    }
-                    locationInfo.put("RealTimeUpdate", "true");
-                    locationInfo.put("UserId", nh_userid);
-                    locationInfo.put("DeviceId", sDeviceId);
-                    locationInfo.put("Latitude", String.valueOf(location.getLatitude()));
-                    locationInfo.put("Longitude", String.valueOf(location.getLongitude()));
-                    locationInfo.put("ActivityDate", currentDateTimeString);
-                    locationInfo.put("AutoCaptured", "true");
-                    locationInfo.put("AddressLine", sAddressLine);
-                    locationInfo.put("Premises", sPremises);
-                    locationInfo.put("SubLocality", sSubLocality);
-                    locationInfo.put("SubAdminArea", sSubAdminArea);
-                    locationInfo.put("PostalCode", sPostalCode);
-                    locationInfo.put("City", sCity);
-                    locationInfo.put("State", sState);
-                    locationInfo.put("Country", sCountry);
-                    locationInfo.put("KnownName", sKnownName);
-                    locationInfo.put("Provider", "NA");
-
-                    try {
-                        //Date cDate = new Date();
-                        //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                        Log.e("onReceive: USERID", nh_userid);
-                        //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                        Log.e("Location insertion", "Inserted by ServiceLocation at 180");
-                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                        String sColumnId = null;
-                        if (cquery.getCount() > 0) {
-                            cquery.moveToLast();
-                            sColumnId = cquery.getString(0).toString();
-                        }
-
-                        LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
-                    } catch (Exception e) {
-                        LocationOperationOffline(locationInfo, getApplicationContext(), "");
-                    }
-                }
-            } else {
-                isFirstTime = true;
-            }
+//            if (isFirstTime && false) {
+//
+//                {
+//                    Geocoder geocoder = null;
+//                    List<Address> addresses;
+//                    long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+//                    if (lastLocTime == 0) {
+//                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+//
+//                    }
+//                    long differLoc = System.currentTimeMillis() - lastLocTime;
+//                    if (differLoc > (10 * 60 * 1000)) {
+//                        geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+//                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+//                    }
+//
+//
+//                    try {
+//                        sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
+//                        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+//                        if (addresses.size() > 0) {
+//                            sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+//                            sCity = addresses.get(0).getLocality();
+//                            sState = addresses.get(0).getAdminArea();
+//                            sCountry = addresses.get(0).getCountryName();
+//                            sPostalCode = addresses.get(0).getPostalCode();
+//                            sKnownName = addresses.get(0).getFeatureName();
+//                            sPremises = addresses.get(0).getPremises();
+//                            sSubLocality = addresses.get(0).getSubLocality();
+//                            sSubAdminArea = addresses.get(0).getSubAdminArea();
+//                        } else {
+//                            sAddressLine = "NA";
+//                            sCity = "NA";
+//                            sState = "NA";
+//                            sCountry = "NA";
+//                            sPostalCode = "NA";
+//                            sKnownName = "NA";
+//                            sPremises = "NA";
+//                            sSubLocality = "NA";
+//                            sSubAdminArea = "NA";
+//                        }
+//
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        sAddressLine = "NA";
+//                        sCity = "NA";
+//                        sState = "NA";
+//                        sCountry = "NA";
+//                        sPostalCode = "NA";
+//                        sKnownName = "NA";
+//                        sPremises = "NA";
+//                        sSubLocality = "NA";
+//                        sSubAdminArea = "NA";
+//                    }
+//                    locationInfo.put("RealTimeUpdate", "true");
+//                    locationInfo.put("UserId", nh_userid);
+//                    locationInfo.put("DeviceId", sDeviceId);
+//                    locationInfo.put("Latitude", String.valueOf(location.getLatitude()));
+//                    locationInfo.put("Longitude", String.valueOf(location.getLongitude()));
+//                    locationInfo.put("ActivityDate", currentDateTimeString);
+//                    locationInfo.put("AutoCaptured", "true");
+//                    locationInfo.put("AddressLine", sAddressLine);
+//                    locationInfo.put("Premises", sPremises);
+//                    locationInfo.put("SubLocality", sSubLocality);
+//                    locationInfo.put("SubAdminArea", sSubAdminArea);
+//                    locationInfo.put("PostalCode", sPostalCode);
+//                    locationInfo.put("City", sCity);
+//                    locationInfo.put("State", sState);
+//                    locationInfo.put("Country", sCountry);
+//                    locationInfo.put("KnownName", sKnownName);
+//                    locationInfo.put("Provider", "NA");
+//
+//                    try {
+//                        //Date cDate = new Date();
+//                        //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
+//                        Log.e("onReceive: USERID", nh_userid);
+//                        //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
+//                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+//                                "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+//                        Log.e("Location insertion", "Inserted by ServiceLocation at 180");
+//                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
+//                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+//                        String sColumnId;
+//                        if (cquery.getCount() > 0) {
+//                            cquery.moveToLast();
+//                            sColumnId = cquery.getString(0).toString();
+//                        } else {
+//                            sColumnId = "";
+//                        }
+//
+//                        LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+//                    } catch (Exception e) {
+//                        LocationOperationOffline(locationInfo, getApplicationContext(), "");
+//                    }
+//                }
+//            } else {
+//                isFirstTime = true;
+//            }
 
         }
 
@@ -405,7 +407,7 @@ public class ServiceLocation extends Service {
                                     cquery.moveToLast();
                                     sColumnId = cquery.getString(0).toString();
                                 }
-
+                                cquery.close();
                                 LocationOperation(locationInfo, getApplicationContext(), sColumnId);
                             } catch (Exception e) {
                                 LocationOperation(locationInfo, getApplicationContext(), "");
@@ -495,7 +497,7 @@ public class ServiceLocation extends Service {
                                 cquery.moveToLast();
                                 sColumnId = cquery.getString(0).toString();
                             }
-
+                            cquery.close();
                             LocationOperation(locationInfo, getApplicationContext(), sColumnId);
                         } catch (Exception e) {
                             LocationOperation(locationInfo, getApplicationContext(), "");
@@ -823,6 +825,7 @@ public class ServiceLocation extends Service {
                 cquery.moveToLast();
                 sColumnId = cquery.getString(0).toString();
             }
+            cquery.close();
             BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
             cDate = new Date();
             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);

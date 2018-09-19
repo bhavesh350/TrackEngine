@@ -182,7 +182,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         //new LongOperation(jsonString, view).execute();
                         final ApiResult apiResult = new ApiResult();
-                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ") Version("+versionName+")", currentDateTimeString);
+                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ") Version(" + versionName + ")", currentDateTimeString);
 
                         Call<ApiResult.User> call1 = apiInterface.isLogin(loginDetail);
                         call1.enqueue(new Callback<ApiResult.User>() {
@@ -218,6 +218,7 @@ public class LoginActivity extends AppCompatActivity {
                                         } catch (Exception e) {
                                         }
                                     }
+                                    cqueryTemp.close();
                                     session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     LoginActivity.this.finish();
@@ -279,7 +280,11 @@ public class LoginActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         androidOsName = "OS: " + builder.toString();
-        Log.d("alphanumericString", "OS: " + builder.toString()+"\n"+versionName);
+        Log.d("alphanumericString", "OS: " + builder.toString() + "\n" + versionName);
+
+        String sample = "St. Mary's and St. John's".replace("'", "''");
+        Log.d("alphanumericString", sample);
+
     }
 
     private String androidOsName = "";

@@ -69,6 +69,7 @@ public class GpsLocationReceiver extends BroadcastReceiver {
                         cquery.moveToLast();
                         sColumnId = cquery.getString(0).toString();
                     }
+                    cquery.close();
                     GPSEnableOperation(mGpsInfo, context, sColumnId);
                     Toast.makeText(context, "Location on", Toast.LENGTH_LONG).show();
                 } else {
@@ -87,6 +88,7 @@ public class GpsLocationReceiver extends BroadcastReceiver {
                         cquery.moveToLast();
                         sColumnId = cquery.getString(0).toString();
                     }
+                    cquery.close();
                     GPSEnableOperation(mGpsInfo, context, sColumnId);
                     //showAlert
                 }

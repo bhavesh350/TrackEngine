@@ -48,7 +48,12 @@ import retrofit2.Response;
  * Created by Poonam on 4/19/2017.
  */
 public class ServiceDataUpdateFirstFragment extends Service {
+    public ServiceDataUpdateFirstFragment(Context c) {
+        super();
+    }
 
+    public ServiceDataUpdateFirstFragment() {
+    }
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
     SharedPreferences.Editor editor;
@@ -56,7 +61,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
     boolean sIsAssetVerification;
     String sTicketIds = "";
     FirebaseTicketData Pi = new FirebaseTicketData();
-    SQLiteDatabase sql;
+    SQLiteDatabase sql = null;
     Map<String, String> mTicketIdList = new HashMap<>();
     int MULTIPLE_NOTIFICATION = 0;
     Context ctx;
@@ -80,8 +85,11 @@ public class ServiceDataUpdateFirstFragment extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite",
-                getApplicationContext().MODE_PRIVATE, null);
+        try {
+            sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite",
+                    getApplicationContext().MODE_PRIVATE, null);
+        } catch (Exception e) {
+        }
         Firebase.setAndroidContext(getApplicationContext());
         databaseFirebase.getInstance();
         pref = getApplicationContext().getSharedPreferences("login", 0);
@@ -94,7 +102,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
             sLastAction = pref.getString("LastAction", "2017-01-01");
         }
 
-        try{
+        try {
             drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
             drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                 @Override
@@ -103,16 +111,18 @@ public class ServiceDataUpdateFirstFragment extends Service {
                     for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                         Pi = postSnapshot.getValue(FirebaseTicketData.class);
                         //firebaseIssueData.add(P);
-                        Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                        if (cquery.getCount() > 0) {
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("Action", Pi.getAction());
-                            newValues.put("IssueId", postSnapshot.getKey());
-                            sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                        } else {
-                            sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                    "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
-
+                        if (sql != null) {
+                            Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                            if (cquery.getCount() > 0) {
+                                ContentValues newValues = new ContentValues();
+                                newValues.put("Action", Pi.getAction());
+                                newValues.put("IssueId", postSnapshot.getKey());
+                                sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                            } else {
+                                sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                        "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
+                            }
+                            cquery.close();
                         }
                         sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
                         //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
@@ -143,7 +153,8 @@ public class ServiceDataUpdateFirstFragment extends Service {
                     Log.e("onCancelled: ", "firebase issue");
                 }
             });
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
 
 
         return Service.START_STICKY;
@@ -216,6 +227,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     } catch (ParseException e) {
                                         e.printStackTrace();
                                     }
+                                    cqueryTempForLatestStatusId.close();
                                 } else {
                                     t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
                                     t.StatusId = resData.IssueDetail[i].StatusId;
@@ -298,6 +310,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                                     newValues.put("IsAccepted", "2");//Attended
                                                 }
                                             }
+                                            forMainTable.close();
                                             newValues.put("StatusId", t.StatusId);
                                             newValues.put("CategoryName", t.CategoryName);
                                             newValues.put("IssueText", t.IssueText);
@@ -337,12 +350,15 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                                             "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','2','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                 }
                                             }
+                                            cursorIssuesWhichComplete.close();
                                         }
                                     }
-                                   try{
-                                       MainActivity m = new MainActivity();
-                                       m.updateCounter(getApplicationContext());
-                                   }catch (Exception e){}
+
+                                    try {
+                                        MainActivity m = new MainActivity();
+                                        m.updateCounter(getApplicationContext());
+                                    } catch (Exception e) {
+                                    }
                                 }
                             }
                             fetchDataFromLocal();
@@ -366,34 +382,39 @@ public class ServiceDataUpdateFirstFragment extends Service {
     private void fetchDataFromLocal() {
         newTickets.clear();
         testData.clear();
-        Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
-        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+        if (sql != null) {
+            Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
+            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
 
-            TicketInfoClass t = new TicketInfoClass();
-            t.IssueID = cquery.getString(1).toString();
-            t.CategoryName = cquery.getString(2).toString();
-            t.Subject = cquery.getString(3).toString();
-            t.IssueText = cquery.getString(4).toString();
-            t.ServiceItemNumber = cquery.getString(5).toString();
-            t.AssetSerialNumber = cquery.getString(6).toString();
-            t.CreatedDate = cquery.getString(7).toString();
-            t.SLADate = cquery.getString(8).toString();
-            t.CorporateName = cquery.getString(9).toString();
-            t.Address = cquery.getString(10).toString();
-            t.PhoneNo = cquery.getString(11).toString();
-            t.StatusId = cquery.getString(12);
-            t.TicketNumber = cquery.getString(20);
-            newTickets.add(t);
+                TicketInfoClass t = new TicketInfoClass();
+                t.IssueID = cquery.getString(1).toString();
+                t.CategoryName = cquery.getString(2).toString();
+                t.Subject = cquery.getString(3).toString();
+                t.IssueText = cquery.getString(4).toString();
+                t.ServiceItemNumber = cquery.getString(5).toString();
+                t.AssetSerialNumber = cquery.getString(6).toString();
+                t.CreatedDate = cquery.getString(7).toString();
+                t.SLADate = cquery.getString(8).toString();
+                t.CorporateName = cquery.getString(9).toString();
+                t.Address = cquery.getString(10).toString();
+                t.PhoneNo = cquery.getString(11).toString();
+                t.StatusId = cquery.getString(12);
+                t.TicketNumber = cquery.getString(20);
+                newTickets.add(t);
+            }
+            cquery.close();
         }
-       try{
-           if (newTickets.size() == 0) {
-               MainActivity.removeTkt();
-           } else {
-               MainActivity.showTkt();
-               MainActivity m = new MainActivity();
-               m.updateCounter(ctx);
-           }
-       }catch (Exception e){}
+
+        try {
+            if (newTickets.size() == 0) {
+                MainActivity.removeTkt();
+            } else {
+                MainActivity.showTkt();
+                MainActivity m = new MainActivity();
+                m.updateCounter(ctx);
+            }
+        } catch (Exception e) {
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)

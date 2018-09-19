@@ -395,6 +395,8 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             }
             //mcardType.add("Complete");
         }
+
+        cqueryForStatus.close();
         mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);

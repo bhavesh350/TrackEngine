@@ -252,7 +252,7 @@ public class InternetConnector {
             } else {
                 Toast.makeText(context, "Network not found", Toast.LENGTH_LONG).show();
             }
-
+            cquery.close();
         } catch (Exception e) {
             e.getMessage().toString();
 

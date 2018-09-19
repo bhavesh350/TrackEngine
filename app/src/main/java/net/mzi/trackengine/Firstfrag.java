@@ -152,6 +152,7 @@ public class Firstfrag extends Fragment {
                                     "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
                         }
+                        cquery.close();
                         sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
                         //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
                         //}
@@ -291,6 +292,7 @@ public class Firstfrag extends Fragment {
             t.TicketNumber = cquery.getString(20);
             newTickets.add(t);
         }
+        cquery.close();
         if (newTickets.size() == 0) {
             MainActivity.removeTkt();
         } else {
@@ -375,6 +377,7 @@ public class Firstfrag extends Fragment {
                                     } catch (ParseException e) {
                                         e.printStackTrace();
                                     }
+                                    cqueryTempForLatestStatusId.close();
                                 } else {
                                     t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
                                     t.StatusId = resData.IssueDetail[i].StatusId;
@@ -443,6 +446,7 @@ public class Firstfrag extends Fragment {
                                         if (str == 'W') {
 
                                         }
+                                        cquery.close();
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
                                         if (forMainTable.getCount() > 0) {
                                             ContentValues newValues = new ContentValues();
@@ -481,6 +485,7 @@ public class Firstfrag extends Fragment {
                                             newValues.put("ContractSubTypeName", t.ContractSubTypeName);
                                             newValues.put("PreviousStatus", t.PreviousStatus);
                                             sql.update("Issue_Detail", newValues, "IssueId=" + t.IssueID, null);
+                                            forMainTable.close();
                                         } else {
                                             Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
                                             if (cursorIssuesWhichComplete.getCount() > 0) {
@@ -496,6 +501,7 @@ public class Firstfrag extends Fragment {
                                                             "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','2','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                 }
                                             }
+                                            cursorIssuesWhichComplete.close();
                                         }
                                     }
                                     MainActivity m = new MainActivity();
@@ -547,6 +553,7 @@ public class Firstfrag extends Fragment {
 
                                     }
                                     sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
+                                    cquery.close();
                                 } catch (Exception e) {
                                 }
                                 //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);

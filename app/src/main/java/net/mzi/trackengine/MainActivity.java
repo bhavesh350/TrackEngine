@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -335,6 +336,7 @@ public class MainActivity extends AppCompatActivity
                                         cquery.moveToLast();
                                         sColumnId = cquery.getString(0).toString();
                                     }
+                                    cquery.close();
                                     PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
                                 } catch (Exception e) {
                                 }
@@ -357,6 +359,7 @@ public class MainActivity extends AppCompatActivity
                                     cquery.moveToLast();
                                     sColumnId = cquery.getString(0).toString();
                                 }
+                                cquery.close();
                                 PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
                             }
                             showAlert.setText("Please Wait, fetching ticket info!!!");
@@ -388,18 +391,18 @@ public class MainActivity extends AppCompatActivity
         map = s.getUserDetails();
         LOGINID = map.get("userid");
 //      Log.e("USERID",LOGINID);
-        lTimerLayout = (LinearLayout) findViewById(R.id.timerL);
-        tCheckInStatus = (TextView) findViewById(R.id.checkInStatus);
-        tCheckIntTime = (TextView) findViewById(R.id.checkInTime);
-        //tAt = (TextView) findViewById(R.id.atID);
+        lTimerLayout = findViewById(R.id.timerL);
+        tCheckInStatus = findViewById(R.id.checkInStatus);
+        tCheckIntTime = findViewById(R.id.checkInTime);
+        //tAt =  findViewById(R.id.atID);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
         timerlayout = (RelativeLayout) findViewById(R.id.timerLayout);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         //SQLiteDatabase.openOrCreateDatabase()
-        timer = (TextView) findViewById(R.id.textView11);
-        currTime = (TextView) findViewById(R.id.textView4);
-        viewAll = (TextView) findViewById(R.id.viewAll);
-        showAlert = (TextView) findViewById(R.id.viewAlert);
+        timer = findViewById(R.id.textView11);
+        currTime = findViewById(R.id.textView4);
+        viewAll = findViewById(R.id.viewAll);
+        showAlert = findViewById(R.id.viewAlert);
         RLay = (RelativeLayout) findViewById(R.id.remaininglayout);
         newtkt = (RelativeLayout) findViewById(R.id.newtkt);
         showAlert.setVisibility(View.VISIBLE);
@@ -494,6 +497,7 @@ public class MainActivity extends AppCompatActivity
 
         cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
         mDatasetCount.add(String.valueOf(cquery.getCount()));
+        cquery.close();
         mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
         // mLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false);
         StaggeredGridLayoutManager gaggeredGridLayoutManager;
@@ -538,6 +542,7 @@ public class MainActivity extends AppCompatActivity
                             sql.delete("User_Location", "Id" + "=" + id, null);
                         }
                     }
+                    cquery.close();
                     setData();
                 } else {
                     SOMTracker.setStatus("isCheckin", false);
@@ -579,6 +584,7 @@ public class MainActivity extends AppCompatActivity
                                 sql.delete("User_Location", "Id" + "=" + id, null);
                             }
                         }
+                        cquery.close();
                     } catch (Exception e) {
                     }
                     //tAt.setTextColor(getResources().getColor(R.color.red));
@@ -687,7 +693,7 @@ public class MainActivity extends AppCompatActivity
                             cquery.moveToLast();
                             sColumnId = cquery.getString(0).toString();
                         }
-
+                        cquery.close();
                         ServiceLocation m = new ServiceLocation();
                         Log.d("postcoordinat", "from main activity at 663");
                         m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
@@ -723,6 +729,7 @@ public class MainActivity extends AppCompatActivity
                     cquery.moveToLast();
                     sColumnId = cquery.getString(0).toString();
                 }
+                cquery.close();
                 appCheckINOperation(appCheckInInfo, sColumnId);
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
@@ -872,6 +879,7 @@ public class MainActivity extends AppCompatActivity
                                     cquery.moveToLast();
                                     sColumnId = cquery.getString(0).toString();
                                 }
+                                cquery.close();
                                 if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
 //                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
                                     SOMTracker.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
@@ -917,7 +925,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         View headerView = navigationView.getHeaderView(0);
-        h_uname = (TextView) headerView.findViewById(R.id.header_username);
+        h_uname = headerView.findViewById(R.id.header_username);
         h_uname.setText(nh_uname);
 
     }
@@ -941,6 +949,7 @@ public class MainActivity extends AppCompatActivity
             cquery.moveToLast();
             sColumnId = cquery.getString(0).toString();
         }
+        cquery.close();
         SOMTracker.setSharedPrefLong("BAT", 0);
         Log.d(">>>>>>>>>>", "send battery method called");
         serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
@@ -1004,31 +1013,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-//    BroadcastReceiver broadcastreceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Map<String, String> batteryInfo = new HashMap<String, String>();
-//            int BatteryLevel = intent.getIntExtra("level", 0);
-//            batteryInfo.put("UserId", LOGINID);
-//            batteryInfo.put("DeviceId", sDeviceId);
-//            batteryInfo.put("Battery", String.valueOf(BatteryLevel));
-//            batteryInfo.put("ActivityDate", currentDateTimeString);
-//            batteryInfo.put("AutoCaptured", "false");
-//            batteryInfo.put("RealTimeUpdate", "true");
-//            String jsonBatteryString = new Gson().toJson(batteryInfo);
-//            ServiceBattery serviceBattery = new ServiceBattery();
-////              serviceBattery.registerReceiver(serviceBattery.mBatInfoReceiver)
-//            sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + BatteryLevel + "','true','" + currentDateTimeString + "','-1')");
-//            Cursor cquery = sql.rawQuery("select * from User_Login ", null);
-//            String sColumnId = null;
-//            if (cquery.getCount() > 0) {
-//                cquery.moveToLast();
-//                sColumnId = cquery.getString(0).toString();
-//            }
-//            serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
-//        }
-//    };
-
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void setData() {
@@ -1085,6 +1069,18 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i("isMyServiceRunning?", true + "");
+                return true;
+            }
+        }
+        Log.i("isMyServiceRunning?", false + "");
+        return false;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -1122,6 +1118,7 @@ public class MainActivity extends AppCompatActivity
             alert.show();
             return true;
         } else if (id == R.id.action_logout) {
+
             Map<String, String> postLogin = new HashMap<String, String>();
             Date cDate = new Date();
             //LOGINID=map.get("userid");
@@ -1158,6 +1155,22 @@ public class MainActivity extends AppCompatActivity
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             editor.putString(KEY_USERID, "0");
+            try {
+                ServiceLocation serviceLocation = new ServiceLocation(this);
+                Intent intent = new Intent(this, serviceLocation.getClass());
+                if (!isMyServiceRunning(serviceLocation.getClass())) {
+                    stopService(intent);
+                }
+            } catch (Exception e) {
+            }
+            try {
+                ServiceDataUpdateFirstFragment serviceDataUpdateFirstFragment= new ServiceDataUpdateFirstFragment(this);
+                Intent intent = new Intent(this, serviceDataUpdateFirstFragment.getClass());
+                if (!isMyServiceRunning(serviceDataUpdateFirstFragment.getClass())) {
+                    stopService(intent);
+                }
+            } catch (Exception e) {
+            }
             finish();
             overridePendingTransition(0, 0);
             startActivity(i);
@@ -1349,10 +1362,10 @@ public class MainActivity extends AppCompatActivity
             public View getInfoContents(Marker marker) {
                 View infoWindow = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
 
-                TextView title = ((TextView) infoWindow.findViewById(R.id.title));
+                TextView title = (infoWindow.findViewById(R.id.title));
                 title.setText(marker.getTitle());
 
-                TextView snippet = ((TextView) infoWindow.findViewById(R.id.snippet));
+                TextView snippet = (infoWindow.findViewById(R.id.snippet));
                 snippet.setText(marker.getSnippet());
 
                 return infoWindow;
@@ -1595,11 +1608,7 @@ public class MainActivity extends AppCompatActivity
                 try {
                     Cursor cqueryFetchingStatus = sql.rawQuery("select * from Issue_Status where DepartmentId='" + sDepartment + "'", null);
                     if (cqueryFetchingStatus.getCount() > 0) {
-                        /*for (cqueryFetchingStatus.moveToFirst(); !cqueryFetchingStatus.isAfterLast(); cqueryFetchingStatus.moveToNext()) {
-                            if(cqueryFetchingStatus.getString())
 
-                        }
-*/
                     } else {
                         JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
                         JSONArray jdata = jsonObject.getJSONArray("lstIssue_Status");
@@ -1617,6 +1626,7 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
                     }
+                    cqueryFetchingStatus.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1749,24 +1759,25 @@ public class MainActivity extends AppCompatActivity
             mCardColor.add(R.drawable.cardbk_purple);
             mDataset.add("New");
             mDatasetTypes.add(0);
+            cquery1.close();
             Cursor cquery2 = sql.rawQuery("select * from Issue_Detail where IsAccepted = 1", null);
             mDatasetCount.add(String.valueOf(cquery2.getCount()));
             mCardColor.add(R.drawable.cardbk_orange);
             mDataset.add("Accepted");
             mDatasetTypes.add(0);
-
+            cquery2.close();
             Cursor cquery3 = sql.rawQuery("select * from Issue_Detail where IsAccepted = 2", null);
             mDatasetCount.add(String.valueOf(cquery3.getCount()));
             mCardColor.add(R.drawable.cardbk_blue);
             mDataset.add("Attended");
             mDatasetTypes.add(0);
-
+            cquery3.close();
             Cursor cquery4 = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
             mDatasetCount.add(String.valueOf(cquery4.getCount()));
             mCardColor.add(R.drawable.cardbk_green);
             mDataset.add("Resolved");
             mDatasetTypes.add(0);
-
+            cquery4.close();
             maCounter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, mContext);
             mRecyclerView.setAdapter(maCounter);
         } catch (Exception e) {

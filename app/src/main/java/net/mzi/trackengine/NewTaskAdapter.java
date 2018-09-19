@@ -139,6 +139,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                        sColumnId = cquery.getString(0).toString();
 
                    }
+                   cquery.close();
                    final ApiResult apiResult = new ApiResult();
                    final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
                            mIssueID.get(position), sAcceptStatus, "Accept by Engineer", currentDateTimeString,
@@ -172,6 +173,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                        ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Update");
 
                                    }
+                                   cqueryTemp.close();
                                }
                            }catch (Exception e){}
                        }
@@ -247,7 +249,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                 cque.moveToLast();
                                 sColumnId = cquery.getString(0).toString();
                             }
-
+                            cquery.close();
                             final ApiResult apiResult = new ApiResult();
                             final ApiResult.IssueDetail issueDetail = apiResult.new
                                     IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position),
@@ -286,6 +288,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                                 cqueryTemp.moveToFirst();
                                                 ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Delete");
                                             }
+                                            cqueryTemp.close();
                                         } catch (Exception e) {
                                         }
 

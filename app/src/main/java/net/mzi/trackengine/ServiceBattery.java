@@ -99,6 +99,7 @@ public class ServiceBattery extends Service {
                         cquery.moveToLast();
                         sColumnId = cquery.getString(0).toString();
                     }
+                    cquery.close();
                     BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
                     cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);

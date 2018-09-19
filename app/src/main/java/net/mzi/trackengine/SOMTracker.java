@@ -137,9 +137,7 @@ public class SOMTracker extends MultiDexApplication {
             mServiceIntentLocation = new Intent(c, mSensorService.getClass());
             if (!isMyServiceRunning(mSensorService.getClass())) {
 //                startService(mServiceIntent);
-
                 startService(mServiceIntentLocation);
-
             }
         } catch (Exception e) {
         }

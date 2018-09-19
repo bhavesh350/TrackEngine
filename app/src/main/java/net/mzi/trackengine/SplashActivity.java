@@ -227,6 +227,10 @@ public class SplashActivity extends AppCompatActivity {
                     SplashActivity.this.finish();
 //                    session.createLoginSession(Login.uname,Login.pwd);
                 }
+                try {
+                    cquery.close();
+                } catch (Exception e) {
+                }
             }
         }).start();
 
