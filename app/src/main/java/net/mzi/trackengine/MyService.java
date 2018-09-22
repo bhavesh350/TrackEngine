@@ -535,7 +535,7 @@ public class MyService extends JobService {
 
     public void showSettingsAlert() {
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Toast.makeText(this, "GPS is off", Toast.LENGTH_SHORT).show();
+        SOMTracker.showMassage(this,"GPS is off");
         Intent callGPSSettingIntent = new Intent(
                 android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         //ctx.startActivity(callGPSSettingIntent);

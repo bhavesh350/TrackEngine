@@ -74,7 +74,9 @@ public class InternetConnector {
 
                     }
                 }
-
+                try{
+                    cquery.close();
+                }catch (Exception e){}
                 cquery = sql.rawQuery("select * from User_AppCheckIn", null);
                 Log.e("offlineSyncing: ", "dgdfgdfgfdgfgfgfgdfgdfgdfg");
                 if (cquery.getCount() > 0) {
@@ -99,7 +101,9 @@ public class InternetConnector {
 
                     }
                 }
-
+                try{
+                    cquery.close();
+                }catch (Exception e){}
                 cquery = sql.rawQuery("select * from User_BatteryLevel", null);
                 if (cquery.getCount() > 0) {
 
@@ -123,8 +127,11 @@ public class InternetConnector {
                         }
                     }
                 }
+                try{Toast.makeText(context, "Offline data syncing!!!", Toast.LENGTH_LONG).show();
+                    cquery.close();
+                }catch (Exception e){}
                 //if (networkInfo.isConnected()) {
-                Toast.makeText(context, "Offline data syncing!!!", Toast.LENGTH_LONG).show();
+
                 int counter = 0;
                 sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
                 cquery = sql.rawQuery("select * from User_Location", null);
@@ -143,6 +150,7 @@ public class InternetConnector {
                                 sql.delete("User_Location", "Id" + "=" + id, null);
                             }
                         }
+                        cquery.close();
                         return;
                     }
 
@@ -201,10 +209,13 @@ public class InternetConnector {
                             sql.delete("User_Location", "Id" + "=" + id, null);
                         }
                     }
+                    cquery.close();
 
                 }
 
-
+                try{
+                    cquery.close();
+                }catch (Exception e){}
                 cquery = sql.rawQuery("select * from User_MobileData", null);
                 if (cquery.getCount() > 0) {
                     Log.e("InternetConnector: ", "I am in User_MobileData");
@@ -225,7 +236,9 @@ public class InternetConnector {
                         }
                     }
                 }
-
+                try{
+                    cquery.close();
+                }catch (Exception e){}
                 cquery = sql.rawQuery("select * from User_Gps ", null);
                 if (cquery.getCount() > 0) {
                     Log.e("InternetConnector: ", "I am in User_Gps");
@@ -250,7 +263,7 @@ public class InternetConnector {
                 }
 
             } else {
-                Toast.makeText(context, "Network not found", Toast.LENGTH_LONG).show();
+               try{ Toast.makeText(context, "Network not found", Toast.LENGTH_LONG).show();}catch (Exception e){}
             }
             cquery.close();
         } catch (Exception e) {

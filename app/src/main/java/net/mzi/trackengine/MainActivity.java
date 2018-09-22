@@ -327,7 +327,7 @@ public class MainActivity extends AppCompatActivity
                                     mMobileDataInfo.put("Enabled", "true");
                                     mMobileDataInfo.put("ActionDate", currentDateTimeString);
                                     mMobileDataInfo.put("RealTimeUpdate", "true");
-                                    String jsonString = new Gson().toJson(mMobileDataInfo);
+//                                    String jsonString = new Gson().toJson(mMobileDataInfo);
                                     sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
                                             "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
@@ -390,32 +390,27 @@ public class MainActivity extends AppCompatActivity
         HashMap<String, String> map = new HashMap<>();
         map = s.getUserDetails();
         LOGINID = map.get("userid");
-//      Log.e("USERID",LOGINID);
         lTimerLayout = findViewById(R.id.timerL);
         tCheckInStatus = findViewById(R.id.checkInStatus);
         tCheckIntTime = findViewById(R.id.checkInTime);
-        //tAt =  findViewById(R.id.atID);
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_main_swipe_refresh_layout);
-        timerlayout = (RelativeLayout) findViewById(R.id.timerLayout);
+        mSwipeRefreshLayout =  findViewById(R.id.activity_main_swipe_refresh_layout);
+        timerlayout =  findViewById(R.id.timerLayout);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
-        //SQLiteDatabase.openOrCreateDatabase()
         timer = findViewById(R.id.textView11);
         currTime = findViewById(R.id.textView4);
         viewAll = findViewById(R.id.viewAll);
         showAlert = findViewById(R.id.viewAlert);
-        RLay = (RelativeLayout) findViewById(R.id.remaininglayout);
-        newtkt = (RelativeLayout) findViewById(R.id.newtkt);
+        RLay =  findViewById(R.id.remaininglayout);
+        newtkt =  findViewById(R.id.newtkt);
         showAlert.setVisibility(View.VISIBLE);
         buildGoogleApiClient();
         mGoogleApiClient.connect();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         sCheckInTime = pref.getString("CheckedInTime", "0");
         sCheckInStatus = pref.getString("CheckedInStatus", "0");
 
      /*   if(MainActivity.isCheckIn.equals("true")) {
-
-
         }*/
         if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
             tCheckInStatus.setText("Checked-IN");
@@ -749,6 +744,11 @@ public class MainActivity extends AppCompatActivity
                         sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
                     } catch (Exception eee) {
                     }
+                } catch (NoSuchMethodError ee){
+                    try {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    } catch (Exception eee) {
+                    }
                 }
 
             }
@@ -1000,15 +1000,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        sCheckInStatus = pref.getString("CheckedInStatus", "0");
-
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-            Date cDate = new Date();
-            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-            editor.putString("CheckedInDuration", currentDateTimeString);
-            editor.commit();
-            setData();
-        }
+//        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+//
+//        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+//            Date cDate = new Date();
+//            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+//            editor.putString("CheckedInDuration", currentDateTimeString);
+//            editor.commit();
+//            setData();
+//        }
 
         return true;
     }
@@ -1164,7 +1164,7 @@ public class MainActivity extends AppCompatActivity
             } catch (Exception e) {
             }
             try {
-                ServiceDataUpdateFirstFragment serviceDataUpdateFirstFragment= new ServiceDataUpdateFirstFragment(this);
+                ServiceDataUpdateFirstFragment serviceDataUpdateFirstFragment = new ServiceDataUpdateFirstFragment(this);
                 Intent intent = new Intent(this, serviceDataUpdateFirstFragment.getClass());
                 if (!isMyServiceRunning(serviceDataUpdateFirstFragment.getClass())) {
                     stopService(intent);

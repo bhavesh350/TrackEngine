@@ -70,7 +70,10 @@ public class History_Battery extends Fragment {
                 progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");
             } */
             if (getContext() != null) {
-                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+                try {
+                    Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
             }
             mDatasetTypes.clear();
             mDeviceId.clear();

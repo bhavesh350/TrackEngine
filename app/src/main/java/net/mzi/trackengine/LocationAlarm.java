@@ -142,7 +142,11 @@ public class LocationAlarm extends BroadcastReceiver {
                         mLocationListeners[1]);
             } catch (SecurityException ex) {
                 Log.i(TAG, "fail to request location update, ignore", ex);
-                Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
+                try {
+                    Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
+
             } catch (IllegalArgumentException ex) {
                 SOMTracker.showMassage(context, "GPS is not Enable!!");
 //                Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
@@ -243,7 +247,7 @@ public class LocationAlarm extends BroadcastReceiver {
                     //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                             "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                    Log.e("Location insertion","Inserted by LocationAlarm at 246");
+                    Log.e("Location insertion", "Inserted by LocationAlarm at 246");
                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                     String sColumnId = null;
@@ -255,7 +259,7 @@ public class LocationAlarm extends BroadcastReceiver {
                     LocationOperation(locationInfo, context, sColumnId);
                 }
             } else {
-                Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();
+                try{Toast.makeText(context, "GPS is not Enable!!", Toast.LENGTH_LONG).show();}catch (Exception e){}
             }
             cDate = new Date();
             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -304,7 +308,7 @@ public class LocationAlarm extends BroadcastReceiver {
             Log.e("LocationOperation: ", locationInfo.toString());
             sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
             final ApiResult apiResult = new ApiResult();
-            final ApiResult.User_Location user_location ;
+            final ApiResult.User_Location user_location;
             Log.e("postcoordinat", "Location alarm at 306");
             Call<ApiResult.User_Location> call1;
             if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {

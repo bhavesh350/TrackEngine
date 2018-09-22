@@ -154,10 +154,10 @@ public class FullScreenMap extends FragmentActivity implements GoogleMap.OnMarke
         if (clickCount != null) {
             clickCount = clickCount + 1;
             marker.setTag(clickCount);
-            Toast.makeText(this,
+            try{Toast.makeText(this,
                     marker.getTitle() +
                             " has been clicked " + clickCount + " times.",
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT).show();}catch (Exception e){}
         }
         return false;
     }

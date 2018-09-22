@@ -300,7 +300,7 @@ public class RaiseTicket extends AppCompatActivity {
                         sTicketId = object.getString("Id");
                     }
                     if (msg != null) {
-                        SOMTracker.showMassage(getApplication(),msg);
+                        SOMTracker.showMassage(getApplication(), msg);
 //                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     }
 
@@ -638,8 +638,10 @@ public class RaiseTicket extends AppCompatActivity {
             super.onPostExecute(s);
 
             if (s == null) {
-                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
-
+                try {
+                    Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
                 //s = "THERE WAS AN ERROR";
             } else {
                 Log.i("INFO", s);

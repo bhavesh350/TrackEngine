@@ -294,7 +294,7 @@ public class AddCustomerLoactionFragment extends Fragment {
                     msg=jdata.getString("Message");
                     sStatus=jdata.getString("Status");
                     //sTicketId=object.getString("Id");
-                    Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+                    try{Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();}catch (Exception e){}
 
                     Log.e( "onPostExecute: ",msg );
                     Log.i("INFO", s);
@@ -460,7 +460,7 @@ public class AddCustomerLoactionFragment extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if (s == null) {
-                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
             } else {
                 Log.i("INFO", s);
 

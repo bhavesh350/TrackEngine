@@ -196,7 +196,7 @@ public class ComplainAdapter extends RecyclerView.Adapter<ComplainAdapter.ViewHo
             Log.e("onPostExecute: ", s);
             super.onPostExecute(s);
 
-            Toast.makeText(ctx, "Send Successfully!!!", Toast.LENGTH_SHORT).show();
+            try{Toast.makeText(ctx, "Send Successfully!!!", Toast.LENGTH_SHORT).show();}catch (Exception e){}
         }
     }
 }

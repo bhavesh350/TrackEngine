@@ -71,9 +71,9 @@ public class GpsLocationReceiver extends BroadcastReceiver {
                     }
                     cquery.close();
                     GPSEnableOperation(mGpsInfo, context, sColumnId);
-                    Toast.makeText(context, "Location on", Toast.LENGTH_LONG).show();
+
                 } else {
-                    Toast.makeText(context, "Location Off", Toast.LENGTH_LONG).show();
+
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss").format(cDate);
                     mGpsInfo.put("Enabled", "false");
@@ -129,7 +129,7 @@ public class GpsLocationReceiver extends BroadcastReceiver {
                 public void onResponse(Call<ApiResult.User_GPS> call, Response<ApiResult.User_GPS> response) {
                     ApiResult.User_GPS iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                        Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                        try{Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
                         ContentValues newValues = new ContentValues();
                         newValues.put("SyncStatus", "false");
                         sql.update("User_Gps", newValues, "Id=" + sColumnId, null);

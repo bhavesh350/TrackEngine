@@ -210,9 +210,9 @@ public class TicketInfo extends AppCompatActivity {
         sIssueText = cquery.getString(4).toString();
 
         if (!isDeviceSupportCamera()) {
-            Toast.makeText(getApplicationContext(),
+            try{Toast.makeText(getApplicationContext(),
                     "Sorry! Your device doesn't support camera",
-                    Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG).show();}catch (Exception e){}
             // will close the app if the device does't have camera
             finish();
         }
@@ -446,7 +446,7 @@ public class TicketInfo extends AppCompatActivity {
                     sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
                             "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
                 } else {
-                    Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();
+                    try{Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();}catch (Exception e){}
                     comment.setText("");
                     tUpdatedDate.setText(currentTime);
                 }
@@ -739,7 +739,7 @@ public class TicketInfo extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         sFinalImagePath = sImagePath;
                         iImageIcon.setVisibility(View.VISIBLE);
-                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
+                        try{Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();}catch (Exception e){}
                     }
                 });
 
@@ -767,7 +767,7 @@ public class TicketInfo extends AppCompatActivity {
             //progressBar.setProgress(0);
             super.onPreExecute();
             if (getApplicationContext() != null) {
-                Toast.makeText(getApplicationContext(), "Loading data, Please wait...", Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getApplicationContext(), "Loading data, Please wait...", Toast.LENGTH_LONG).show();}catch (Exception e){}
             }
             //progress = ProgressDialog.show(TicketInfo.this,"Loading data", "Please wait...");
         }

@@ -5,11 +5,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -34,26 +33,27 @@ import java.util.ArrayList;
 
 public class AgentPerformance extends AppCompatActivity {
     String API_URL = null;
-    int newTktCounter,completeTktCounter,attendedTktCounter;
+    int newTktCounter, completeTktCounter, attendedTktCounter;
     ArrayList<Entry> entries = new ArrayList<>();
     ArrayList<String> labels = new ArrayList<String>();
     ArrayList<String> count = new ArrayList<String>();
-    SQLiteDatabase sql=null;
+    SQLiteDatabase sql = null;
     PieChart pieChart;
     PieDataSet dataset;
     PieData data;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_agent_performance);
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite",getApplicationContext().MODE_PRIVATE,null);
+        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         Cursor cquery = sql.rawQuery("select IssueId from Issue_Detail where IsAccepted = -1", null);
-        newTktCounter=cquery.getCount();
+        newTktCounter = cquery.getCount();
         cquery = sql.rawQuery("select IssueId from Issue_Detail where IsAccepted = 2", null);
-        attendedTktCounter=cquery.getCount();
+        attendedTktCounter = cquery.getCount();
         cquery = sql.rawQuery("select IssueId from Issue_Detail where IsAccepted = 3", null);
-        completeTktCounter=cquery.getCount();
-        API_URL = PostUrl.sUrl+"GetIssueCountSummary?iUserId="+MainActivity.LOGINID;
+        completeTktCounter = cquery.getCount();
+        API_URL = PostUrl.sUrl + "GetIssueCountSummary?iUserId=" + MainActivity.LOGINID;
         getSupportActionBar().setTitle("Performance");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -74,26 +74,26 @@ public class AgentPerformance extends AppCompatActivity {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-                if(e.getXIndex()==0){
-                    Intent i = new Intent(AgentPerformance.this,NewTaskActivity.class);
+                if (e.getXIndex() == 0) {
+                    Intent i = new Intent(AgentPerformance.this, NewTaskActivity.class);
                     startActivity(i);
-                }
-                else{
-                    String pos=String.valueOf(dataSetIndex);
-                    Intent i = new Intent(AgentPerformance.this,TaskActivity.class);
-                    i.putExtra("cardpos",pos);
+                } else {
+                    String pos = String.valueOf(dataSetIndex);
+                    Intent i = new Intent(AgentPerformance.this, TaskActivity.class);
+                    i.putExtra("cardpos", pos);
                     startActivity(i);
                 }
             }
+
             @Override
             public void onNothingSelected() {
-
-                Toast.makeText(getApplicationContext(),"Nothing Selected",Toast.LENGTH_LONG).show();
+                SOMTracker.showMassage(getApplicationContext(), "Nothing Selected");
             }
         });
 
-       // pieChart.setDescription("Description");
+        // pieChart.setDescription("Description");
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -104,6 +104,7 @@ public class AgentPerformance extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
     private class UserPerformance extends AsyncTask<String, Void, String> {
         @Override
         protected void onPreExecute() {
@@ -112,6 +113,7 @@ public class AgentPerformance extends AppCompatActivity {
             labels.clear();
             count.clear();
         }
+
         @Override
         protected String doInBackground(String... params) {
             try {
@@ -134,6 +136,7 @@ public class AgentPerformance extends AppCompatActivity {
                 return null;
             }
         }
+
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -143,22 +146,21 @@ public class AgentPerformance extends AppCompatActivity {
             Log.i("INFO", s);
             try {
                 labels.add("New");
-                entries.add(new Entry(newTktCounter,0));
+                entries.add(new Entry(newTktCounter, 0));
                 JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
                 JSONArray jdata = jsonObject.getJSONArray("IssueCountSummary");
-                for(int i=0;i<jdata.length();i++)
-                {
-                    JSONObject object=jdata.getJSONObject(i);
+                for (int i = 0; i < jdata.length(); i++) {
+                    JSONObject object = jdata.getJSONObject(i);
                     labels.add(object.getString("Status"));
-                    entries.add(new Entry(object.getInt("IssueCount"),i+1));
-                    Log.e("TAG",labels.get(i)+entries.get(i+1) +"\n new "+newTktCounter );
+                    entries.add(new Entry(object.getInt("IssueCount"), i + 1));
+                    Log.e("TAG", labels.get(i) + entries.get(i + 1) + "\n new " + newTktCounter);
                 }
                 labels.add("Complete");
-                entries.add(new Entry(completeTktCounter,2));
+                entries.add(new Entry(completeTktCounter, 2));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            dataset = new PieDataSet(entries,"");
+            dataset = new PieDataSet(entries, "");
             dataset.setValueTextSize(14);
             dataset.setValueTypeface(Typeface.SANS_SERIF);
             dataset.setColors(ColorTemplate.COLORFUL_COLORS);

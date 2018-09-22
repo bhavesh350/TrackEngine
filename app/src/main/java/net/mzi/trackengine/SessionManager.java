@@ -3,6 +3,7 @@ package net.mzi.trackengine;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+
 import java.util.HashMap;
 
 /**
@@ -21,7 +22,7 @@ public class SessionManager {
     int PRIVATE_MODE = 0;
 
     // Sharedpref file name
-   // private static final String PREF_NAME = "AndroidHivePref";
+    // private static final String PREF_NAME = "AndroidHivePref";
 
     // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
@@ -35,7 +36,7 @@ public class SessionManager {
     public static final String KEY_USERID = "userid";
 
     // Constructor
-    public SessionManager(Context context){
+    public SessionManager(Context context) {
         this._context = context;
         pref = _context.getSharedPreferences("login", PRIVATE_MODE);
         editor = pref.edit();
@@ -43,10 +44,10 @@ public class SessionManager {
 
     /**
      * Create login session
-     * */
+     */
 
     //,boolean CSATEnable, boolean AssetVerification
-    public void createLoginSession(String uname, String password, String userid, String DepartmentId, String RoleId, String IsCoordinator, String IsFieldAgent, String UserType, String CompanyId, String ParentCompanyId, String CheckedInTime, String CheckedInStatus, String isDefaultDepartment, int AppLocationSendingFrequency, int AppBatterySendingFrequency, boolean CSATEnable, boolean AssetVerification, String LastAction, String sDeviceId, String LastTransportMode){
+    public void createLoginSession(String uname, String password, String userid, String DepartmentId, String RoleId, String IsCoordinator, String IsFieldAgent, String UserType, String CompanyId, String ParentCompanyId, String CheckedInTime, String CheckedInStatus, String isDefaultDepartment, int AppLocationSendingFrequency, int AppBatterySendingFrequency, boolean CSATEnable, boolean AssetVerification, String LastAction, String sDeviceId, String LastTransportMode) {
         // Storing login value as TRUE
         editor.putBoolean(IS_LOGIN, true);
         // Storing name in pref
@@ -55,25 +56,25 @@ public class SessionManager {
         editor.putString(KEY_PASSWORD, password);
         // commit changes
         editor.putString(KEY_USERID, userid);
-        editor.putString("DepartmentId",DepartmentId);
-        editor.putString("RoleId",RoleId);
-        editor.putString("IsCoordinator",IsCoordinator);
-        editor.putString("IsFieldAgent",IsFieldAgent);
-        editor.putString("UserType",UserType);
-        editor.putString("CompanyId",CompanyId);
-        editor.putString("ParentCompanyId",ParentCompanyId);
-        editor.putString("CheckedInTime",CheckedInTime);
-        editor.putString("CheckedInStatus",CheckedInStatus);
-        editor.putString("IsDefaultDepartment",isDefaultDepartment);
-        editor.putString("CheckedInStatus",CheckedInStatus);
-        editor.putString("IsDefaultDepartment",isDefaultDepartment);
-        editor.putInt("AppLocationSendingFrequency",AppLocationSendingFrequency);
-        editor.putInt("AppBatterySendingFrequency",AppBatterySendingFrequency);
-        editor.putBoolean("CSATEnable",CSATEnable);
-        editor.putBoolean("AssetVerification",AssetVerification);
-        editor.putString("LastAction",LastAction);
-        editor.putString("DeviceId",sDeviceId);
-        editor.putString("LastTransportMode",LastTransportMode);
+        editor.putString("DepartmentId", DepartmentId);
+        editor.putString("RoleId", RoleId);
+        editor.putString("IsCoordinator", IsCoordinator);
+        editor.putString("IsFieldAgent", IsFieldAgent);
+        editor.putString("UserType", UserType);
+        editor.putString("CompanyId", CompanyId);
+        editor.putString("ParentCompanyId", ParentCompanyId);
+        editor.putString("CheckedInTime", CheckedInTime);
+        editor.putString("CheckedInStatus", CheckedInStatus);
+        editor.putString("IsDefaultDepartment", isDefaultDepartment);
+        editor.putString("CheckedInStatus", CheckedInStatus);
+        editor.putString("IsDefaultDepartment", isDefaultDepartment);
+        editor.putInt("AppLocationSendingFrequency", AppLocationSendingFrequency);
+        editor.putInt("AppBatterySendingFrequency", AppBatterySendingFrequency);
+        editor.putBoolean("CSATEnable", CSATEnable);
+        editor.putBoolean("AssetVerification", AssetVerification);
+        editor.putString("LastAction", LastAction);
+        editor.putString("DeviceId", sDeviceId);
+        editor.putString("LastTransportMode", LastTransportMode);
         editor.commit();
     }
 
@@ -100,26 +101,29 @@ public class SessionManager {
     }*/
 
 
-
     /**
      * Get stored session data
-     * */
-    public HashMap<String, String> getUserDetails(){
+     */
+    public HashMap<String, String> getUserDetails() {
         HashMap<String, String> user = new HashMap<String, String>();
         // user name
         user.put(KEY_UNAME, pref.getString(KEY_UNAME, null));
 
         // user email id
         user.put(KEY_PASSWORD, pref.getString(KEY_PASSWORD, null));
-        user.put(KEY_USERID,pref.getString(KEY_USERID,null));
+        user.put(KEY_USERID, pref.getString(KEY_USERID, "0"));
         // return user
         return user;
     }
 
     /**
      * Clear session details
-     * */
-    public void logoutUser(){
+     */
+    public void logoutUser() {
+        try {
+            editor.putString(KEY_USERID, "0");
+        } catch (Exception e) {
+        }
         // Clearing all data from Shared Preferences
         editor.clear();
         editor.commit();
@@ -140,9 +144,9 @@ public class SessionManager {
 
     /**
      * Quick check for login
-     * **/
+     **/
     // Get Login State
-    public boolean isLoggedIn(){
+    public boolean isLoggedIn() {
         return pref.getBoolean(IS_LOGIN, false);
     }
 }

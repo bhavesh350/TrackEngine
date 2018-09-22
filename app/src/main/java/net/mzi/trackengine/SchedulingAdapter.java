@@ -597,8 +597,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(searchAddress);
                             return true;
                         case R.id.atkt:
-
-                            Toast.makeText(ctx, "Coming Soon!!!", Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(ctx, "Coming Soon!!!");
                             return true;
                         case R.id.ctc:
                             Intent in = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mMob.get(position)));

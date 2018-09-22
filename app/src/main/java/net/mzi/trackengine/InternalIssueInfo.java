@@ -89,7 +89,7 @@ public class InternalIssueInfo extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if (s == null) {
-                Toast.makeText(getApplicationContext(),R.string.internet_error,Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getApplicationContext(),R.string.internet_error,Toast.LENGTH_LONG).show();}catch (Exception e){}
             }
             Log.i("INFO", s);
             try {

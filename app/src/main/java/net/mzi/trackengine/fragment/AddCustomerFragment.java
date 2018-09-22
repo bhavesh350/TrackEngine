@@ -228,7 +228,7 @@ public class AddCustomerFragment extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if (s == null) {
-                Toast.makeText(getActivity(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getActivity(), R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
             } else {
                 if (progress != null) {
                     progress.dismiss();

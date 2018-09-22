@@ -7,11 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,14 +22,14 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RatingBar;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
 import net.mzi.trackengine.MainActivity;
-import net.mzi.trackengine.model.PostUrl;
 import net.mzi.trackengine.R;
+import net.mzi.trackengine.SOMTracker;
 import net.mzi.trackengine.SchedulingAdapter;
+import net.mzi.trackengine.model.PostUrl;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -117,7 +117,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (isChecked) {
                             rNewNumber.setChecked(false);
-                            Toast.makeText(getContext(), "Coming Soon!!!", Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(getContext(),"Coming Soon!!!");
                             dialog.dismiss();
                         }
                     }
@@ -146,7 +146,7 @@ public class EngineerFeedbackFragment extends Fragment {
                                 if (rNewNumber.getText().toString().equals("")) {
                                     rNewNumber.setError("Enter Mobile Number");
                                 } else if (eNewNumber.getText().length() == 10) {
-                                    Toast.makeText(getContext(), "Coming Soon!!!", Toast.LENGTH_LONG).show();
+                                    SOMTracker.showMassage(getContext(),"Coming Soon!!!");
                                     dialog.dismiss();
 
                                 } else {
@@ -265,7 +265,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     //}
                     if (sStatus != null) {
                         if (sStatus.equals("true")) {
-                            Toast.makeText(getContext(), "Updated Successfully", Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(getContext(),"Updated Successfully");
                             sql = getContext().openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
                             ContentValues newValues = new ContentValues();
                             newValues.put("StatusId", sStatusId);
@@ -274,14 +274,14 @@ public class EngineerFeedbackFragment extends Fragment {
                             sql.update("Issue_Detail", newValues, "IssueId=" + sIssueId, null);
                             MainActivity m = new MainActivity();
                             m.updateCounter(getContext());
-                            Toast.makeText(getActivity().getApplicationContext(), "Status Changed Successfuly", Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(getActivity(),"Status Changed Successfully");
                             SchedulingAdapter so = new SchedulingAdapter();
                             Intent i = getActivity().getIntent();
                             getActivity().finish();
                             i.putExtra("cardpos", sCardType);
                             startActivity(i);
                         } else {
-                            Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                            SOMTracker.showMassage(getContext(),msg);
                         }
                     }
                     /*final Snackbar snackBar = Snackbar.make(v, msg, Snackbar.LENGTH_INDEFINITE);
@@ -352,7 +352,7 @@ public class EngineerFeedbackFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            Toast.makeText(getContext(), "link Sent on registered mail id!!!", Toast.LENGTH_LONG).show();
+            SOMTracker.showMassage(getContext(),"Link Sent on registered mail id!!!");
             Log.e("sendlink", "onPostExecute: " + s);
         }
     }

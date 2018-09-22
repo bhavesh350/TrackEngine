@@ -2,82 +2,84 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff"
-    android:clickable="true">
+    android:clickable="true"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/rate_customer"
-        android:typeface="serif"
-        android:textColor="@color/colorAccent"
-        android:layout_marginLeft="@dimen/_60sdp"
-        android:layout_gravity="left"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:layout_marginLeft="@dimen/_60sdp"
         android:text="Rate Me"
-        android:textSize="@dimen/_18ssp"/>
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/_18ssp"
+        android:typeface="serif" />
 
     <RatingBar
         android:id="@+id/ratingBar"
-        android:layout_gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:numStars="5"
         android:stepSize="1.0" />
+
     <android.support.design.widget.TextInputLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center">
 
         <EditText
+            android:id="@+id/feedback"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
             android:ems="10"
             android:gravity="top"
 
             android:hint="Enter Feedback"
-            android:id="@+id/feedback" />
+            android:inputType="textMultiLine" />
     </android.support.design.widget.TextInputLayout>
+
     <android.support.design.widget.TextInputLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="visible"
-        >
+        android:visibility="visible">
 
         <EditText
+            android:id="@+id/otp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
             android:layout_weight="1"
+            android:ems="10"
             android:hint="Enter OTP"
-            android:id="@+id/otp" />
+            android:inputType="number" />
     </android.support.design.widget.TextInputLayout>
 
     <Button
-        android:text="Send Feedback"
-        android:textColor="#fff"
-        android:typeface="serif"
-        android:background="@color/colorPrimary"
-        android:layout_marginTop="@dimen/_10sdp"
+        android:id="@+id/sendfb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/sendfb" />
+        android:layout_marginTop="@dimen/_10sdp"
+        android:background="@color/colorPrimary"
+        android:text="Send Feedback"
+        android:textColor="#fff"
+        android:typeface="serif" />
+
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabfeedback"
         android:layout_width="wrap_content"
-        android:scaleType="fitXY"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
-        app:fabSize="mini"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_info"
+        android:scaleType="fitXY"
         android:tint="#fff"
+        app:fabSize="mini"
         app:layout_anchor="@+id/include"
-        app:layout_anchorGravity="bottom|right" />
+        app:layout_anchorGravity="bottom|right"
+        app:srcCompat="@android:drawable/ic_dialog_info" />
 
 </LinearLayout>

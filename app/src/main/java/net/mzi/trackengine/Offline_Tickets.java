@@ -118,7 +118,10 @@ public class Offline_Tickets extends Fragment {
                 }
             }).start();
         } else {
-            Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
+            try {
+                Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+            }
         }
 
     }

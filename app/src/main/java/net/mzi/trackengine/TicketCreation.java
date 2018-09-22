@@ -212,7 +212,10 @@ public class TicketCreation extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (sEnterpriseId.equals("0")) {
-                    Toast.makeText(getApplicationContext(), "Please Provide Customer name", Toast.LENGTH_LONG).show();
+                    try {
+                        Toast.makeText(getApplicationContext(), "Please Provide Customer name", Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                    }
                 } else {
                     Fragment hello = new AddCustomerLoactionFragment();
                     FragmentManager fragmentManager = ((AppCompatActivity) TicketCreation.this).getSupportFragmentManager();
@@ -876,7 +879,10 @@ public class TicketCreation extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         sFinalImagePath_create = sImagePath;
                         iImageIcon.setVisibility(View.VISIBLE);
-                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
+                        try {
+                            Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                        }
                     }
                 });
 
@@ -941,14 +947,14 @@ public class TicketCreation extends AppCompatActivity {
                 launchUploadActivity(fileUri.getPath());
             } else if (resultCode == RESULT_CANCELED) {
                 // user cancelled Image capture
-                Toast.makeText(getApplicationContext(),
-                        "User cancelled image capture", Toast.LENGTH_SHORT)
-                        .show();
+               try{ Toast.makeText(getApplicationContext(),
+                       "User cancelled image capture", Toast.LENGTH_SHORT)
+                       .show();}catch (Exception e){}
             } else {
                 // failed to capture image
-                Toast.makeText(getApplicationContext(),
-                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
-                        .show();
+               try{ Toast.makeText(getApplicationContext(),
+                       "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
+                       .show();}catch (Exception e){}
             }
         } else {
             if (data != null) {
@@ -960,13 +966,13 @@ public class TicketCreation extends AppCompatActivity {
                     Log.e("selectedPath1 : ", selectedPath);
                 } else if (resultCode == RESULT_CANCELED) {
                     // user cancelled Image capture
-                    Toast.makeText(getApplicationContext(),
-                            "User cancelled image capture", Toast.LENGTH_SHORT)
-                            .show();
+                   try{ Toast.makeText(getApplicationContext(),
+                           "User cancelled image capture", Toast.LENGTH_SHORT)
+                           .show();}catch (Exception e){}
                     //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
                 }
             } else {
-                Toast.makeText(this, "Something went wrong in Image Upload of Ticket Creation", Toast.LENGTH_SHORT).show();
+                try{Toast.makeText(this, "Something went wrong in Image Upload of Ticket Creation", Toast.LENGTH_SHORT).show();}catch (Exception e){}
             }
 
         }
@@ -1011,7 +1017,7 @@ public class TicketCreation extends AppCompatActivity {
             super.onPostExecute(s);
             Log.e("askdh", "FetchLocation: " + s);
             if (s == null) {
-                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
             } else {
                 Log.i("INFO", s);
 
@@ -1493,7 +1499,7 @@ public class TicketCreation extends AppCompatActivity {
             super.onPostExecute(s);
             String sStatus = null;
             if (s == null) {
-                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
                 //s = "THERE WAS AN ERROR";
             } else {
                 try {
@@ -1508,7 +1514,7 @@ public class TicketCreation extends AppCompatActivity {
                         sTicketId = object.getString("Id");
                     }
                     if (msg != null) {
-                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+                        try{Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();}catch (Exception e){}
                     }
 
                     Log.e("onPostExecute: ", msg);

@@ -102,7 +102,7 @@ public class InternalIssueListing extends AppCompatActivity {
                 progress.dismiss();
             }*/
             if (s == null ) {
-                Toast.makeText(getApplicationContext(),R.string.internet_error,Toast.LENGTH_LONG).show();
+                try{Toast.makeText(getApplicationContext(),R.string.internet_error,Toast.LENGTH_LONG).show();}catch (Exception e){}
 
                 //s = "THERE WAS AN ERROR";
             } else {
