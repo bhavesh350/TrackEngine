@@ -69,7 +69,7 @@ public class Firstfrag extends Fragment {
     FirebaseTicketData Pi = new FirebaseTicketData();
     SwipeFrameLayout sfl;
     SQLiteDatabase sql;
-    Map<String, String> mTicketIdList = new HashMap<>();
+    public Map<String, String> mTicketIdList = new HashMap<>();
     int MULTIPLE_NOTIFICATION = 0;
     Context ctx;
     SharedPreferences pref;

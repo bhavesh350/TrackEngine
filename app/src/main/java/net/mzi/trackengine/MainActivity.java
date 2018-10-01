@@ -18,7 +18,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
@@ -38,6 +37,8 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -55,7 +56,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.android.gms.common.ConnectionResult;
@@ -199,6 +199,8 @@ public class MainActivity extends AppCompatActivity
 
     //static Context mainAtctivityctx;
     private SessionManager session;
+    private String mySavedStatusTime = "";
+    private String mySavedStatus = "";
 
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -210,7 +212,8 @@ public class MainActivity extends AppCompatActivity
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
-
+        mySavedStatus = SOMTracker.getSharedPrefString("isCheckedIn");
+        mySavedStatusTime = SOMTracker.getSharedPrefString("checkInOutTime");
         LOGINID = pref.getString("userid", "0");
         sDepartment = pref.getString("DepartmentId", "0");
         nh_uname = pref.getString("name", "0");
@@ -218,173 +221,13 @@ public class MainActivity extends AppCompatActivity
         sDeviceId = pref.getString("DeviceId", "0");
         databaseFirebase.getInstance();
         drRef = databaseFirebase.getReference().child("UserLoginInfo").child(LOGINID);
-        drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
-            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-            @Override
-            public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
-                for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-
-                    String DeviceId = (String) postSnapshot.getValue();
-                    if (DeviceId.equals(sDeviceId)) ;
-                    else {
-                        Map<String, String> postLogin = new HashMap<String, String>();
-                        Date cDate = new Date();
-                        currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                        //LOGINID=map.get("userid");
-                        postLogin.put("UserId", LOGINID);
-                        postLogin.put("IsLogin", "false");
-                        postLogin.put("ActionDate", currentDateTimeString);
-                        postLogin.put("DeviceId", sDeviceId);
-                        postLogin.put("RealTimeUpdate", "true");
-                        String sPostLogin = new Gson().toJson(postLogin);
-                        if (isCheckIn.equals("true")) {
-                            appCheckInInfo.put("UserId", LOGINID);
-                            appCheckInInfo.put("DeviceId", sDeviceId);
-                            appCheckInInfo.put("IsCheckedIn", "false");
-                            appCheckInInfo.put("ActivityDate", currentDateTimeString);
-                            appCheckInInfo.put("RealTimeUpdate", "true");
-                            String sPostCheckIn = new Gson().toJson(appCheckInInfo);
-//                            appCheckINOpemmmration(appCheckInInfo, cquery.getString(0).toString());
-                            // new appCheckINOmmmperation(sPostCheckIn).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                        }
-                        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                        nMgr.cancelAll();
-                        Log.e("logout", "firbase");
-                        sql.delete("Issue_Detail", null, null);
-                        sql.delete("FirebaseIssueData", null, null);
-                        //sql.delete("Issue_Status", null, null);
-                        session.logoutUser();
-                        //clearPreferences();
-
-
-                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-                        // Add new Flag to start new Activity
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        finish();
-                        overridePendingTransition(0, 0);
-                        startActivity(i);
-                        overridePendingTransition(0, 0);
-                    }
-
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        if (brOfflineData == null) {
-            try {
-                brOfflineData = new BroadcastReceiver() {
-                    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        Bundle extras = intent.getExtras();
-
-                        ConnectivityManager cm =
-                                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-
-                        if (networkInfo != null) {
-                            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-                                // do something
-                                Log.e("TEST Internet", "WIFI");
-                            } else if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-                                // check NetworkInfo subtype
-                                Log.e("TEST Internet", "Mobile");
-                                if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_HSPAP) {
-                                    // Bandwidth between 100 kbps and below
-                                    Log.e("TEST Internet", "LOW");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_GPRS) {
-                                    // Bandwidth between 100 kbps and below
-                                    Log.e("TEST Internet", "LOW");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EDGE) {
-                                    // Bandwidth between 50-100 kbps
-                                    Log.e("TEST Internet", "MEDIUM");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_0) {
-                                    // Bandwidth between 400-1000 kbps
-                                    Log.e("TEST Internet", "NORMAL");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_A) {
-                                    // Bandwidth between 600-1400 kbps
-                                    Log.e("TEST Internet", "HIGH");
-                                }
-                            }
-
-
-                            Date cDate = new Date();
-                            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                            if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
-
-                                InternetConnector icDataSyncing = new InternetConnector();
-                                try {
-                                    icDataSyncing.offlineSyncing(MainActivity.this, 1);
-                                    mMobileDataInfo.put("UserId", LOGINID);
-                                    mMobileDataInfo.put("DeviceId", sDeviceId);
-                                    mMobileDataInfo.put("Enabled", "true");
-                                    mMobileDataInfo.put("ActionDate", currentDateTimeString);
-                                    mMobileDataInfo.put("RealTimeUpdate", "true");
-//                                    String jsonString = new Gson().toJson(mMobileDataInfo);
-                                    sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                                            "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
-                                    Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
-                                    String sColumnId = null;
-                                    if (cquery.getCount() > 0) {
-                                        cquery.moveToLast();
-                                        sColumnId = cquery.getString(0).toString();
-                                    }
-                                    cquery.close();
-                                    PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
-                                } catch (Exception e) {
-                                }
-
-
-                            } else {
-                                SOMTracker.showMassage(MainActivity.this, "Internet connection is Off");
-//                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
-                                mMobileDataInfo.put("UserId", LOGINID);
-                                mMobileDataInfo.put("DeviceId", sDeviceId);
-                                mMobileDataInfo.put("Enabled", "false");
-                                mMobileDataInfo.put("ActionDate", currentDateTimeString);
-                                mMobileDataInfo.put("RealTimeUpdate", "true");
-                                String jsonString = new Gson().toJson(mMobileDataInfo);
-                                sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                                        "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
-                                Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                cquery.close();
-                                PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
-                            }
-                            showAlert.setText("Please Wait, fetching ticket info!!!");
-                        } else
-                            showAlert.setText("Internet is not Working");
-
-                    }
-                };
-                final IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                registerReceiver(brOfflineData, intentFilter);
-            } catch (Exception e) {
-
-            }
-        }
         Firebase.setAndroidContext(this);
         session = new SessionManager(getApplicationContext());
-
 
         if (savedInstanceState != null) {
             mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
-
-
         SessionManager s = new SessionManager(getApplicationContext());
 
         HashMap<String, String> map = new HashMap<>();
@@ -393,529 +236,20 @@ public class MainActivity extends AppCompatActivity
         lTimerLayout = findViewById(R.id.timerL);
         tCheckInStatus = findViewById(R.id.checkInStatus);
         tCheckIntTime = findViewById(R.id.checkInTime);
-        mSwipeRefreshLayout =  findViewById(R.id.activity_main_swipe_refresh_layout);
-        timerlayout =  findViewById(R.id.timerLayout);
+        mSwipeRefreshLayout = findViewById(R.id.activity_main_swipe_refresh_layout);
+        timerlayout = findViewById(R.id.timerLayout);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         timer = findViewById(R.id.textView11);
         currTime = findViewById(R.id.textView4);
         viewAll = findViewById(R.id.viewAll);
         showAlert = findViewById(R.id.viewAlert);
-        RLay =  findViewById(R.id.remaininglayout);
-        newtkt =  findViewById(R.id.newtkt);
+        RLay = findViewById(R.id.remaininglayout);
+        newtkt = findViewById(R.id.newtkt);
         showAlert.setVisibility(View.VISIBLE);
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
+
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        sCheckInTime = pref.getString("CheckedInTime", "0");
-        sCheckInStatus = pref.getString("CheckedInStatus", "0");
-
-     /*   if(MainActivity.isCheckIn.equals("true")) {
-        }*/
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-            tCheckInStatus.setText("Checked-IN");
-            lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-            //tCheckInStatus.setTextColor(getResources().getColor(R.color.green));
-            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
-            tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
-            /*********************************Alarm : 6 o clock********************************************************/
-            Calendar alarmStartTime = Calendar.getInstance();
-            alarmStartTime.set(Calendar.HOUR_OF_DAY, 18);
-            alarmStartTime.set(Calendar.MINUTE, 00);
-            alarmStartTime.set(Calendar.SECOND, 0);
-
-            Intent intent = new Intent(this, Notificationmessage.class);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this,
-                    12345, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            AlarmManager am =
-                    (AlarmManager) getSystemService(Activity.ALARM_SERVICE);
-            am.set(AlarmManager.RTC_WAKEUP, alarmStartTime.getTimeInMillis(),
-                    pendingIntent);
-            /*********************************Alarm : 6 o clock********************************************************/
-            Date cDate = new Date();
-            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-            editor.putString("CheckedInDuration", currentDateTimeString);
-            editor.commit();
-            setData();
-
-            //tAt.setTextColor(getResources().getColor(R.color.green));
-        } else if (sCheckInStatus.equals("False") || sCheckInStatus.equals("false")) {
-            tCheckInStatus.setText("Checked-OUT");
-            lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
-            //tCheckInStatus.setTextColor(getResources().getColor(R.color.red));
-            tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
-            //tAt.setTextColor(getResources().getColor(R.color.red));
-            NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            nMgr.cancel(12345);
-
-        } else {
-            lTimerLayout.setVisibility(View.GONE);
-        }
-        tCheckIntTime.setText(sCheckInTime);
-
-
-        Log.e(TAG, "onCreate:sdsdsd " + sCheckInTime);
-        viewAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this, TaskActivity.class);
-                i.putExtra("cardpos", "-1");
-                startActivity(i);
-            }
-        });
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        mDataset.add("New");
-        mDataset.add("Accepted");
-        mDataset.add("Attended");
-        mDataset.add("Resolved");
-
-        mCardColor.add(R.drawable.cardbk_purple);
-        mCardColor.add(R.drawable.cardbk_orange);
-        mCardColor.add(R.drawable.cardbk_blue);
-        mCardColor.add(R.drawable.cardbk_green);
-
-        mDatasetTypes.add(TASK);
-        mDatasetTypes.add(TASK);
-        mDatasetTypes.add(TASK);
-        mDatasetTypes.add(TASK);
-
-
-        Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
-        mDatasetCount.add(String.valueOf(cquery.getCount()));
-        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 1", null);
-        mDatasetCount.add(String.valueOf(cquery.getCount()));
-        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 2", null);
-        mDatasetCount.add(String.valueOf(cquery.getCount()));
-
-        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
-        mDatasetCount.add(String.valueOf(cquery.getCount()));
-        cquery.close();
-        mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
-        // mLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false);
-        StaggeredGridLayoutManager gaggeredGridLayoutManager;
-        gaggeredGridLayoutManager = new StaggeredGridLayoutManager(4, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(gaggeredGridLayoutManager);
-        mAdapter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, MainActivity.this);
-        mRecyclerView.setAdapter(mAdapter);
-
-
-        tCheckInStatus.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-            @Override
-            public void onClick(View v) {
-                Log.e(TAG, "onClick: ");
-                if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
-                    SOMTracker.setStatus("isCheckin", true);
-                    Log.e(TAG, "onClick: ");
-                    Date cDate = new Date();
-                    currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                    currTime.setText("CheckedIN: " + currentDateTimeStringCheckIN);
-                    appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInStatus", "True");
-                    editor.putString("CheckedInDuration", currentDateTimeStringCheckIN);
-                    editor.commit();
-                    tCheckIntTime.setText(currentDateTimeStringCheckIN);
-                    tCheckInStatus.setText("Checked-IN");
-                    Log.e(TAG, "onCheckedChanged: " + tCheckInStatus.getText().toString());
-                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-                    tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
-                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
-                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.green));
-                    //tAt.setTextColor(getResources().getColor(R.color.green));
-                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                    if (cquery.getCount() > 0) {
-
-                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-
-                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_Location", "Id" + "=" + id, null);
-                        }
-                    }
-                    cquery.close();
-                    setData();
-                } else {
-                    SOMTracker.setStatus("isCheckin", false);
-                    Date cDate = new Date();
-                    currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                    batteryAlarmManager.cancel(batteryPendingIntent);
-                    try {
-                        locationAlarmManager.cancel(locationPendingIntent);
-//                        stopService(locationIntent);
-                    } catch (Exception e) {
-                    }
-//                    stopService(intent);
-//                    stopService(batteryIntent);
-
-                    Log.e(TAG, "setData:Checked-IN " + currentDateTimeString);
-                    isCheckIn = "false";
-                    appCheckInInfo.put("ActivityDate", currentDateTimeString);
-                    timer.setText("00:00:00");
-                    editor.putString("CheckedInTime", currentDateTimeString);
-                    editor.putString("CheckedInStatus", "False");
-                    editor.commit();
-                    tCheckIntTime.setText(currentDateTimeString);
-                    tCheckInStatus.setText("Checked-OUT");
-                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
-                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.red));
-                    tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
-
-                    NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                    nMgr.cancel(12345);
-                    try {
-                        Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                        if (cquery.getCount() > 0) {
-
-                            Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-
-                            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                                String id = cquery.getString(0).toString();
-                                sql.delete("User_Location", "Id" + "=" + id, null);
-                            }
-                        }
-                        cquery.close();
-                    } catch (Exception e) {
-                    }
-                    //tAt.setTextColor(getResources().getColor(R.color.red));
-                }
-                Map<String, String> locationInfo = new HashMap<String, String>();
-                gps = new Gps(getApplicationContext());
-                if (gps.canGetLocation()) {
-
-                    Date cDate = new Date();
-                    currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-
-                    if (gps.canGetLocation) {
-                        user_location = getLocation();
-                    } else {
-                        if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
-                            user_location.Latitude = 0.0;
-                            user_location.Longitude = 0.0;
-                        } else {
-                            try {
-                                user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
-                            } catch (Exception e) {
-                            }
-                        }
-
-                    }
-                    Geocoder geocoder = null;
-                    List<Address> addresses;
-                    geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-
-                    try {
-                        addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                        if (addresses.size() > 0) {
-                            sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                            sCity = addresses.get(0).getLocality();
-                            sState = addresses.get(0).getAdminArea();
-                            sCountry = addresses.get(0).getCountryName();
-                            sPostalCode = addresses.get(0).getPostalCode();
-                            sKnownName = addresses.get(0).getFeatureName();
-                            sPremises = addresses.get(0).getPremises();
-                            sSubLocality = addresses.get(0).getSubLocality();
-                            sSubAdminArea = addresses.get(0).getSubAdminArea();
-                        } else {
-                            sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                            sCity = "NA";
-                            sState = "NA";
-                            sCountry = "NA";
-                            sPostalCode = "NA";
-                            sKnownName = "NA";
-                            sPremises = "NA";
-                            sSubLocality = "NA";
-                            sSubAdminArea = "NA";
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                        sCity = "NA";
-                        sState = "NA";
-                        sCountry = "NA";
-                        sPostalCode = "NA";
-                        sKnownName = "NA";
-                        sPremises = "NA";
-                        sSubLocality = "NA";
-                        sSubAdminArea = "NA";
-                    } catch (Exception ee) {
-                        ee.printStackTrace();
-                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                        sCity = "NA";
-                        sState = "NA";
-                        sCountry = "NA";
-                        sPostalCode = "NA";
-                        sKnownName = "NA";
-                        sPremises = "NA";
-                        sSubLocality = "NA";
-                        sSubAdminArea = "NA";
-                    }
-
-                    locationInfo.put("UserId", LOGINID);
-                    locationInfo.put("DeviceId", sDeviceId);
-                    locationInfo.put("Latitude", String.valueOf(user_location.Latitude));
-                    locationInfo.put("Longitude", String.valueOf(user_location.Longitude));
-                    locationInfo.put("ActivityDate", currentDateTimeString);
-                    locationInfo.put("AutoCaptured", "false");
-                    locationInfo.put("AddressLine", sAddressLine);
-                    locationInfo.put("Premises", sPremises);
-                    locationInfo.put("SubLocality", sSubLocality);
-                    locationInfo.put("SubAdminArea", sSubAdminArea);
-                    locationInfo.put("PostalCode", sPostalCode);
-                    locationInfo.put("City", sCity);
-                    locationInfo.put("State", sState);
-                    locationInfo.put("Country", sCountry);
-                    locationInfo.put("KnownName", sKnownName);
-                    locationInfo.put("RealTimeUpdate", "true");
-                    locationInfo.put("Provider", "NA");
-                    String jsonString = new Gson().toJson(locationInfo);
-                    Log.e(TAG, "run:" + jsonString);
-
-                    try {
-                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                        Log.e("Location insertion", "Inserted by MainActivity at 682");
-                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                        String sColumnId = null;
-                        if (cquery.getCount() > 0) {
-                            cquery.moveToLast();
-                            sColumnId = cquery.getString(0).toString();
-                        }
-                        cquery.close();
-                        ServiceLocation m = new ServiceLocation();
-                        Log.d("postcoordinat", "from main activity at 663");
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
-                    } catch (Exception e) {
-                        ServiceLocation m = new ServiceLocation();
-                        Log.d("postcoordinat", "from main activity at 663");
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "");
-                    }
-//                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
-                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
-                }
-
-                String jsonString = new Gson().toJson(locationInfo);
-                Log.e(TAG, "run: " + jsonString);
-                SOMTracker.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
-//                Toast.makeText(getApplicationContext(), "CheckIn-Out Info sent successfully!!!", Toast.LENGTH_LONG).show();
-                Date cDate = new Date();
-                currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-
-                appCheckInInfo.put("UserId", MainActivity.LOGINID);
-                appCheckInInfo.put("DeviceId", sDeviceId);
-                appCheckInInfo.put("IsCheckedIn", isCheckIn);
-                appCheckInInfo.put("RealTimeUpdate", "true");
-                appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
-
-                String sAppCheckInInfo = new Gson().toJson(appCheckInInfo);
-                Log.e("onCheckedChanged: ", sAppCheckInInfo);
-                sql.execSQL("INSERT INTO User_AppCheckIn(UserId,IsCheckIn,ActionDate,SyncStatus)VALUES" +
-                        "('" + appCheckInInfo.get("UserId") + "','" + appCheckInInfo.get("IsCheckedIn") + "','" + appCheckInInfo.get("ActivityDate") + "','-1')");
-                Cursor cquery = sql.rawQuery("select * from User_AppCheckIn ", null);
-                String sColumnId = null;
-                if (cquery.getCount() > 0) {
-                    cquery.moveToLast();
-                    sColumnId = cquery.getString(0).toString();
-                }
-                cquery.close();
-                appCheckINOperation(appCheckInInfo, sColumnId);
-
-                BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
-
-                try {
-                    int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                    Log.d(">>>>>>>>>>", "sending battery");
-                    Log.d("battery", batLevel + "%");
-                    Log.d("battery2", getBatteryPercentage(MainActivity.this) + "%");
-                    if (batLevel > 0) {
-                        sendBatteryCheckinLevel(batLevel);
-                    } else {
-                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
-                    }
-                } catch (Exception e) {
-                    try {
-                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
-                    } catch (Exception eee) {
-                    }
-                } catch (NoSuchMethodError ee){
-                    try {
-                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
-                    } catch (Exception eee) {
-                    }
-                }
-
-            }
-        });
-
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.colorPrimaryDark);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-
-        {
-            mSwipeRefreshLayout.setProgressViewOffset(false, 0, 200);
-        }
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
-
-        {
-            @Override
-            public void onRefresh() {
-                //handling swipe refresh
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-
-                        double latitude, longitude;
-                        gps = new Gps(getApplicationContext());
-                        if (isCheckIn.equals("true")) {
-                            if (gps.canGetLocation()) {
-
-                                Date cDate = new Date();
-                                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                                if (gps.canGetLocation) {
-
-                                    user_location = getLocation();
-
-                                } else {
-                                    if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
-                                        user_location.Latitude = 0.0;
-                                        user_location.Longitude = 0.0;
-                                    } else {
-                                        try {
-                                            user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                            user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
-                                        } catch (Exception e) {
-                                        }
-                                    }
-                                }
-                                Geocoder geocoder = null;
-                                List<Address> addresses;
-                                geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-
-                                try {
-                                    addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                                    if (addresses.size() > 0) {
-                                        sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                                        sCity = addresses.get(0).getLocality();
-                                        sState = addresses.get(0).getAdminArea();
-                                        sCountry = addresses.get(0).getCountryName();
-                                        sPostalCode = addresses.get(0).getPostalCode();
-                                        sKnownName = addresses.get(0).getFeatureName();
-                                        sPremises = addresses.get(0).getPremises();
-                                        sSubLocality = addresses.get(0).getSubLocality();
-                                        sSubAdminArea = addresses.get(0).getSubAdminArea();
-                                    } else {
-                                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                                        sCity = "NA";
-                                        sState = "NA";
-                                        sCountry = "NA";
-                                        sPostalCode = "NA";
-                                        sKnownName = "NA";
-                                        sPremises = "NA";
-                                        sSubLocality = "NA";
-                                        sSubAdminArea = "NA";
-                                    }
-                                    //String s= address+" "+city+""+state+" "+country+" "+postalCode+" "+knownName+" "+premises+" "+subLocality+" "+subAdminArea;
-                                    //sLog.e(TAG, "onLocationChanged: "+s);
-
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                                    sCity = "NA";
-                                    sState = "NA";
-                                    sCountry = "NA";
-                                    sPostalCode = "NA";
-                                    sKnownName = "NA";
-                                    sPremises = "NA";
-                                    sSubLocality = "NA";
-                                    sSubAdminArea = "NA";
-                                } catch (Exception ee) {
-                                    ee.printStackTrace();
-                                    sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                                    sCity = "NA";
-                                    sState = "NA";
-                                    sCountry = "NA";
-                                    sPostalCode = "NA";
-                                    sKnownName = "NA";
-                                    sPremises = "NA";
-                                    sSubLocality = "NA";
-                                    sSubAdminArea = "NA";
-                                }
-                                Map<String, String> locationInfo = new HashMap<String, String>();
-                                locationInfo.put("UserId", LOGINID);
-                                locationInfo.put("DeviceId", sDeviceId);
-                                locationInfo.put("Latitude", String.valueOf(user_location.Latitude));
-                                locationInfo.put("Longitude", String.valueOf(user_location.Longitude));
-                                locationInfo.put("ActivityDate", currentDateTimeString);
-                                locationInfo.put("AutoCaptured", "false");
-                                locationInfo.put("AddressLine", sAddressLine);
-                                locationInfo.put("Premises", sPremises);
-                                locationInfo.put("SubLocality", sSubLocality);
-                                locationInfo.put("SubAdminArea", sSubAdminArea);
-                                locationInfo.put("PostalCode", sPostalCode);
-                                locationInfo.put("City", sCity);
-                                locationInfo.put("State", sState);
-                                locationInfo.put("Country", sCountry);
-                                locationInfo.put("KnownName", sKnownName);
-                                locationInfo.put("RealTimeUpdate", "true");
-                                locationInfo.put("Provider", "NA");
-                                String jsonString = new Gson().toJson(locationInfo);
-                                Log.e(TAG, "run: " + jsonString);
-                                try {
-                                    sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                            "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                } catch (Exception e) {
-                                }
-                                Log.e("Location insertion", "Inserted by MainActivity at 863");
-                                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                cquery.close();
-                                if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
-//                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
-                                    SOMTracker.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
-                                    user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                    user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
-                                    ServiceLocation m = new ServiceLocation();
-                                    Log.d("postcoordinat", "from main activity at 836");
-                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
-                                } else {
-                                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
-//                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
-                                    ServiceLocation m = new ServiceLocation();
-                                    Log.d("postcoordinat", "from main activity at 841");
-                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
-                                }
-                                //MainActivity.this.registerReceiver(broadcastreceiver,intentfilter);
-                            }
-                        }
-
-                    }
-                }, 4000);
-
-
-            }
-        });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener()
-
-        {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, TicketCreation.class);
-                startActivity(i);
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -927,7 +261,15 @@ public class MainActivity extends AppCompatActivity
         View headerView = navigationView.getHeaderView(0);
         h_uname = headerView.findViewById(R.id.header_username);
         h_uname.setText(nh_uname);
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
 
+        mRecyclerView = findViewById(R.id.task_view);
+        StaggeredGridLayoutManager gaggeredGridLayoutManager;
+        gaggeredGridLayoutManager = new StaggeredGridLayoutManager(4, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(gaggeredGridLayoutManager);
+
+        refreshData(false);
     }
 
     private void sendBatteryCheckinLevel(int batLevel) {
@@ -1175,6 +517,17 @@ public class MainActivity extends AppCompatActivity
             overridePendingTransition(0, 0);
             startActivity(i);
             return true;
+        } else if (id == R.id.action_refresh) {
+            SOMTracker.showMassage(this, "Refreshing...");
+            refreshData(true);
+            new FetchStatus();
+            onResume();
+//            Intent i = getIntent();
+//            i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+//            finish();
+//            overridePendingTransition(0, 0);
+//            startActivity(i);
+//            overridePendingTransition(0, 0);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -1705,7 +1058,10 @@ public class MainActivity extends AppCompatActivity
         //sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         final ApiResult apiResult = new ApiResult();
-        final ApiResult.UserCheckInOut userCheckInOut = apiResult.new UserCheckInOut("true", appCheckInInfo.get("UserId").toString(), appCheckInInfo.get("DeviceId").toString(), appCheckInInfo.get("IsCheckedIn").toString(), appCheckInInfo.get("ActivityDate").toString());
+        final ApiResult.UserCheckInOut userCheckInOut = apiResult.new
+                UserCheckInOut("true", appCheckInInfo.get("UserId").toString(),
+                appCheckInInfo.get("DeviceId").toString(), appCheckInInfo.get("IsCheckedIn").toString(),
+                appCheckInInfo.get("ActivityDate").toString());
         Call<ApiResult.UserCheckInOut> call1 = apiInterface.PostCheckIn(userCheckInOut);
         final String finalColumnId = sColumnId;
         call1.enqueue(new Callback<ApiResult.UserCheckInOut>() {
@@ -1924,5 +1280,736 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception e) {
             return 50;
         }
+    }
+
+    private void refreshData(boolean isRefresh) {
+        if(isRefresh){
+            setShowAlert();
+            Firstfrag fragment = (Firstfrag) getSupportFragmentManager().findFragmentById(R.id.fragment);
+            fragment.NewTicketsInfo(fragment.mTicketIdList);
+
+        }
+
+        drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
+                for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+
+                    String DeviceId = (String) postSnapshot.getValue();
+                    if (DeviceId.equals(sDeviceId)) ;
+                    else {
+                        Map<String, String> postLogin = new HashMap<String, String>();
+                        Date cDate = new Date();
+                        currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                        //LOGINID=map.get("userid");
+                        postLogin.put("UserId", LOGINID);
+                        postLogin.put("IsLogin", "false");
+                        postLogin.put("ActionDate", currentDateTimeString);
+                        postLogin.put("DeviceId", sDeviceId);
+                        postLogin.put("RealTimeUpdate", "true");
+                        String sPostLogin = new Gson().toJson(postLogin);
+                        if (isCheckIn.equals("true")) {
+                            appCheckInInfo.put("UserId", LOGINID);
+                            appCheckInInfo.put("DeviceId", sDeviceId);
+                            appCheckInInfo.put("IsCheckedIn", "false");
+                            appCheckInInfo.put("ActivityDate", currentDateTimeString);
+                            appCheckInInfo.put("RealTimeUpdate", "true");
+                            String sPostCheckIn = new Gson().toJson(appCheckInInfo);
+//                            appCheckINOpemmmration(appCheckInInfo, cquery.getString(0).toString());
+                            // new appCheckINOmmmperation(sPostCheckIn).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        }
+                        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        nMgr.cancelAll();
+                        Log.e("logout", "firbase");
+                        sql.delete("Issue_Detail", null, null);
+                        sql.delete("FirebaseIssueData", null, null);
+                        //sql.delete("Issue_Status", null, null);
+                        session.logoutUser();
+                        //clearPreferences();
+
+
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                        // Add new Flag to start new Activity
+                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        finish();
+                        overridePendingTransition(0, 0);
+                        startActivity(i);
+                        overridePendingTransition(0, 0);
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        if (brOfflineData == null) {
+            try {
+                brOfflineData = new BroadcastReceiver() {
+                    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        Bundle extras = intent.getExtras();
+
+                        ConnectivityManager cm =
+                                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+
+                        if (networkInfo != null) {
+                            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                                // do something
+                                Log.e("TEST Internet", "WIFI");
+                            } else if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                                // check NetworkInfo subtype
+                                Log.e("TEST Internet", "Mobile");
+                                if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_HSPAP) {
+                                    // Bandwidth between 100 kbps and below
+                                    Log.e("TEST Internet", "LOW");
+                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_GPRS) {
+                                    // Bandwidth between 100 kbps and below
+                                    Log.e("TEST Internet", "LOW");
+                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EDGE) {
+                                    // Bandwidth between 50-100 kbps
+                                    Log.e("TEST Internet", "MEDIUM");
+                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_0) {
+                                    // Bandwidth between 400-1000 kbps
+                                    Log.e("TEST Internet", "NORMAL");
+                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_A) {
+                                    // Bandwidth between 600-1400 kbps
+                                    Log.e("TEST Internet", "HIGH");
+                                }
+                            }
+
+
+                            Date cDate = new Date();
+                            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                            if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
+
+                                InternetConnector icDataSyncing = new InternetConnector();
+                                try {
+                                    icDataSyncing.offlineSyncing(MainActivity.this, 1);
+                                    mMobileDataInfo.put("UserId", LOGINID);
+                                    mMobileDataInfo.put("DeviceId", sDeviceId);
+                                    mMobileDataInfo.put("Enabled", "true");
+                                    mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                                    mMobileDataInfo.put("RealTimeUpdate", "true");
+//                                    String jsonString = new Gson().toJson(mMobileDataInfo);
+                                    sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
+                                            "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
+                                    Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
+                                    String sColumnId = null;
+                                    if (cquery.getCount() > 0) {
+                                        cquery.moveToLast();
+                                        sColumnId = cquery.getString(0).toString();
+                                    }
+                                    cquery.close();
+                                    PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
+                                } catch (Exception e) {
+                                }
+
+
+                            } else {
+                                SOMTracker.showMassage(MainActivity.this, "Internet connection is Off");
+//                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
+                                mMobileDataInfo.put("UserId", LOGINID);
+                                mMobileDataInfo.put("DeviceId", sDeviceId);
+                                mMobileDataInfo.put("Enabled", "false");
+                                mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                                mMobileDataInfo.put("RealTimeUpdate", "true");
+                                String jsonString = new Gson().toJson(mMobileDataInfo);
+                                sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
+                                        "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
+                                Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
+                                String sColumnId = null;
+                                if (cquery.getCount() > 0) {
+                                    cquery.moveToLast();
+                                    sColumnId = cquery.getString(0).toString();
+                                }
+                                cquery.close();
+                                PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
+                            }
+                            showAlert.setText("Please Wait, fetching ticket info!!!");
+                        } else
+                            showAlert.setText("Internet is not Working");
+
+                    }
+                };
+                final IntentFilter intentFilter = new IntentFilter();
+                intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                registerReceiver(brOfflineData, intentFilter);
+            } catch (Exception e) {
+
+            }
+        }
+
+        sCheckInTime = pref.getString("CheckedInTime", "0");
+        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+
+     /*   if(MainActivity.isCheckIn.equals("true")) {
+        }*/
+        if (mySavedStatus.isEmpty() || mySavedStatusTime.isEmpty())
+            if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+                tCheckInStatus.setText("Checked-IN");
+                lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
+                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
+                tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
+                /*********************************Alarm : 6 o clock********************************************************/
+                Calendar alarmStartTime = Calendar.getInstance();
+                alarmStartTime.set(Calendar.HOUR_OF_DAY, 18);
+                alarmStartTime.set(Calendar.MINUTE, 00);
+                alarmStartTime.set(Calendar.SECOND, 0);
+
+                Intent intent = new Intent(this, Notificationmessage.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this,
+                        12345, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                AlarmManager am =
+                        (AlarmManager) getSystemService(Activity.ALARM_SERVICE);
+                am.set(AlarmManager.RTC_WAKEUP, alarmStartTime.getTimeInMillis(),
+                        pendingIntent);
+                /*********************************Alarm : 6 o clock********************************************************/
+                Date cDate = new Date();
+                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                editor.putString("CheckedInDuration", currentDateTimeString);
+                editor.commit();
+                setData();
+            } else if (sCheckInStatus.equals("False") || sCheckInStatus.equals("false")) {
+                tCheckInStatus.setText("Checked-OUT");
+                lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
+                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
+                tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
+                NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                nMgr.cancel(12345);
+
+            } else {
+                lTimerLayout.setVisibility(View.GONE);
+            }
+        else {
+            if (mySavedStatus.equals("true") || mySavedStatus.equals("True")) {
+                tCheckInStatus.setText("Checked-IN");
+                lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
+                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
+                tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
+                /*********************************Alarm : 6 o clock********************************************************/
+                Calendar alarmStartTime = Calendar.getInstance();
+                alarmStartTime.set(Calendar.HOUR_OF_DAY, 18);
+                alarmStartTime.set(Calendar.MINUTE, 00);
+                alarmStartTime.set(Calendar.SECOND, 0);
+
+                Intent intent = new Intent(this, Notificationmessage.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this,
+                        12345, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                AlarmManager am =
+                        (AlarmManager) getSystemService(Activity.ALARM_SERVICE);
+                am.set(AlarmManager.RTC_WAKEUP, alarmStartTime.getTimeInMillis(),
+                        pendingIntent);
+                /*********************************Alarm : 6 o clock********************************************************/
+                Date cDate = new Date();
+                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                editor.putString("CheckedInDuration", currentDateTimeString);
+                editor.commit();
+                setData();
+            } else if (mySavedStatus.equals("false") || mySavedStatus.equals("False")) {
+                tCheckInStatus.setText("Checked-OUT");
+                lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
+                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
+                tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
+                NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                nMgr.cancel(12345);
+
+            } else {
+                lTimerLayout.setVisibility(View.GONE);
+            }
+        }
+
+        if (mySavedStatusTime.isEmpty())
+            tCheckIntTime.setText(sCheckInTime);
+        else
+            tCheckIntTime.setText(mySavedStatusTime);
+
+
+        Log.e(TAG, "onCreate:sdsdsd " + tCheckIntTime.getText().toString());
+        viewAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, TaskActivity.class);
+                i.putExtra("cardpos", "-1");
+                startActivity(i);
+            }
+        });
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        mDataset = new ArrayList<>();
+        mDatasetTypes = new ArrayList<>();
+        mDatasetCount = new ArrayList<>();
+        mCardColor = new ArrayList<>();
+
+        mDataset.add("New");
+        mDataset.add("Accepted");
+        mDataset.add("Attended");
+        mDataset.add("Resolved");
+
+        mCardColor.add(R.drawable.cardbk_purple);
+        mCardColor.add(R.drawable.cardbk_orange);
+        mCardColor.add(R.drawable.cardbk_blue);
+        mCardColor.add(R.drawable.cardbk_green);
+
+        mDatasetTypes.add(TASK);
+        mDatasetTypes.add(TASK);
+        mDatasetTypes.add(TASK);
+        mDatasetTypes.add(TASK);
+
+
+        Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
+        mDatasetCount.add(String.valueOf(cquery.getCount()));
+        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 1", null);
+        mDatasetCount.add(String.valueOf(cquery.getCount()));
+        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 2", null);
+        mDatasetCount.add(String.valueOf(cquery.getCount()));
+
+        cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
+        mDatasetCount.add(String.valueOf(cquery.getCount()));
+        cquery.close();
+
+        // mLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false);
+
+
+        mAdapter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, MainActivity.this);
+        mRecyclerView.setAdapter(mAdapter);
+
+
+        tCheckInStatus.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "onClick: ");
+                if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
+
+                    SOMTracker.setSharedPrefString("isCheckedIn", "true");
+                    try {
+                        sql.delete("User_AppCheckIn", null, null);
+                    } catch (Exception e) {
+                    }
+
+                    SOMTracker.setStatus("isCheckin", true);
+                    Log.e(TAG, "onClick: ");
+                    Date cDate = new Date();
+                    currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    SOMTracker.setSharedPrefString("checkInOutTime", currentDateTimeStringCheckIN);
+                    currTime.setText("CheckedIN: " + currentDateTimeStringCheckIN);
+                    appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
+                    editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
+                    editor.putString("CheckedInStatus", "True");
+                    editor.putString("CheckedInDuration", currentDateTimeStringCheckIN);
+                    editor.commit();
+                    tCheckIntTime.setText(currentDateTimeStringCheckIN);
+                    tCheckInStatus.setText("Checked-IN");
+                    Log.e(TAG, "onCheckedChanged: " + tCheckInStatus.getText().toString());
+                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
+                    tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
+                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
+                    isCheckIn = "true";
+                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.green));
+                    //tAt.setTextColor(getResources().getColor(R.color.green));
+                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                    if (cquery.getCount() > 0) {
+
+                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                            String id = cquery.getString(0).toString();
+                            sql.delete("User_Location", "Id" + "=" + id, null);
+                        }
+                    }
+                    cquery.close();
+                    setData();
+                } else {
+
+                    SOMTracker.setSharedPrefString("isCheckedIn", "false");
+                    SOMTracker.setStatus("isCheckin", false);
+                    Date cDate = new Date();
+                    currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    batteryAlarmManager.cancel(batteryPendingIntent);
+                    try {
+                        locationAlarmManager.cancel(locationPendingIntent);
+//                        stopService(locationIntent);
+                    } catch (Exception e) {
+                    }
+//                    stopService(intent);
+//                    stopService(batteryIntent);
+
+                    Log.e(TAG, "setData:Checked-IN " + currentDateTimeString);
+                    SOMTracker.setSharedPrefString("checkInOutTime", currentDateTimeString);
+                    isCheckIn = "false";
+                    appCheckInInfo.put("ActivityDate", currentDateTimeString);
+                    timer.setText("00:00:00");
+                    editor.putString("CheckedInTime", currentDateTimeString);
+                    editor.putString("CheckedInStatus", "False");
+                    editor.commit();
+                    tCheckIntTime.setText(currentDateTimeString);
+                    tCheckInStatus.setText("Checked-OUT");
+                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
+                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
+                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.red));
+                    tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
+
+                    NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    nMgr.cancel(12345);
+                    try {
+                        Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                        if (cquery.getCount() > 0) {
+
+                            Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
+
+                            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                                String id = cquery.getString(0).toString();
+                                sql.delete("User_Location", "Id" + "=" + id, null);
+                            }
+                        }
+                        cquery.close();
+                    } catch (Exception e) {
+                    }
+                    //tAt.setTextColor(getResources().getColor(R.color.red));
+                }
+                Map<String, String> locationInfo = new HashMap<String, String>();
+                gps = new Gps(getApplicationContext());
+                if (gps.canGetLocation()) {
+
+                    Date cDate = new Date();
+                    currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+
+                    if (gps.canGetLocation) {
+                        user_location = getLocation();
+                    } else {
+                        if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                            user_location.Latitude = 0.0;
+                            user_location.Longitude = 0.0;
+                        } else {
+                            try {
+                                user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                            } catch (Exception e) {
+                            }
+                        }
+
+                    }
+                    Geocoder geocoder = null;
+                    List<Address> addresses;
+                    geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+                    try {
+                        addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+                        if (addresses.size() > 0) {
+                            sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                            sCity = addresses.get(0).getLocality();
+                            sState = addresses.get(0).getAdminArea();
+                            sCountry = addresses.get(0).getCountryName();
+                            sPostalCode = addresses.get(0).getPostalCode();
+                            sKnownName = addresses.get(0).getFeatureName();
+                            sPremises = addresses.get(0).getPremises();
+                            sSubLocality = addresses.get(0).getSubLocality();
+                            sSubAdminArea = addresses.get(0).getSubAdminArea();
+                        } else {
+                            sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                            sCity = "NA";
+                            sState = "NA";
+                            sCountry = "NA";
+                            sPostalCode = "NA";
+                            sKnownName = "NA";
+                            sPremises = "NA";
+                            sSubLocality = "NA";
+                            sSubAdminArea = "NA";
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                        sCity = "NA";
+                        sState = "NA";
+                        sCountry = "NA";
+                        sPostalCode = "NA";
+                        sKnownName = "NA";
+                        sPremises = "NA";
+                        sSubLocality = "NA";
+                        sSubAdminArea = "NA";
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
+                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                        sCity = "NA";
+                        sState = "NA";
+                        sCountry = "NA";
+                        sPostalCode = "NA";
+                        sKnownName = "NA";
+                        sPremises = "NA";
+                        sSubLocality = "NA";
+                        sSubAdminArea = "NA";
+                    }
+
+                    locationInfo.put("UserId", LOGINID);
+                    locationInfo.put("DeviceId", sDeviceId);
+                    locationInfo.put("Latitude", String.valueOf(user_location.Latitude));
+                    locationInfo.put("Longitude", String.valueOf(user_location.Longitude));
+                    locationInfo.put("ActivityDate", currentDateTimeString);
+                    locationInfo.put("AutoCaptured", "false");
+                    locationInfo.put("AddressLine", sAddressLine);
+                    locationInfo.put("Premises", sPremises);
+                    locationInfo.put("SubLocality", sSubLocality);
+                    locationInfo.put("SubAdminArea", sSubAdminArea);
+                    locationInfo.put("PostalCode", sPostalCode);
+                    locationInfo.put("City", sCity);
+                    locationInfo.put("State", sState);
+                    locationInfo.put("Country", sCountry);
+                    locationInfo.put("KnownName", sKnownName);
+                    locationInfo.put("RealTimeUpdate", "true");
+                    locationInfo.put("Provider", "NA");
+                    String jsonString = new Gson().toJson(locationInfo);
+                    Log.e(TAG, "run:" + jsonString);
+
+                    try {
+                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+                                "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                        Log.e("Location insertion", "Inserted by MainActivity at 682");
+                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+                        String sColumnId = null;
+                        if (cquery.getCount() > 0) {
+                            cquery.moveToLast();
+                            sColumnId = cquery.getString(0).toString();
+                        }
+                        cquery.close();
+                        ServiceLocation m = new ServiceLocation();
+                        Log.d("postcoordinat", "from main activity at 663");
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                    } catch (Exception e) {
+                        ServiceLocation m = new ServiceLocation();
+                        Log.d("postcoordinat", "from main activity at 663");
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "");
+                    }
+//                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
+                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
+                }
+
+                String jsonString = new Gson().toJson(locationInfo);
+                Log.e(TAG, "run: " + jsonString);
+                SOMTracker.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
+//                Toast.makeText(getApplicationContext(), "CheckIn-Out Info sent successfully!!!", Toast.LENGTH_LONG).show();
+                Date cDate = new Date();
+                currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+
+                appCheckInInfo.put("UserId", MainActivity.LOGINID);
+                appCheckInInfo.put("DeviceId", sDeviceId);
+                appCheckInInfo.put("IsCheckedIn", isCheckIn);
+                appCheckInInfo.put("RealTimeUpdate", "true");
+                appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
+
+                String sAppCheckInInfo = new Gson().toJson(appCheckInInfo);
+                Log.e("onCheckedChanged: ", sAppCheckInInfo);
+                sql.execSQL("INSERT INTO User_AppCheckIn(UserId,IsCheckIn,ActionDate,SyncStatus)VALUES" +
+                        "('" + appCheckInInfo.get("UserId") + "','" + appCheckInInfo.get("IsCheckedIn") + "','" + appCheckInInfo.get("ActivityDate") + "','-1')");
+                Cursor cquery = sql.rawQuery("select * from User_AppCheckIn ", null);
+                String sColumnId = null;
+                if (cquery.getCount() > 0) {
+                    cquery.moveToLast();
+                    sColumnId = cquery.getString(0).toString();
+                }
+                cquery.close();
+                appCheckINOperation(appCheckInInfo, sColumnId);
+
+                BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+
+                try {
+                    int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                    Log.d(">>>>>>>>>>", "sending battery");
+                    Log.d("battery", batLevel + "%");
+                    Log.d("battery2", getBatteryPercentage(MainActivity.this) + "%");
+                    if (batLevel > 0) {
+                        sendBatteryCheckinLevel(batLevel);
+                    } else {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    }
+                } catch (Exception e) {
+                    try {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    } catch (Exception eee) {
+                    }
+                } catch (NoSuchMethodError ee) {
+                    try {
+                        sendBatteryCheckinLevel(getBatteryPercentage(MainActivity.this));
+                    } catch (Exception eee) {
+                    }
+                }
+
+            }
+        });
+
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.colorPrimaryDark);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+
+        {
+            mSwipeRefreshLayout.setProgressViewOffset(false, 0, 200);
+        }
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
+
+        {
+            @Override
+            public void onRefresh() {
+                //handling swipe refresh
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSwipeRefreshLayout.setRefreshing(false);
+
+                        double latitude, longitude;
+                        gps = new Gps(getApplicationContext());
+                        if (isCheckIn.equals("true")) {
+                            if (gps.canGetLocation()) {
+
+                                Date cDate = new Date();
+                                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                                if (gps.canGetLocation) {
+
+                                    user_location = getLocation();
+
+                                } else {
+                                    if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                                        user_location.Latitude = 0.0;
+                                        user_location.Longitude = 0.0;
+                                    } else {
+                                        try {
+                                            user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                            user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                        } catch (Exception e) {
+                                        }
+                                    }
+                                }
+                                Geocoder geocoder = null;
+                                List<Address> addresses;
+                                geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+                                try {
+                                    addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+                                    if (addresses.size() > 0) {
+                                        sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                        sCity = addresses.get(0).getLocality();
+                                        sState = addresses.get(0).getAdminArea();
+                                        sCountry = addresses.get(0).getCountryName();
+                                        sPostalCode = addresses.get(0).getPostalCode();
+                                        sKnownName = addresses.get(0).getFeatureName();
+                                        sPremises = addresses.get(0).getPremises();
+                                        sSubLocality = addresses.get(0).getSubLocality();
+                                        sSubAdminArea = addresses.get(0).getSubAdminArea();
+                                    } else {
+                                        sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                        sCity = "NA";
+                                        sState = "NA";
+                                        sCountry = "NA";
+                                        sPostalCode = "NA";
+                                        sKnownName = "NA";
+                                        sPremises = "NA";
+                                        sSubLocality = "NA";
+                                        sSubAdminArea = "NA";
+                                    }
+                                    //String s= address+" "+city+""+state+" "+country+" "+postalCode+" "+knownName+" "+premises+" "+subLocality+" "+subAdminArea;
+                                    //sLog.e(TAG, "onLocationChanged: "+s);
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                    sCity = "NA";
+                                    sState = "NA";
+                                    sCountry = "NA";
+                                    sPostalCode = "NA";
+                                    sKnownName = "NA";
+                                    sPremises = "NA";
+                                    sSubLocality = "NA";
+                                    sSubAdminArea = "NA";
+                                } catch (Exception ee) {
+                                    ee.printStackTrace();
+                                    sAddressLine = "NA"; // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                    sCity = "NA";
+                                    sState = "NA";
+                                    sCountry = "NA";
+                                    sPostalCode = "NA";
+                                    sKnownName = "NA";
+                                    sPremises = "NA";
+                                    sSubLocality = "NA";
+                                    sSubAdminArea = "NA";
+                                }
+                                Map<String, String> locationInfo = new HashMap<String, String>();
+                                locationInfo.put("UserId", LOGINID);
+                                locationInfo.put("DeviceId", sDeviceId);
+                                locationInfo.put("Latitude", String.valueOf(user_location.Latitude));
+                                locationInfo.put("Longitude", String.valueOf(user_location.Longitude));
+                                locationInfo.put("ActivityDate", currentDateTimeString);
+                                locationInfo.put("AutoCaptured", "false");
+                                locationInfo.put("AddressLine", sAddressLine);
+                                locationInfo.put("Premises", sPremises);
+                                locationInfo.put("SubLocality", sSubLocality);
+                                locationInfo.put("SubAdminArea", sSubAdminArea);
+                                locationInfo.put("PostalCode", sPostalCode);
+                                locationInfo.put("City", sCity);
+                                locationInfo.put("State", sState);
+                                locationInfo.put("Country", sCountry);
+                                locationInfo.put("KnownName", sKnownName);
+                                locationInfo.put("RealTimeUpdate", "true");
+                                locationInfo.put("Provider", "NA");
+                                String jsonString = new Gson().toJson(locationInfo);
+                                Log.e(TAG, "run: " + jsonString);
+                                try {
+                                    sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
+                                            "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
+                                } catch (Exception e) {
+                                }
+                                Log.e("Location insertion", "Inserted by MainActivity at 863");
+                                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
+                                String sColumnId = null;
+                                if (cquery.getCount() > 0) {
+                                    cquery.moveToLast();
+                                    sColumnId = cquery.getString(0).toString();
+                                }
+                                cquery.close();
+                                if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
+//                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
+                                    SOMTracker.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
+                                    user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                    user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                    ServiceLocation m = new ServiceLocation();
+                                    Log.d("postcoordinat", "from main activity at 836");
+                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                                } else {
+                                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
+//                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
+                                    ServiceLocation m = new ServiceLocation();
+                                    Log.d("postcoordinat", "from main activity at 841");
+                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                                }
+                                //MainActivity.this.registerReceiver(broadcastreceiver,intentfilter);
+                            }
+                        }
+
+                    }
+                }, 4000);
+
+
+            }
+        });
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener()
+
+        {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, TicketCreation.class);
+                startActivity(i);
+            }
+        });
+
+
     }
 }

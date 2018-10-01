@@ -166,6 +166,7 @@ public class LoginActivity extends AppCompatActivity {
                                 1);
                     }
                 } else {
+                    deleteDataFromTables();
                     progress = ProgressDialog.show(LoginActivity.this,
                             "Connecting to server", "Powering up engine!!!");
                     uname = Ephonelogin.getText().toString();
@@ -285,6 +286,27 @@ public class LoginActivity extends AppCompatActivity {
         String sample = "St. Mary's and St. John's".replace("'", "''");
         Log.d("alphanumericString", sample);
 
+    }
+
+    private void deleteDataFromTables() {
+        try {
+            sql.execSQL("delete from User_BatteryLevel");
+            sql.execSQL("delete from Issue_StatusHiererchy");
+            sql.execSQL("delete from User_MobileData");
+            sql.execSQL("delete from User_Gps");
+            sql.execSQL("delete from User_Location");
+            sql.execSQL("delete from User_Login");
+            sql.execSQL("delete from User_AppCheckIn");
+            sql.execSQL("delete from ModeOfTrasportList");
+            sql.execSQL("delete from Issue_Status");
+            sql.execSQL("delete from Issue_Detail");
+            sql.execSQL("delete from Issue_Attachment");
+            sql.execSQL("delete from Issue_History");
+            sql.execSQL("delete from FirebaseIssueData");
+            sql.execSQL("delete from MobileManualLog");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private String androidOsName = "";

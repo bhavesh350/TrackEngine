@@ -3,6 +3,8 @@ package net.mzi.trackengine;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -34,6 +36,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.text.method.TimeKeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -43,6 +46,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,6 +63,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,6 +90,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
+
+import id.zelory.compressor.Compressor;
 
 public class TicketInfo extends AppCompatActivity {
     long totalSize = 0;
@@ -128,32 +137,32 @@ public class TicketInfo extends AppCompatActivity {
         setContentView(R.layout.activity_ticket_info);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
-        app = (AppBarLayout) findViewById(R.id.app_bar);
+        app = findViewById(R.id.app_bar);
         iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
-        tCname = (TextView) findViewById(R.id.contactpersonname);
-        tCAdrs = (TextView) findViewById(R.id.adrs);
-        tMNumber = (TextView) findViewById(R.id.cntctprsnmob);
-        tExpectedTime = (TextView) findViewById(R.id.beontime);
-        tTIssue = (TextView) findViewById(R.id.subject);
-        txt_alternate_number = (TextView) findViewById(R.id.txt_alternate_number);
-        txt_email = (TextView) findViewById(R.id.txt_email);
-        tTStatus = (TextView) findViewById(R.id.status);
-        tCreatedDate = (TextView) findViewById(R.id.createddate);
-        tUpdatedDate = (TextView) findViewById(R.id.updateddate);
-        tCAssetName = (TextView) findViewById(R.id.assetName);
-        tCAssetType = (TextView) findViewById(R.id.assetType);
-        tCAssetSubtype = (TextView) findViewById(R.id.assetSubType);
-        tCAssetSerialNumber = (TextView) findViewById(R.id.assetserialNumber);
+        tCname =  findViewById(R.id.contactpersonname);
+        tCAdrs =  findViewById(R.id.adrs);
+        tMNumber =  findViewById(R.id.cntctprsnmob);
+        tExpectedTime =  findViewById(R.id.beontime);
+        tTIssue =  findViewById(R.id.subject);
+        txt_alternate_number =  findViewById(R.id.txt_alternate_number);
+        txt_email =  findViewById(R.id.txt_email);
+        tTStatus =  findViewById(R.id.status);
+        tCreatedDate =  findViewById(R.id.createddate);
+        tUpdatedDate =  findViewById(R.id.updateddate);
+        tCAssetName =  findViewById(R.id.assetName);
+        tCAssetType =  findViewById(R.id.assetType);
+        tCAssetSubtype =  findViewById(R.id.assetSubType);
+        tCAssetSerialNumber =  findViewById(R.id.assetserialNumber);
         lyAssetSerial = (LinearLayout) findViewById(R.id.idSRnumberLayout);
         lyServiceItem = (LinearLayout) findViewById(R.id.idSIlayout);
-        tCorporateName = (TextView) findViewById(R.id.corporateName);
-        tidOEMInfo = (TextView) findViewById(R.id.idOEMInfo);
+        tCorporateName =  findViewById(R.id.corporateName);
+        tidOEMInfo =  findViewById(R.id.idOEMInfo);
         vCamera = (RadioButton) findViewById(R.id.vCam);
         vGallery = (RadioButton) findViewById(R.id.vGal);
-        tAssetDescription = (TextView) findViewById(R.id.idAssetDescription);
-        tServiceType = (TextView) findViewById(R.id.idServiceType);
-        tServiceSubType = (TextView) findViewById(R.id.idServiceSubType);
-        tIssueText = (TextView) findViewById(R.id.issueText);
+        tAssetDescription =  findViewById(R.id.idAssetDescription);
+        tServiceType =  findViewById(R.id.idServiceType);
+        tServiceSubType =  findViewById(R.id.idServiceSubType);
+        tIssueText =  findViewById(R.id.issueText);
 
         //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
         comment = (EditText) findViewById(R.id.agentComment);
@@ -210,9 +219,12 @@ public class TicketInfo extends AppCompatActivity {
         sIssueText = cquery.getString(4).toString();
 
         if (!isDeviceSupportCamera()) {
-            try{Toast.makeText(getApplicationContext(),
-                    "Sorry! Your device doesn't support camera",
-                    Toast.LENGTH_LONG).show();}catch (Exception e){}
+            try {
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! Your device doesn't support camera",
+                        Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+            }
             // will close the app if the device does't have camera
             finish();
         }
@@ -372,8 +384,8 @@ public class TicketInfo extends AppCompatActivity {
                         } else {
                             new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
-                    }else{
-                        SOMTracker.showMassage(TicketInfo.this,"Internet not connected");
+                    } else {
+                        SOMTracker.showMassage(TicketInfo.this, "Internet not connected");
                     }
                 }
 
@@ -391,6 +403,12 @@ public class TicketInfo extends AppCompatActivity {
             sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
             Log.e("onPostExecute: ", jsonString);
 
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            SOMTracker.spinnerStart(TicketInfo.this, "Please wait...");
         }
 
         @Override
@@ -436,6 +454,7 @@ public class TicketInfo extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
+            SOMTracker.spinnerStop();
             JSONObject jsonObject = null;
             Date cDate = new Date();
             String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -446,7 +465,10 @@ public class TicketInfo extends AppCompatActivity {
                     sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
                             "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
                 } else {
-                    try{Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();}catch (Exception e){}
+                    try {
+                        Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                    }
                     comment.setText("");
                     tUpdatedDate.setText(currentTime);
                 }
@@ -723,8 +745,11 @@ public class TicketInfo extends AppCompatActivity {
         Dialog.setCancelable(false);
         LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View dialogView = li.inflate(R.layout.imagedialogue, null);
-        final ImageView upImage = (ImageView) dialogView.findViewById(R.id.imagedia);
+        final ImageView upImage = dialogView.findViewById(R.id.imagedia);
         Dialog.setView(dialogView);
+//        File sourceFile = new File(sImagePath);
+//        int file_size = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
+//        Log.d("File size", file_size + "");
         BitmapFactory.Options options = new BitmapFactory.Options();
 
         // down sizing image as it throws OutOfMemory Exception for larger
@@ -738,8 +763,25 @@ public class TicketInfo extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         sFinalImagePath = sImagePath;
+                        Log.e("file path >>>>>>>>", sFinalImagePath);
+                        File sourceFile = new File(sFinalImagePath);
+                        int file_size = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
+                        Log.d("File size", file_size + "");
+
+                        try {
+                            sourceFile = new Compressor(TicketInfo.this).compressToFile(sourceFile);
+                            int file_sizee = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
+                            Log.d("File size", file_sizee + "");
+                            sFinalImagePath = sourceFile.getPath();
+                            Log.e("file path >>>>>>>>", sFinalImagePath);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         iImageIcon.setVisibility(View.VISIBLE);
-                        try{Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();}catch (Exception e){}
+                        try {
+                            Toast.makeText(getApplicationContext(), "Image attached successfully!!!", Toast.LENGTH_LONG).show();
+                        } catch (Exception e) {
+                        }
                     }
                 });
 
@@ -760,28 +802,39 @@ public class TicketInfo extends AppCompatActivity {
 
 
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
-        //Dialog progress;
+        ProgressDialog progressDialog = new ProgressDialog(TicketInfo.this);
+
         @Override
         protected void onPreExecute() {
+//            SOMTracker.spinnerStart(TicketInfo.this, "Uploading file...");
             // setting progress bar to zero
-            //progressBar.setProgress(0);
+            progressDialog.setProgress(0);
+            progressDialog.setTitle("Uploading image");
+            progressDialog.show();
+            progressDialog.setCancelable(false);
             super.onPreExecute();
-            if (getApplicationContext() != null) {
-                try{Toast.makeText(getApplicationContext(), "Loading data, Please wait...", Toast.LENGTH_LONG).show();}catch (Exception e){}
-            }
+//            if (getApplicationContext() != null) {
+//                try {
+//                    Toast.makeText(getApplicationContext(), "Loading data, Please wait...", Toast.LENGTH_LONG).show();
+//                } catch (Exception e) {
+//                }
+//            }
             //progress = ProgressDialog.show(TicketInfo.this,"Loading data", "Please wait...");
         }
 
         @Override
         protected void onProgressUpdate(Integer... progress) {
             // Making progress bar visible
-            /*progressBar.setVisibility(View.VISIBLE);
 
             // updating progress bar value
-            progressBar.setProgress(progress[0]);
-
+            progressDialog.setProgress(progress[0]);
+            progressDialog.setTitle("Uploading Image... (" + String.valueOf(progress[0]) + "%)");
+            Log.d("progress", String.valueOf(progress[0]) + "%");
+            if (progress[0] == 100) {
+                progressDialog.setTitle("Please wait...");
+            }
             // updating percentage value
-            txtPercentage.setText(String.valueOf(progress[0]) + "%");*/
+//            txtPercentage.setText(String.valueOf(progress[0]) + "%");*/
         }
 
         @Override
@@ -793,7 +846,7 @@ public class TicketInfo extends AppCompatActivity {
         private String uploadFile() {
             String responseString = null;
 
-            HttpClient httpclient = new DefaultHttpClient();
+
             //HttpPost httppost = new HttpPost("http://192.168.0.20/TrackEngine/api/Post/PostTicketAttachment");
             HttpPost httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
 
@@ -823,11 +876,23 @@ public class TicketInfo extends AppCompatActivity {
                 totalSize = entity.getContentLength();
                 httppost.setEntity(entity);
 
+
+                HttpParams httpParameters = new BasicHttpParams();
+// Set the timeout in milliseconds until a connection is established.
+// The default value is zero, that means the timeout is not used.
+                int timeoutConnection = 5000;
+                HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+// Set the default socket timeout (SO_TIMEOUT)
+// in milliseconds which is the timeout for waiting for data.
+                int timeoutSocket = 60000;
+                HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+                HttpClient httpclient = new DefaultHttpClient(httpParameters);
                 // Making server call
                 HttpResponse response = httpclient.execute(httppost);
                 HttpEntity r_entity = response.getEntity();
 
                 int statusCode = response.getStatusLine().getStatusCode();
+                Log.e("StatusCode", statusCode + "");
                 if (statusCode == 200) {
                     // Server response
                     responseString = EntityUtils.toString(r_entity);
@@ -848,10 +913,11 @@ public class TicketInfo extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             Log.e("TAG", "Response from server: " + result);
+            progressDialog.dismiss();
             //progress.dismiss();
             // showing the server response in an alert dialog
             showAlert(result);
-            sFinalImagePath = null;
+
             super.onPostExecute(result);
         }
     }
@@ -865,23 +931,73 @@ public class TicketInfo extends AppCompatActivity {
             String msg;
             if (message.equals("")) {
                 msg = "Data has been sent successfully!!!";
-            } else
-                msg = "Something went wrong!!!\n" + message;
-            builder.setMessage(msg).setTitle("Response from Server")
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // do nothing
-                            comment.setText("");
-                            iImageIcon.setVisibility(View.GONE);
-                            sFinalImagePath = "";
-                            vCamera.setChecked(false);
-                            vGallery.setChecked(false);
-                            dialog.dismiss();
+                builder.setMessage(msg).setTitle("Response from Server")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // do nothing
+                                comment.setText("");
+                                iImageIcon.setVisibility(View.GONE);
+                                sFinalImagePath = "";
+                                vCamera.setChecked(false);
+                                vGallery.setChecked(false);
+                                dialog.dismiss();
+
+                            }
+                        });
+                AlertDialog alert = builder.create();
+                alert.show();
+                sFinalImagePath = null;
+            } else {
+                if (message.contains("Timeout"))
+                    msg = "Internet connection is slow, please try again!!!\n";
+                else
+                    msg = "Something went wrong!!!\n" + message;
+                builder.setMessage(msg).setTitle("Response from Server")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // do nothing
+                                comment.setText("");
+                                iImageIcon.setVisibility(View.GONE);
+                                sFinalImagePath = "";
+                                vCamera.setChecked(false);
+                                vGallery.setChecked(false);
+                                dialog.dismiss();
+                                sFinalImagePath = null;
+                            }
+                        }).setNegativeButton("Retry", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (sFinalImagePath == null || sFinalImagePath.isEmpty()) {
+                            String currentTime;
+                            Date cDate = new Date();
+                            currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("UpdatedDate", currentTime);
+                            sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
+
+                            postTktStatus.put("UserId", nh_userid);
+                            postTktStatus.put("ParentCompanyId", sParentComapnyId);
+                            postTktStatus.put("TicketId", ID);
+                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
+                            postTktStatus.put("Comment", comment.getText().toString());
+                            postTktStatus.put("ActivityDate", currentTime);
+                            postTktStatus.put("DepartmentId", DepartmentId);
+                            postTktStatus.put("RealtimeUpdate", "true");
+
+                            String tktStatus = new Gson().toJson(postTktStatus);
+                            new UpdateTask(TicketInfo.this, tktStatus).execute();
+                        } else {
+                            new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
-                    });
-            AlertDialog alert = builder.create();
-            alert.show();
+                        dialog.dismiss();
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+
         } catch (Exception e) {
         }
     }

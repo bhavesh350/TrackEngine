@@ -63,6 +63,8 @@ public class SessionManager {
         editor.putString("UserType", UserType);
         editor.putString("CompanyId", CompanyId);
         editor.putString("ParentCompanyId", ParentCompanyId);
+        SOMTracker.setSharedPrefString("checkInOutTime", CheckedInTime);
+        SOMTracker.setSharedPrefString("isCheckedIn", CheckedInStatus);
         editor.putString("CheckedInTime", CheckedInTime);
         editor.putString("CheckedInStatus", CheckedInStatus);
         editor.putString("IsDefaultDepartment", isDefaultDepartment);

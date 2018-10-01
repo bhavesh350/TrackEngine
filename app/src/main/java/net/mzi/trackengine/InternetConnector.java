@@ -98,7 +98,6 @@ public class InternetConnector {
                             MainActivity m = new MainActivity();
                             m.appCheckINOperation(appCheckInInfo, cquery.getString(0).toString());
                         }
-
                     }
                 }
                 try{

@@ -84,6 +84,7 @@
                         android:name="net.mzi.trackengine.Firstfrag"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/_340sdp"
+                        android:tag="firstFragment"
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_below="@+id/textView17" />

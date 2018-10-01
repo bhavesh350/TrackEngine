@@ -48,9 +48,9 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
 
         public TaskViewHolder(View v) {
             super(v);
-            this.task = (TextView) v.findViewById(R.id.task);
-            this.taskCount = (TextView) v.findViewById(R.id.taskCounter);
-            this.r1 = (RelativeLayout) v.findViewById(R.id.r1);
+            this.task = v.findViewById(R.id.task);
+            this.taskCount = v.findViewById(R.id.taskCounter);
+            this.r1 = v.findViewById(R.id.r1);
         }
     }
 
