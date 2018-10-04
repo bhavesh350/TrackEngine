@@ -11,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import net.mzi.trackengine.adapter.PendingVoucherAdpater;
 
@@ -99,7 +98,7 @@ public class Paid_Vouchers extends Fragment {
             public void onFailure(Call<ApiResult.VoucherList> call, Throwable t) {
                 call.cancel();
                 try {
-                    SOMTracker.showMassage(getContext(),getContext().getString(R.string.internet_error));
+                    MyApp.showMassage(getContext(),getContext().getString(R.string.internet_error));
 //                    Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
                 }catch (Exception e){
                     e.getMessage();

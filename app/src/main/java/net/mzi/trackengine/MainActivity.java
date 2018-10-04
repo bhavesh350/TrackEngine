@@ -37,8 +37,6 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -212,8 +210,7 @@ public class MainActivity extends AppCompatActivity
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
-        mySavedStatus = SOMTracker.getSharedPrefString("isCheckedIn");
-        mySavedStatusTime = SOMTracker.getSharedPrefString("checkInOutTime");
+
         LOGINID = pref.getString("userid", "0");
         sDepartment = pref.getString("DepartmentId", "0");
         nh_uname = pref.getString("name", "0");
@@ -270,6 +267,21 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.setLayoutManager(gaggeredGridLayoutManager);
 
         refreshData(false);
+
+//        boolean isFromLogin = getIntent().getBooleanExtra("fromLogin",false);
+//        if(isFromLogin){
+//            callPostLogin();
+//        }
+
+        try {
+            ApiResult.IssueStatus.lstDetails data[] = MyApp.getApplication().readIssuesStatusList();
+            Log.e("issuesStatusListSize", data.length + "");
+//            for (int i = 0; i <MyApp.getApplication().readIssuesStatusList().length ; i++) {
+//                Log.d("issuesStatusListSize",data[i].Id);
+//                Log.d("issuesStatusListSize",data[i].StatusName);
+//            }
+        } catch (Exception e) {
+        }
     }
 
     private void sendBatteryCheckinLevel(int batLevel) {
@@ -292,7 +304,7 @@ public class MainActivity extends AppCompatActivity
             sColumnId = cquery.getString(0).toString();
         }
         cquery.close();
-        SOMTracker.setSharedPrefLong("BAT", 0);
+        MyApp.setSharedPrefLong("BAT", 0);
         Log.d(">>>>>>>>>>", "send battery method called");
         serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
     }
@@ -396,6 +408,7 @@ public class MainActivity extends AppCompatActivity
             locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
         }
 
+        startService(new Intent(getApplicationContext(), ServiceLocation.class));
     }
 
     private PendingIntent getPendingIntent() {
@@ -432,7 +445,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+            MyApp.showMassage(MainActivity.this, "Coming Soon");
 //            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).
 //                    show();
             return true;
@@ -518,16 +531,10 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
             return true;
         } else if (id == R.id.action_refresh) {
-            SOMTracker.showMassage(this, "Refreshing...");
+            MyApp.showMassage(this, "Refreshing...");
             refreshData(true);
             new FetchStatus();
             onResume();
-//            Intent i = getIntent();
-//            i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-//            finish();
-//            overridePendingTransition(0, 0);
-//            startActivity(i);
-//            overridePendingTransition(0, 0);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -582,7 +589,7 @@ public class MainActivity extends AppCompatActivity
             Intent i = new Intent(MainActivity.this, OfflineSyncInfo.class);
             startActivity(i);
         } else if (id == R.id.nav_sendLog) {
-            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+            MyApp.showMassage(MainActivity.this, "Coming Soon");
 //            Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).show();
             /*Intent i=new Intent(MainActivity.this,OfflineSyncInfo.class);
             startActivity(i);*/
@@ -591,7 +598,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
 
         } else if (id == R.id.nav_contactus) {
-            SOMTracker.showMassage(MainActivity.this, "Coming Soon");
+            MyApp.showMassage(MainActivity.this, "Coming Soon");
 //            Toast.makeText(getApplicationContext(), "Coming Soon!!!", Toast.LENGTH_LONG).show();
         } else if (id == R.id.nav_share) {
             try {
@@ -615,25 +622,25 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        SOMTracker.activityResumed();
+        MyApp.activityResumed();
         if (mGoogleApiClient.isConnected()) {
             getDeviceLocation();
         }
         updateMarkers();
         Utils.getLocationUpdatesResult(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED
+//                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            // TODO: Consider calling
+//            //    ActivityCompat#requestPermissions
+//            // here to request the missing permissions, and then overriding
+//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//            //                                          int[] grantResults)
+//            // to handle the case where the user grants the permission. See the documentation
+//            // for ActivityCompat#requestPermissions for more details.
+//            return;
+//        }
+//        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
     }
 
     // AddonVisoin Infotech integrated to call api in every 10 minutes
@@ -642,7 +649,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        SOMTracker.activityPaused();
+        MyApp.activityPaused();
         if (mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(
                     mGoogleApiClient, this);
@@ -744,8 +751,8 @@ public class MainActivity extends AppCompatActivity
             public void onMyLocationChange(Location location) {
                 user_location.Latitude = location.getLatitude();
                 user_location.Longitude = location.getLongitude();
-                SOMTracker.setSharedPrefString("lat", user_location.Latitude + "");
-                SOMTracker.setSharedPrefString("lng", user_location.Longitude + "");
+                MyApp.setSharedPrefString("lat", user_location.Latitude + "");
+                MyApp.setSharedPrefString("lng", user_location.Longitude + "");
 //                mCameraPosition = new CameraPosition.Builder().target(new LatLng(location.getLatitude(),
 //                        location.getLongitude())).build();
 //                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
@@ -1036,6 +1043,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 bufferedReader.close();
                 result = sb.toString();
+                Log.e("postLoginData", result);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -1283,7 +1291,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void refreshData(boolean isRefresh) {
-        if(isRefresh){
+        mySavedStatus = MyApp.getSharedPrefString("isCheckedInNew");
+        mySavedStatusTime = MyApp.getSharedPrefString("checkInOutTime");
+        if (isRefresh) {
             setShowAlert();
             Firstfrag fragment = (Firstfrag) getSupportFragmentManager().findFragmentById(R.id.fragment);
             fragment.NewTicketsInfo(fragment.mTicketIdList);
@@ -1415,7 +1425,7 @@ public class MainActivity extends AppCompatActivity
 
 
                             } else {
-                                SOMTracker.showMassage(MainActivity.this, "Internet connection is Off");
+                                MyApp.showMassage(MainActivity.this, "Internet connection is Off");
 //                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
                                 mMobileDataInfo.put("UserId", LOGINID);
                                 mMobileDataInfo.put("DeviceId", sDeviceId);
@@ -1453,7 +1463,7 @@ public class MainActivity extends AppCompatActivity
 
      /*   if(MainActivity.isCheckIn.equals("true")) {
         }*/
-        if (mySavedStatus.isEmpty() || mySavedStatusTime.isEmpty())
+        if (mySavedStatus.isEmpty() || mySavedStatusTime.isEmpty()) {
             if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
                 tCheckInStatus.setText("Checked-IN");
                 lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
@@ -1489,7 +1499,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 lTimerLayout.setVisibility(View.GONE);
             }
-        else {
+        } else {
             if (mySavedStatus.equals("true") || mySavedStatus.equals("True")) {
                 tCheckInStatus.setText("Checked-IN");
                 lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
@@ -1590,23 +1600,33 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Log.e(TAG, "onClick: ");
+                if (!MyApp.isConnectingToInternet(MainActivity.this)) {
+                    MyApp.popMessage("Alert!", "Please connect to a working internet connection", MainActivity.this);
+                    return;
+                }
+                if (!MyApp.isLocationEnabled(MainActivity.this)) {
+                    MyApp.popMessage("Alert!", "GPS is not enabled", MainActivity.this);
+                    return;
+                }
                 if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
 
-                    SOMTracker.setSharedPrefString("isCheckedIn", "true");
+
+                    Date cDate = new Date();
+                    currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    MyApp.setSharedPrefString("checkInOutTime", currentDateTimeStringCheckIN);
+                    MyApp.setSharedPrefString("isCheckedInNew", "true");
+                    editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
+                    editor.putString("CheckedInStatus", "True");
                     try {
                         sql.delete("User_AppCheckIn", null, null);
                     } catch (Exception e) {
                     }
 
-                    SOMTracker.setStatus("isCheckin", true);
                     Log.e(TAG, "onClick: ");
-                    Date cDate = new Date();
-                    currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                    SOMTracker.setSharedPrefString("checkInOutTime", currentDateTimeStringCheckIN);
+
                     currTime.setText("CheckedIN: " + currentDateTimeStringCheckIN);
                     appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInStatus", "True");
+
                     editor.putString("CheckedInDuration", currentDateTimeStringCheckIN);
                     editor.commit();
                     tCheckIntTime.setText(currentDateTimeStringCheckIN);
@@ -1632,26 +1652,29 @@ public class MainActivity extends AppCompatActivity
                     setData();
                 } else {
 
-                    SOMTracker.setSharedPrefString("isCheckedIn", "false");
-                    SOMTracker.setStatus("isCheckin", false);
+
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    MyApp.setSharedPrefString("checkInOutTime", currentDateTimeString);
+                    MyApp.setSharedPrefString("isCheckedInNew", "false");
+                    editor.putString("CheckedInTime", currentDateTimeString);
+                    editor.putString("CheckedInStatus", "False");
+
                     batteryAlarmManager.cancel(batteryPendingIntent);
                     try {
                         locationAlarmManager.cancel(locationPendingIntent);
+
 //                        stopService(locationIntent);
                     } catch (Exception e) {
                     }
 //                    stopService(intent);
 //                    stopService(batteryIntent);
-
                     Log.e(TAG, "setData:Checked-IN " + currentDateTimeString);
-                    SOMTracker.setSharedPrefString("checkInOutTime", currentDateTimeString);
+
                     isCheckIn = "false";
                     appCheckInInfo.put("ActivityDate", currentDateTimeString);
                     timer.setText("00:00:00");
-                    editor.putString("CheckedInTime", currentDateTimeString);
-                    editor.putString("CheckedInStatus", "False");
+
                     editor.commit();
                     tCheckIntTime.setText(currentDateTimeString);
                     tCheckInStatus.setText("Checked-OUT");
@@ -1676,6 +1699,11 @@ public class MainActivity extends AppCompatActivity
                         cquery.close();
                     } catch (Exception e) {
                     }
+
+                    try {
+                        stopService(new Intent(getApplicationContext(), ServiceLocation.class));
+                    } catch (Exception e) {
+                    }
                     //tAt.setTextColor(getResources().getColor(R.color.red));
                 }
                 Map<String, String> locationInfo = new HashMap<String, String>();
@@ -1688,13 +1716,13 @@ public class MainActivity extends AppCompatActivity
                     if (gps.canGetLocation) {
                         user_location = getLocation();
                     } else {
-                        if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                        if (MyApp.getSharedPrefString("lat").isEmpty()) {
                             user_location.Latitude = 0.0;
                             user_location.Longitude = 0.0;
                         } else {
                             try {
-                                user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                user_location.Latitude = Double.parseDouble(MyApp.getSharedPrefString("lat"));
+                                user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
                             } catch (Exception e) {
                             }
                         }
@@ -1792,12 +1820,12 @@ public class MainActivity extends AppCompatActivity
                         m.LocationOperationOffline(locationInfo, getApplicationContext(), "");
                     }
 //                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
-                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
+                    MyApp.showMassage(MainActivity.this, "Location sent successfully!!!");
                 }
 
                 String jsonString = new Gson().toJson(locationInfo);
                 Log.e(TAG, "run: " + jsonString);
-                SOMTracker.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
+                MyApp.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
 //                Toast.makeText(getApplicationContext(), "CheckIn-Out Info sent successfully!!!", Toast.LENGTH_LONG).show();
                 Date cDate = new Date();
                 currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -1877,13 +1905,13 @@ public class MainActivity extends AppCompatActivity
                                     user_location = getLocation();
 
                                 } else {
-                                    if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                                    if (MyApp.getSharedPrefString("lat").isEmpty()) {
                                         user_location.Latitude = 0.0;
                                         user_location.Longitude = 0.0;
                                     } else {
                                         try {
-                                            user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                            user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                            user_location.Latitude = Double.parseDouble(MyApp.getSharedPrefString("lat"));
+                                            user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
                                         } catch (Exception e) {
                                         }
                                     }
@@ -1976,14 +2004,14 @@ public class MainActivity extends AppCompatActivity
                                 cquery.close();
                                 if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
 //                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
-                                    SOMTracker.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
-                                    user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
-                                    user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
+                                    MyApp.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
+                                    user_location.Latitude = Double.parseDouble(MyApp.getSharedPrefString("lat"));
+                                    user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
                                     ServiceLocation m = new ServiceLocation();
                                     Log.d("postcoordinat", "from main activity at 836");
                                     m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
                                 } else {
-                                    SOMTracker.showMassage(MainActivity.this, "Location sent successfully!!!");
+                                    MyApp.showMassage(MainActivity.this, "Location sent successfully!!!");
 //                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
                                     ServiceLocation m = new ServiceLocation();
                                     Log.d("postcoordinat", "from main activity at 841");
@@ -2009,7 +2037,21 @@ public class MainActivity extends AppCompatActivity
                 startActivity(i);
             }
         });
-
-
     }
+
+//    private void callPostLogin() {
+//        Map<String, String> postLogin = new HashMap<String, String>();
+//        Date cDate = new Date();
+//        //LOGINID=map.get("userid");
+//        currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+//
+//        postLogin.put("UserId", LOGINID);
+//        postLogin.put("IsLogin", "true");
+//        postLogin.put("ActionDate", currentDateTimeString);
+//        postLogin.put("DeviceId", sDeviceId);
+//        postLogin.put("RealTimeUpdate", "true");
+//        String sPostLogin = new Gson().toJson(postLogin);
+//
+//        new IsLogin(sPostLogin, 0, "0").execute();
+//    }
 }

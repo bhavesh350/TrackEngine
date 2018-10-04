@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import net.mzi.trackengine.adapter.CheckInHistoryAdapter;
 import net.mzi.trackengine.model.PostUrl;
@@ -22,7 +21,6 @@ import org.json.JSONTokener;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -76,7 +74,7 @@ public class History_CheckIn extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                SOMTracker.showMassage(getContext(),"Loading data!!!");
+                MyApp.showMassage(getContext(),"Loading data!!!");
 //                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             /*if(!((Activity) getActivity()).isFinishing()) {
@@ -120,7 +118,7 @@ public class History_CheckIn extends Fragment {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if (s == null) {
-                SOMTracker.showMassage(getActivity(), "Internet is not working properly, may not synced with server!!!");
+                MyApp.showMassage(getActivity(), "Internet is not working properly, may not synced with server!!!");
             } else {
                 Log.i("INFO", s);
                 try {

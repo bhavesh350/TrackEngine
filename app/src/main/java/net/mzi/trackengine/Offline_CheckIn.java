@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import net.mzi.trackengine.adapter.CheckInSynAdpater;
 
@@ -119,7 +118,7 @@ public class Offline_CheckIn extends Fragment {
             }).start();
 
         } else {
-            SOMTracker.showMassage(getContext(), "Data is already synced!!!");
+            MyApp.showMassage(getContext(), "Data is already synced!!!");
         }
 
     }

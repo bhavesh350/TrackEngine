@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -22,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
-import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.PostUrl;
 import net.mzi.trackengine.model.TicketInfoClass;
@@ -190,7 +188,7 @@ public class SwipeDeckAdapter extends BaseAdapter {
                                         ApiResult.IssueDetail iData = response.body();
                                         if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                             try {
-                                                SOMTracker.showMassage(context, context.getString(R.string.internet_error));
+                                                MyApp.showMassage(context, context.getString(R.string.internet_error));
 //                                            Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                             } catch (Exception e) {
                                                 e.getMessage();

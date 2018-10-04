@@ -13,7 +13,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.media.AudioAttributes;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -26,7 +25,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.daprlabs.cardstack.SwipeDeck;
 import com.daprlabs.cardstack.SwipeFrameLayout;
@@ -340,7 +338,7 @@ public class Firstfrag extends Fragment {
                         try {
                             MainActivity m = new MainActivity();
                             m.updateCounter(getActivity());
-                            SOMTracker.showMassage(ctx, getString(R.string.internet_error));
+                            MyApp.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();

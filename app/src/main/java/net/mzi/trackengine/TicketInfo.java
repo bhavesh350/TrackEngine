@@ -3,7 +3,6 @@ package net.mzi.trackengine;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -36,7 +35,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
-import android.text.method.TimeKeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -46,7 +44,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -385,7 +382,7 @@ public class TicketInfo extends AppCompatActivity {
                             new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                     } else {
-                        SOMTracker.showMassage(TicketInfo.this, "Internet not connected");
+                        MyApp.showMassage(TicketInfo.this, "Internet not connected");
                     }
                 }
 
@@ -408,7 +405,7 @@ public class TicketInfo extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            SOMTracker.spinnerStart(TicketInfo.this, "Please wait...");
+            MyApp.spinnerStart(TicketInfo.this, "Please wait...");
         }
 
         @Override
@@ -454,7 +451,7 @@ public class TicketInfo extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
-            SOMTracker.spinnerStop();
+            MyApp.spinnerStop();
             JSONObject jsonObject = null;
             Date cDate = new Date();
             String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -613,10 +610,10 @@ public class TicketInfo extends AppCompatActivity {
                 launchUploadActivity(fileUri.getPath());
             } else if (resultCode == RESULT_CANCELED) {
                 // user cancelled Image capture
-                SOMTracker.showMassage(getApplicationContext(), "User cancelled image capture");
+                MyApp.showMassage(getApplicationContext(), "User cancelled image capture");
             } else {
                 // failed to capture image
-                SOMTracker.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
+                MyApp.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
             }
         } else {
             try {
@@ -632,11 +629,11 @@ public class TicketInfo extends AppCompatActivity {
                     Log.e("selectedPath1 : ", selectedPath);
                 } else if (resultCode == RESULT_CANCELED) {
                     // user cancelled Image capture
-                    SOMTracker.showMassage(getApplicationContext(), "User cancelled image capture");
+                    MyApp.showMassage(getApplicationContext(), "User cancelled image capture");
                     //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
                 }
             } catch (Exception e) {
-                SOMTracker.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
+                MyApp.showMassage(getApplicationContext(), "Sorry! Failed to capture image");
             }
         }
 
@@ -806,7 +803,7 @@ public class TicketInfo extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-//            SOMTracker.spinnerStart(TicketInfo.this, "Uploading file...");
+//            MyApp.spinnerStart(TicketInfo.this, "Uploading file...");
             // setting progress bar to zero
             progressDialog.setProgress(0);
             progressDialog.setTitle("Uploading image");

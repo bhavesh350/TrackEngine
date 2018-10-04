@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import net.mzi.trackengine.model.PostUrl;
 
@@ -67,7 +66,7 @@ public class History_User extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                SOMTracker.showMassage(getContext(), "Loading data!!!");
+                MyApp.showMassage(getContext(), "Loading data!!!");
 //                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
            /* if(!((Activity) getActivity()).isFinishing()) {
@@ -114,7 +113,7 @@ public class History_User extends Fragment {
             }
             if (s == null) {
                 try {
-                    SOMTracker.showMassage(getContext(), getContext().getString(R.string.internet_error));
+                    MyApp.showMassage(getContext(), getContext().getString(R.string.internet_error));
                 } catch (Exception e) {
                 }
 //                Toast.makeText(getContext(), R.string.internet_error, Toast.LENGTH_LONG).show();

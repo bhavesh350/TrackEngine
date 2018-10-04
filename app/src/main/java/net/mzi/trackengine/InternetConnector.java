@@ -185,10 +185,10 @@ public class InternetConnector {
                             locationInfo.put("Country", "NA");
                             locationInfo.put("KnownName", "NA");
                             locationInfo.put("Provider", "NA");
-                            ServiceLocation m = new ServiceLocation();
+                            ServiceLocation m = new ServiceLocation(context);
                             //insert
 
-                            m.LocationOperationOffline(locationInfo, context, cquery.getString(0).toString());
+                            m.LocationOperation(locationInfo, context, cquery.getString(0).toString());
                             String id = cquery.getString(0).toString();
                             Log.d("postcoordinat", "offline syncing with id = " + id);
                             sql.delete("User_Location", "Id" + "=" + id, null);

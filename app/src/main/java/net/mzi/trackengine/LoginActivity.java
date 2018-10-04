@@ -110,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
                 Dialog.setCancelable(false);
                 LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View dialogView = li.inflate(R.layout.rejection, null);
-                final EditText commemt = (EditText) dialogView.findViewById(R.id.rejectionReason);
+                final EditText commemt = dialogView.findViewById(R.id.rejectionReason);
                 commemt.setHint("Enter Login Id");
                 Dialog.setView(dialogView);
                 Dialog.setPositiveButton("Ok",
@@ -195,6 +195,7 @@ public class LoginActivity extends AppCompatActivity {
                                     Cursor cqueryTemp = sql.rawQuery("select * from Issue_Status where DepartmentId='" + user.data.DepartmentId + "'", null);
                                     if (cqueryTemp.getCount() > 0) ;
                                     else {
+                                        MyApp.getApplication().writeIssuesStatusList(user.data.dataStatus);
                                         for (int i = 0; i < user.data.dataStatus.length; i++) {
                                             Log.e("TAG", "onPostExecute: " + user.data.dataStatus[i]);
                                             sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
@@ -223,6 +224,7 @@ public class LoginActivity extends AppCompatActivity {
                                     session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     LoginActivity.this.finish();
+                                    intent.putExtra("fromLogin", true);
                                     startActivity(intent);
                                 } else {
                                     showAlert(LoginActivity.this, user.data.Message);

@@ -117,21 +117,21 @@ public class LocationUpdatesIntentService extends IntentService {
                             user_location.Longitude = locations.get(0).getLongitude();
 
                             if (user_location.Latitude == 0.0 || user_location.Latitude == 0) {
-                                if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                                if (MyApp.getSharedPrefString("lat").isEmpty()) {
 
                                 } else {
-                                    user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
-                                    user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                                    user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
+                                    user_location.Latitude = Double.parseDouble(MyApp.getSharedPrefString("lat"));
                                     Geocoder geocoder = null;
                                     List<Address> addresses;
-                                    long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                                    long lastLocTime = MyApp.getSharedPrefLong("GEO");
                                     if (lastLocTime == 0) {
-                                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                        MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                                     }
                                     long differLoc = System.currentTimeMillis() - lastLocTime;
                                     if (differLoc > (10 * 60 * 1000)) {
                                         geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                        MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                                     }
 
 
@@ -206,15 +206,15 @@ public class LocationUpdatesIntentService extends IntentService {
 //                                            cquery.moveToLast();
 //                                            sColumnId = cquery.getString(0).toString();
 //                                        }
-                                        long lastInsertLocTime = SOMTracker.getSharedPrefLong("LOCINS");
+                                        long lastInsertLocTime = MyApp.getSharedPrefLong("LOCINS");
                                         if (lastInsertLocTime == 0) {
-                                            SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                            MyApp.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                         }
                                         long differInsertLoc = System.currentTimeMillis() - lastInsertLocTime;
                                         if (differInsertLoc < (2 * 58 * 1000)) {
                                             return;
                                         }
-                                        SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                        MyApp.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                         LocationOperation(locationInfo, this, "");
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -223,14 +223,14 @@ public class LocationUpdatesIntentService extends IntentService {
                             } else {
                                 Geocoder geocoder = null;
                                 List<Address> addresses;
-                                long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                                long lastLocTime = MyApp.getSharedPrefLong("GEO");
                                 if (lastLocTime == 0) {
-                                    SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                    MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                                 }
                                 long differLoc = System.currentTimeMillis() - lastLocTime;
                                 if (differLoc > (10 * 60 * 1000)) {
                                     geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                                    SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                    MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                                 }
 
 
@@ -290,15 +290,15 @@ public class LocationUpdatesIntentService extends IntentService {
                                 locationInfo.put("Provider", "NA");
 
                                 try {
-                                    long lastInsertLocTime = SOMTracker.getSharedPrefLong("LOCINS");
+                                    long lastInsertLocTime = MyApp.getSharedPrefLong("LOCINS");
                                     if (lastInsertLocTime == 0) {
-                                        SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                        MyApp.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                     }
                                     long differInsertLoc = System.currentTimeMillis() - lastInsertLocTime;
                                     if (differInsertLoc < (2 * 58 * 1000)) {
                                         return;
                                     }
-                                    SOMTracker.setSharedPrefLong("LOCINS", System.currentTimeMillis());
+                                    MyApp.setSharedPrefLong("LOCINS", System.currentTimeMillis());
                                     //Date cDate = new Date();
                                     //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
                                     Log.e("onReceive: USERID", nh_userid);
@@ -337,15 +337,15 @@ public class LocationUpdatesIntentService extends IntentService {
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
         String sCheckInStatus = pref.getString("CheckedInStatus", "0");
         if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-            long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
+            long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
-                SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             }
             long differLoc = System.currentTimeMillis() - lastLocTime;
             if (differLoc < (2 * 58 * 1000)) {
                 return;
             }
-            SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+            MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
                         || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
@@ -424,13 +424,13 @@ public class LocationUpdatesIntentService extends IntentService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+            long lastBatteryTime = MyApp.getSharedPrefLong("BAT");
             if (lastBatteryTime == 0) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
             }
             long differ = System.currentTimeMillis() - lastBatteryTime;
             if (differ >= (15 * 58 * 1000)) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
                 int batLevel = 0;

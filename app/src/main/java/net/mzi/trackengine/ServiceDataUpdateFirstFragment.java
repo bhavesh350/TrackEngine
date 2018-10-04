@@ -17,16 +17,11 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.FirebaseTicketData;
 import net.mzi.trackengine.model.PostUrl;
@@ -190,7 +185,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                         try {
                             MainActivity m = new MainActivity();
                             m.updateCounter(ctx);
-                            SOMTracker.showMassage(ctx, getString(R.string.internet_error));
+                            MyApp.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();

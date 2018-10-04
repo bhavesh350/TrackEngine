@@ -26,8 +26,8 @@ import android.widget.RatingBar;
 import com.google.gson.Gson;
 
 import net.mzi.trackengine.MainActivity;
+import net.mzi.trackengine.MyApp;
 import net.mzi.trackengine.R;
-import net.mzi.trackengine.SOMTracker;
 import net.mzi.trackengine.SchedulingAdapter;
 import net.mzi.trackengine.model.PostUrl;
 
@@ -117,7 +117,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (isChecked) {
                             rNewNumber.setChecked(false);
-                            SOMTracker.showMassage(getContext(),"Coming Soon!!!");
+                            MyApp.showMassage(getContext(),"Coming Soon!!!");
                             dialog.dismiss();
                         }
                     }
@@ -146,7 +146,7 @@ public class EngineerFeedbackFragment extends Fragment {
                                 if (rNewNumber.getText().toString().equals("")) {
                                     rNewNumber.setError("Enter Mobile Number");
                                 } else if (eNewNumber.getText().length() == 10) {
-                                    SOMTracker.showMassage(getContext(),"Coming Soon!!!");
+                                    MyApp.showMassage(getContext(),"Coming Soon!!!");
                                     dialog.dismiss();
 
                                 } else {
@@ -265,7 +265,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     //}
                     if (sStatus != null) {
                         if (sStatus.equals("true")) {
-                            SOMTracker.showMassage(getContext(),"Updated Successfully");
+                            MyApp.showMassage(getContext(),"Updated Successfully");
                             sql = getContext().openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
                             ContentValues newValues = new ContentValues();
                             newValues.put("StatusId", sStatusId);
@@ -274,14 +274,14 @@ public class EngineerFeedbackFragment extends Fragment {
                             sql.update("Issue_Detail", newValues, "IssueId=" + sIssueId, null);
                             MainActivity m = new MainActivity();
                             m.updateCounter(getContext());
-                            SOMTracker.showMassage(getActivity(),"Status Changed Successfully");
+                            MyApp.showMassage(getActivity(),"Status Changed Successfully");
                             SchedulingAdapter so = new SchedulingAdapter();
                             Intent i = getActivity().getIntent();
                             getActivity().finish();
                             i.putExtra("cardpos", sCardType);
                             startActivity(i);
                         } else {
-                            SOMTracker.showMassage(getContext(),msg);
+                            MyApp.showMassage(getContext(),msg);
                         }
                     }
                     /*final Snackbar snackBar = Snackbar.make(v, msg, Snackbar.LENGTH_INDEFINITE);
@@ -352,7 +352,7 @@ public class EngineerFeedbackFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            SOMTracker.showMassage(getContext(),"Link Sent on registered mail id!!!");
+            MyApp.showMassage(getContext(),"Link Sent on registered mail id!!!");
             Log.e("sendlink", "onPostExecute: " + s);
         }
     }

@@ -42,7 +42,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.gson.Gson;
@@ -298,7 +297,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             if (iData.resData.Status == null || iData.resData.Status.equals("")
                                     || iData.resData.Status.equals("0")) {
                                 try {
-                                    SOMTracker.showMassage(context, context.getString(R.string.internet_error));
+                                    MyApp.showMassage(context, context.getString(R.string.internet_error));
 //                                    Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                 } catch (Exception e) {
                                     e.getMessage();
@@ -408,7 +407,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                         ApiResult.IssueDetail iData = response.body();
                                         if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                             try {
-                                                SOMTracker.showMassage(context, context.getString(R.string.internet_error));
+                                                MyApp.showMassage(context, context.getString(R.string.internet_error));
 //                                                Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
                                             } catch (Exception e) {
                                                 e.getMessage();
@@ -597,7 +596,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(searchAddress);
                             return true;
                         case R.id.atkt:
-                            SOMTracker.showMassage(ctx, "Coming Soon!!!");
+                            MyApp.showMassage(ctx, "Coming Soon!!!");
                             return true;
                         case R.id.ctc:
                             Intent in = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mMob.get(position)));
@@ -739,7 +738,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            SOMTracker.showMassage(context, "Loading Data!!!");
+            MyApp.showMassage(context, "Loading Data!!!");
 //            Toast.makeText(ctx, "Loading Data!!!", Toast.LENGTH_LONG).show();
         }
 
@@ -795,10 +794,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
 
                 if (s == null) {
-                    SOMTracker.showMassage(ctx, ctx.getString(R.string.internet_error));
+                    MyApp.showMassage(ctx, ctx.getString(R.string.internet_error));
 //                    Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                 } else {
-                    SOMTracker.showMassage(ctx, "OEM Updated Successfully!!!");
+                    MyApp.showMassage(ctx, "OEM Updated Successfully!!!");
 //                    Toast.makeText(ctx, "OEM Updated Successfully!!!", Toast.LENGTH_LONG).show();
                     ContentValues newValues = new ContentValues();
                     newValues.put("OEMNumber", jsonObject.getString("OEMTicketId"));
@@ -924,7 +923,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         String sCardType = cquery.getString(0).toString();
         sCurrentStatusId = cquery.getString(1).toString();
         if (sCardType.equals("3"))
-            SOMTracker.showMassage(ctx, "This ticket is already closed!!!");
+            MyApp.showMassage(ctx, "This ticket is already closed!!!");
 //            Toast.makeText(ctx, "This ticket is already closed!!!", Toast.LENGTH_LONG).show();
         else {
             fetchStatus(currentStatus, id, sCurrentStatusId);
@@ -1219,7 +1218,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             }
                         }
                     } catch (Exception e) {
-                        SOMTracker.showMassage(context, "Local database Problem found with status id = " + statusListIds.get(poss));
+                        MyApp.showMassage(context, "Local database Problem found with status id = " + statusListIds.get(poss));
                         return;
                     }
 
@@ -1257,7 +1256,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     postTktStatus.put("ModeOfTransport", mtTransportlistIds.get(arg2));
                     postTktStatus.put("Expense", "0");
                     postTktStatus.put("AssignedUserId", nh_userid);
-                    SOMTracker.showMassage(ctx, String.valueOf(arg2 + arg3));
+                    MyApp.showMassage(ctx, String.valueOf(arg2 + arg3));
 //                    Toast.makeText(ctx, String.valueOf(arg2 + arg3), Toast.LENGTH_LONG).show();
                 }
 
@@ -1378,7 +1377,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         ApiResult.IssueDetail iData = response.body();
                         if (iData.resData.Status == null || iData.resData.Status.toString().equals("") || iData.resData.Status.toString().equals("0")) {
                             try {
-                                SOMTracker.showMassage(ctx, ctx.getString(R.string.internet_error));
+                                MyApp.showMassage(ctx, ctx.getString(R.string.internet_error));
 //                                Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                             } catch (Exception e) {
                                 e.getMessage();

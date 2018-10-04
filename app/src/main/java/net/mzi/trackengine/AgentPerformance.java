@@ -87,7 +87,7 @@ public class AgentPerformance extends AppCompatActivity {
 
             @Override
             public void onNothingSelected() {
-                SOMTracker.showMassage(getApplicationContext(), "Nothing Selected");
+                MyApp.showMassage(getApplicationContext(), "Nothing Selected");
             }
         });
 

@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import net.mzi.trackengine.adapter.UserLocationBatteryHistoryAdapter;
 import net.mzi.trackengine.model.PostUrl;
@@ -66,7 +65,7 @@ public class History_Location extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                SOMTracker.showMassage(getContext(),"Loading data!!!");
+                MyApp.showMassage(getContext(),"Loading data!!!");
 //                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             mDatasetTypes.clear();
@@ -111,7 +110,7 @@ public class History_Location extends Fragment {
             }*/
             if (s == null) {
                 try{
-                    SOMTracker.showMassage(getActivity(), getString(R.string.internet_error));
+                    MyApp.showMassage(getActivity(), getString(R.string.internet_error));
                 }catch (Exception e){}
 
             } else {

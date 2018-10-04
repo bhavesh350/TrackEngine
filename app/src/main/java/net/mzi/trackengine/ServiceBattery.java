@@ -9,7 +9,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -155,9 +154,9 @@ public class ServiceBattery extends Service {
     }
 
     public void BatteryOperation(Map batteryInfo, final Context ctx, final String sColumnId) {
-        long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+        long lastBatteryTime = MyApp.getSharedPrefLong("BAT");
         if (lastBatteryTime == 0) {
-            SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+            MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
         }
         long differ = System.currentTimeMillis() - lastBatteryTime;
         if (differ < (15 * 60 * 1000)) {
@@ -165,7 +164,7 @@ public class ServiceBattery extends Service {
             return;
         }
         Log.d(">>>>>>>>>>","not returened");
-        SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+        MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
         Log.d(">>>>>>>>>>","reading sql");
         try{sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);}catch (Exception e){}
         Log.d(">>>>>>>>>>","read sql");

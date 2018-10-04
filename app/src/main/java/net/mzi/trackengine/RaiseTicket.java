@@ -285,7 +285,7 @@ public class RaiseTicket extends AppCompatActivity {
             super.onPostExecute(s);
             String sStatus = null;
             if (s == null && s.equals("0\n")) {
-                SOMTracker.showMassage(getApplicationContext(), getApplicationContext().getString(R.string.internet_error));
+                MyApp.showMassage(getApplicationContext(), getApplicationContext().getString(R.string.internet_error));
 //                Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
             } else {
                 try {
@@ -300,7 +300,7 @@ public class RaiseTicket extends AppCompatActivity {
                         sTicketId = object.getString("Id");
                     }
                     if (msg != null) {
-                        SOMTracker.showMassage(getApplication(), msg);
+                        MyApp.showMassage(getApplication(), msg);
 //                        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                     }
 
@@ -492,7 +492,7 @@ public class RaiseTicket extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         sFinalImagePath_create = sImagePath;
                         iImageIcon.setVisibility(View.VISIBLE);
-                        SOMTracker.showMassage(getApplicationContext(), "Image uploaded successfully!!!");
+                        MyApp.showMassage(getApplicationContext(), "Image uploaded successfully!!!");
 //                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
                     }
                 });
@@ -520,12 +520,12 @@ public class RaiseTicket extends AppCompatActivity {
                 launchUploadActivity(fileUri.getPath());
             } else if (resultCode == RESULT_CANCELED) {
                 // user cancelled Image capture
-                SOMTracker.showMassage(this, "User cancelled image capture");
+                MyApp.showMassage(this, "User cancelled image capture");
 //                Toast.makeText(getApplicationContext(),
 //                        "User cancelled image capture", Toast.LENGTH_SHORT)
 //                        .show();
             } else {
-                SOMTracker.showMassage(this, "Sorry! Failed to capture image");
+                MyApp.showMassage(this, "Sorry! Failed to capture image");
                 // failed to capture image
 //                Toast.makeText(getApplicationContext(),
 //                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
@@ -541,14 +541,14 @@ public class RaiseTicket extends AppCompatActivity {
                     Log.e("selectedPath1 : ", selectedPath);
                 } else if (resultCode == RESULT_CANCELED) {
                     // user cancelled Image capture
-                    SOMTracker.showMassage(this, "User cancelled image capture");
+                    MyApp.showMassage(this, "User cancelled image capture");
 //                    Toast.makeText(getApplicationContext(),
 //                            "User cancelled image capture", Toast.LENGTH_SHORT)
 //                            .show();
                     //tv.setText("Selected File paths : " + selectedPath1 + "," + selectedPath2);
                 }
             } else {
-                SOMTracker.showMassage(this, "Something went wrong in Image Upload of Ticket Creation");
+                MyApp.showMassage(this, "Something went wrong in Image Upload of Ticket Creation");
 //                Toast.makeText(this, "Something went wrong in Image Upload of Ticket Creation", Toast.LENGTH_SHORT).show();
             }
 

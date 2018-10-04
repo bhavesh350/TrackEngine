@@ -95,23 +95,23 @@ public class ServiceLocation extends Service {
             mLastLocation.set(location);
             latitude = mLastLocation.getLatitude();
             longitude = mLastLocation.getLongitude();
-            SOMTracker.setSharedPrefString("lat", latitude + "");
-            SOMTracker.setSharedPrefString("lng", longitude + "");
+            MyApp.setSharedPrefString("lat", latitude + "");
+            MyApp.setSharedPrefString("lng", longitude + "");
 
 //            if (isFirstTime && false) {
 //
 //                {
 //                    Geocoder geocoder = null;
 //                    List<Address> addresses;
-//                    long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+//                    long lastLocTime = MyApp.getSharedPrefLong("GEO");
 //                    if (lastLocTime == 0) {
-//                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+//                        MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
 //
 //                    }
 //                    long differLoc = System.currentTimeMillis() - lastLocTime;
 //                    if (differLoc > (10 * 60 * 1000)) {
 //                        geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-//                        SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+//                        MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
 //                    }
 //
 //
@@ -256,9 +256,7 @@ public class ServiceLocation extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         FirebaseApp.initializeApp(getApplicationContext());
-//        h.postDelayed(check2MinTask, 2 * 60 * 1000);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        //mDatabase = FirebaseDatabase.getInstance().getReference();
         Firebase.setAndroidContext(getApplicationContext());
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
@@ -318,22 +316,22 @@ public class ServiceLocation extends Service {
                     user_location.Longitude = longitude;
 
                     if (user_location.Latitude == 0.0 || user_location.Latitude == 0) {
-                        if (SOMTracker.getSharedPrefString("lat").isEmpty()) {
+                        if (MyApp.getSharedPrefString("lat").isEmpty()) {
 
                         } else {
-                            user_location.Longitude = Double.parseDouble(SOMTracker.getSharedPrefString("lng"));
-                            user_location.Latitude = Double.parseDouble(SOMTracker.getSharedPrefString("lat"));
+                            user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
+                            user_location.Latitude = Double.parseDouble(MyApp.getSharedPrefString("lat"));
                             Geocoder geocoder = null;
                             List<Address> addresses;
-                            long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                            long lastLocTime = MyApp.getSharedPrefLong("GEO");
                             if (lastLocTime == 0) {
-                                SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
 
                             }
                             long differLoc = System.currentTimeMillis() - lastLocTime;
                             if (differLoc > (10 * 60 * 1000)) {
                                 geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                                SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                                MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                             }
 
 
@@ -416,13 +414,13 @@ public class ServiceLocation extends Service {
                     } else {
                         Geocoder geocoder = null;
                         List<Address> addresses;
-                        long lastLocTime = SOMTracker.getSharedPrefLong("GEO");
+                        long lastLocTime = MyApp.getSharedPrefLong("GEO");
                         if (lastLocTime == 0) {
-                            SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                            MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                         }
                         long differLoc = System.currentTimeMillis() - lastLocTime;
                         if (differLoc > (10 * 60 * 1000)) {
-                            SOMTracker.setSharedPrefLong("GEO", System.currentTimeMillis());
+                            MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
                             geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                         }
 
@@ -562,15 +560,15 @@ public class ServiceLocation extends Service {
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
         String sCheckInStatus = pref.getString("CheckedInStatus", "0");
         if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-            long lastLocTime = SOMTracker.getSharedPrefLong("LOC");
+            long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
-                SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             }
             long differLoc = System.currentTimeMillis() - lastLocTime;
             if (differLoc < (2 * 58 * 1000)) {
                 return;
             }
-            SOMTracker.setSharedPrefLong("LOC", System.currentTimeMillis());
+            MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
                         || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
@@ -658,13 +656,13 @@ public class ServiceLocation extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+            long lastBatteryTime = MyApp.getSharedPrefLong("BAT");
             if (lastBatteryTime == 0) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
             }
             long differ = System.currentTimeMillis() - lastBatteryTime;
             if (differ >= (15 * 57 * 1000)) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
                 int batLevel = 0;
@@ -777,13 +775,13 @@ public class ServiceLocation extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            long lastBatteryTime = SOMTracker.getSharedPrefLong("BAT");
+            long lastBatteryTime = MyApp.getSharedPrefLong("BAT");
             if (lastBatteryTime == 0) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
             }
             long differ = System.currentTimeMillis() - lastBatteryTime;
             if (differ >= (15 * 60 * 1000)) {
-                SOMTracker.setSharedPrefLong("BAT", System.currentTimeMillis());
+                MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
                 try {
                     BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
                     int batLevel = 0;
@@ -856,7 +854,7 @@ public class ServiceLocation extends Service {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void showSettingsAlert() {
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        SOMTracker.showMassage(this, "GPS is off");
+        MyApp.showMassage(this, "GPS is off");
 //        Toast.makeText(this, "GPS is off", Toast.LENGTH_SHORT).show();
         Intent callGPSSettingIntent = new Intent(
                 android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);

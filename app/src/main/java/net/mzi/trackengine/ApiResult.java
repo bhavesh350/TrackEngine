@@ -2,6 +2,8 @@ package net.mzi.trackengine;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by Poonam on 12/14/2017.
  */
@@ -405,7 +407,9 @@ public class ApiResult {
         public lstDetails data;
 
 
-        public class lstDetails {
+        public class lstDetails implements Serializable{
+
+            private static final long serialVersionUID = 7562287L;
 
             @SerializedName("Id")
             public String Id;
