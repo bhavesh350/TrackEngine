@@ -75,11 +75,8 @@ public class History_CheckIn extends Fragment {
             super.onPreExecute();
             if (getContext() != null) {
                 MyApp.showMassage(getContext(),"Loading data!!!");
-//                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
-            /*if(!((Activity) getActivity()).isFinishing()) {
-                progress = ProgressDialog.show(getActivity(), "Loading data", "Please wait...");
-            }*/
+
             mDatasetTypes.clear();
             lCheckInLocation.clear();
             lCheckInTime.clear();

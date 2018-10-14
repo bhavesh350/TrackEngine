@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
+import net.mzi.trackengine.model.TicketInfoClass;
+
 import io.fabric.sdk.android.Fabric;
 
 import org.acra.ACRA;
@@ -43,8 +45,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OptionalDataException;
 import java.io.StreamCorruptedException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Poonam on 5/1/2017.
@@ -374,29 +379,6 @@ public class MyApp extends MultiDexApplication {
 
     }
 
-    public void writeIssuesStatusList(ApiResult.IssueStatus.lstDetails[] issuesStatusList) {
-        try {
-            String path = "/data/data/" + c.getPackageName()
-                    + "/issuesStatusList.ser";
-            File f = new File(path);
-            if (f.exists()) {
-                f.delete();
-                System.out.println("old file deleted>>>>>>>>> ");
-            }
-
-            FileOutputStream fileOut = new FileOutputStream(path);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(issuesStatusList);
-            out.close();
-            fileOut.close();
-            System.out.println("my file replaced>>>>>>>>> ");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static boolean isLocationEnabled(Context context) {
         int locationMode = 0;
         String locationProviders;
@@ -434,6 +416,73 @@ public class MyApp extends MultiDexApplication {
         return false;
     }
 
+    public static void popMessage(String titleMsg, String errorMsg,
+                                  Context context) {
+        // pop error message
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titleMsg).setMessage(errorMsg)
+                .setPositiveButton(context.getString(R.string.ok), new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        try {
+            alert.show();
+        } catch (Exception e) {
+        }
+
+    }
+
+    public static String parseDateTime(String time) {
+//        2018-10-14 13:59:39
+
+        String inputPattern = "yyyy-MM-dd HH:mm:ss";
+        String outputPattern = "dd MMM yyyy h:mm a";
+
+        SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern);
+        SimpleDateFormat outputFormat = new SimpleDateFormat(outputPattern);
+
+        Date date = null;
+        String str = "null";
+
+        try {
+            date = inputFormat.parse(time);
+            str = outputFormat.format(date);
+            return str;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return time;
+        }
+
+    }
+
+    public void writeIssuesStatusList(ApiResult.IssueStatus.lstDetails[] issuesStatusList) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/issuesStatusList.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+                System.out.println("old file deleted>>>>>>>>> ");
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(issuesStatusList);
+            out.close();
+            fileOut.close();
+            System.out.println("my file replaced>>>>>>>>> ");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @SuppressLint("SdCardPath")
     public ApiResult.IssueStatus.lstDetails[] readIssuesStatusList() {
@@ -465,25 +514,104 @@ public class MyApp extends MultiDexApplication {
     }
 
 
-    public static void popMessage(String titleMsg, String errorMsg,
-                                  Context context) {
-        // pop error message
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(titleMsg).setMessage(errorMsg)
-                .setPositiveButton(context.getString(R.string.ok), new DialogInterface.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-        AlertDialog alert = builder.create();
+    public void writeTicketCapture(Map<String, TicketInfoClass> map) {
         try {
-            alert.show();
-        } catch (Exception e) {
-        }
+            String path = "/data/data/" + c.getPackageName()
+                    + "/ticketCapture.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
 
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(map);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    public HashMap<String, TicketInfoClass> readTicketCapture() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/ticketCapture.ser";
+        File f = new File(path);
+        HashMap<String, TicketInfoClass> map = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                map = (HashMap<String, TicketInfoClass>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
+
+    public void writeTicketCaptureSchedule(Map<String, String> map) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/ticketCaptureSchedule.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(map);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public HashMap<String, String> readTicketCaptureSchedule() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/ticketCaptureSchedule.ser";
+        File f = new File(path);
+        HashMap<String, String> map = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                map = (HashMap<String, String>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
 
 }

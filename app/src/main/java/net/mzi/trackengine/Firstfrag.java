@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -38,6 +39,14 @@ import net.mzi.trackengine.model.FirebaseTicketData;
 import net.mzi.trackengine.model.PostUrl;
 import net.mzi.trackengine.model.TicketInfoClass;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,6 +60,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static net.mzi.trackengine.MainActivity.locationAlarmManager;
+import static net.mzi.trackengine.MainActivity.parseDateToddMMyyyy;
 
 /**
  * Created by Poonam on 2/2/2017.
@@ -197,7 +207,6 @@ public class Firstfrag extends Fragment {
                 public void cardsDepleted() {
                     Log.i("MainActivity", "no more cards");
                     MainActivity.removeTkt();
-                    //  getActivity().getSupportFragmentManager().beginTransaction().remove(getFragmentManager().findFragmentById(R.id.fragment)).commit();
                 }
 
                 @Override
@@ -213,8 +222,6 @@ public class Firstfrag extends Fragment {
         } catch (Exception e) {
         }
 
-//        h.postDelayed(dataReSendEvery10Mins, 10 * 60 * 1000);
-
         Intent locationIntent = new Intent(getActivity(), ServiceDataUpdateFirstFragment.class);
         PendingIntent locationPendingIntent = PendingIntent.getService(getActivity(), 10, locationIntent, 0);
         locationAlarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
@@ -229,11 +236,9 @@ public class Firstfrag extends Fragment {
         String str = ticketNumber;
         str = str.replaceAll("[^\\d.]", "");
         int ticket = Integer.parseInt(str);
-        //Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Intent intent = new Intent(getActivity(), MainActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(getActivity(), (int) System.currentTimeMillis(), intent, 0);
         Notification noti = new Notification.Builder(getContext()).setContentTitle("MZS Notifier")
-                //.setContentText("New Updates in your Task Manager for "+ sIssueId)
                 .setSmallIcon(R.mipmap.som)
                 .setContentText(sNotificationMessage)
                 .setContentIntent(pIntent)
@@ -255,11 +260,6 @@ public class Firstfrag extends Fragment {
                     .addAction(R.drawable.som, "View", pIntent).build();
             CharSequence name = getActivity().getString(R.string.app_name);
             NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
-//            AudioAttributes att = new AudioAttributes.Builder()
-//                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-//                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-//                    .build();
-//            mChannel.setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone),att);
             notificationManager.createNotificationChannel(mChannel);
         }
         notificationManager.notify(ticket, noti);
@@ -273,7 +273,6 @@ public class Firstfrag extends Fragment {
         testData.clear();
         Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
         for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-
             TicketInfoClass t = new TicketInfoClass();
             t.IssueID = cquery.getString(1).toString();
             t.CategoryName = cquery.getString(2).toString();
@@ -299,12 +298,71 @@ public class Firstfrag extends Fragment {
             m.updateCounter(ctx);
             final SwipeDeckAdapter adapter = new SwipeDeckAdapter(newTickets, getActivity());
             cardStack.setAdapter(adapter);
+
+            HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
             for (int i = 0; i < newTickets.size(); i++) {
                 sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
+                if (!map.containsKey(newTickets.get(i).IssueID)) {
+                    map.put(newTickets.get(i).IssueID, newTickets.get(i));
+                }
+//                else if(!map.get(newTickets.get(i).TicketNumber).isCaptured()){
+//                }
             }
-
+            MyApp.getApplication().writeTicketCapture(map);
+            captureAllNow();
         }
     }
+
+    private void captureAllNow() {
+        HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+        for (String key : map.keySet()) {
+            if (!map.get(key).isCaptured()) {
+                callApiToMakeCapture(key);
+            } else {
+                map.remove(key);
+            }
+        }
+        MyApp.getApplication().writeTicketCapture(map);
+    }
+
+    public void callApiToMakeCapture(final String key) {
+//   http://trackengine.mzservices.net/api/Post/PostTicketReceivingDate?
+//   iIssueId=50153&
+//   iUserId=8545&
+//   dtReceivingDate=10/12/2018%2012:00:00%20AM
+        Date cDate = new Date();
+        String date = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(cDate);
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        Log.e("Capture Operation key: ", key);
+        Call<ApiResult.CaptureTicket> call1 = apiInterface.captureTicket(key, nh_userid, date);
+        call1.enqueue(new Callback<ApiResult.CaptureTicket>() {
+            @Override
+            public void onResponse(Call<ApiResult.CaptureTicket> call, Response<ApiResult.CaptureTicket> response) {
+                try {
+                    ApiResult.CaptureTicket iData = response.body();
+                    if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                        // not uploaded
+                    } else {
+                        // uploaded
+                        Map<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+                        if (map.containsKey(key)) {
+                            map.get(key).setCaptured(true);
+                            MyApp.getApplication().writeTicketCapture(map);
+                        }
+                    }
+                } catch (Exception e) {
+//                   MyApp.showMassage();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult.CaptureTicket> call, Throwable t) {
+                call.cancel();
+
+            }
+        });
+    }
+
 
     public void swipeLeft(String issueId, Context context) {
         Date cDate = new Date();
@@ -323,7 +381,6 @@ public class Firstfrag extends Fragment {
 
 
     public void NewTicketsInfo(Map mTicketIdList) {
-        Log.d("Bhavesh call", "updating data by fragment for the ticketes info");
         try {
             final MainActivity obj = new MainActivity();
             final ApiResult apiResult = new ApiResult();
@@ -345,7 +402,7 @@ public class Firstfrag extends Fragment {
                         }
                     } else {
                         try {
-
+                            Map<String, String> scheduleMap = MyApp.getApplication().readTicketCaptureSchedule();
                             SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             for (int i = 0; i < resData.IssueDetail.length; i++) {
                                 TicketInfoClass t = new TicketInfoClass();
@@ -409,6 +466,8 @@ public class Firstfrag extends Fragment {
                                 t.ContractName = resData.IssueDetail[i].ContractName;
                                 t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
                                 t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
+                                t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
+                                scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate));
                                 editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
                                 editor.apply();
                                 editor.commit();
@@ -428,13 +487,13 @@ public class Firstfrag extends Fragment {
                                             try {
                                                 sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                         "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+//                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
                                         }
                                         try {
-                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+//                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                                         } catch (Exception e) {
                                             Log.e("Notification error ", "at 280");
                                         }
@@ -482,6 +541,7 @@ public class Firstfrag extends Fragment {
                                             newValues.put("ContractName", t.ContractName);
                                             newValues.put("ContractSubTypeName", t.ContractSubTypeName);
                                             newValues.put("PreviousStatus", t.PreviousStatus);
+//                                            newValues.put("ScheduleDate", t.ScheduleDate);
                                             sql.update("Issue_Detail", newValues, "IssueId=" + t.IssueID, null);
                                             forMainTable.close();
                                         } else {
@@ -506,6 +566,7 @@ public class Firstfrag extends Fragment {
                                     m.updateCounter(getActivity());
                                 }
                             }
+                            MyApp.getApplication().writeTicketCaptureSchedule(scheduleMap);
                             fetchDataFromLocal();
                             obj.setHideAlert();
                         } catch (Exception e) {
@@ -524,12 +585,13 @@ public class Firstfrag extends Fragment {
         }
     }
 
+    private boolean firstTimeDone = false;
 
     public class NetworkChangeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                if (isOnline(context)) {
+                if (isOnline(context) && firstTimeDone) {
                     drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
                     drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                         @Override
@@ -585,6 +647,7 @@ public class Firstfrag extends Fragment {
 //                    dialog(true);
                     Log.e("keshav", "Online Connect Intenet ");
                 } else {
+                    firstTimeDone = true;
 //                    Toast.makeText(getContext(), "Offline", Toast.LENGTH_SHORT).show();
 //                    dialog(false);
                     Log.e("keshav", "Conectivity Failure !!! ");

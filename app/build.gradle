@@ -30,6 +30,11 @@ android {
 
 
     }
+    lintOptions {
+
+        checkReleaseBuilds false
+
+    }
     buildTypes {
         release {
             minifyEnabled true
@@ -47,7 +52,7 @@ android {
     aaptOptions {
         cruncherEnabled = false
     }
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.2'
 }
 
 dependencies {

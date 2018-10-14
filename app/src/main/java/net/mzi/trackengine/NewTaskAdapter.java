@@ -105,6 +105,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         final TicketHolder ticketHolder = (TicketHolder) holder;
         ticketHolder.IssueID.setText(mTicketNumber.get(position));
         ticketHolder.Adress.setText(mLoc.get(position));
+        ticketHolder.schedule_date.setText(MyApp.getApplication().readTicketCaptureSchedule().get(mTicketNumber.get(position)));
         ticketHolder.StatusId.setText(mStatus.get(position));
         ticketHolder.time.setText(sDateUI);
         ticketHolder.IssueText.setText(mSub.get(position));
@@ -326,13 +327,14 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
     }
 
     private class TicketHolder extends ViewHolder {
-        TextView IssueID, IssueText, time, Adress, StatusId;
+        TextView IssueID, IssueText, time, Adress, StatusId,schedule_date;
         FloatingActionButton acceptButton, rejectButton;
 
         public TicketHolder(View itemView) {
             super(itemView);
             View v = itemView;
             IssueID = (TextView) v.findViewById(R.id.textView2);
+            schedule_date = (TextView) v.findViewById(R.id.schedule_date);
             IssueText = (TextView) v.findViewById(R.id.subject);
             Adress = (TextView) v.findViewById(R.id.adrs);
             StatusId = (TextView) v.findViewById(R.id.newtktstatus);

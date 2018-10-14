@@ -49,6 +49,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
 
     public ServiceDataUpdateFirstFragment() {
     }
+
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
     SharedPreferences.Editor editor;
@@ -170,7 +171,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
     }
 
     public void NewTicketsInfo(Map mTicketIdList) {
-        Log.d("Bhavesh call", "updating data by fragment for the ticketes info");
+        Log.d(">>>>>>>>>>>>>", "api called in service firstFrag 174");
         try {
             final MainActivity obj = new MainActivity();
             final ApiResult apiResult = new ApiResult();
@@ -256,6 +257,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                 t.ContractName = resData.IssueDetail[i].ContractName;
                                 t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
                                 t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
+                                t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
                                 editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
                                 editor.apply();
                                 editor.commit();
@@ -329,6 +331,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                             newValues.put("ContractName", t.ContractName);
                                             newValues.put("ContractSubTypeName", t.ContractSubTypeName);
                                             newValues.put("PreviousStatus", t.PreviousStatus);
+//                                            newValues.put("ScheduleDate", t.ScheduleDate);
                                             sql.update("Issue_Detail", newValues, "IssueId=" + t.IssueID, null);
                                         } else {
                                             Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);

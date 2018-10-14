@@ -1,12 +1,14 @@
 package net.mzi.trackengine.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by Poonam on 3/7/2017.
  */
 
-public class TicketInfoClass {
+public class TicketInfoClass implements Serializable {
+    private static final long serialVersionUID = 756228457L;
     public String IssueID;
     public String Address;
     public String ServiceItemNumber;
@@ -35,7 +37,16 @@ public class TicketInfoClass {
     public String LastTransportMode;
     public String alterNateNumber;
     public String email;
+    public String ScheduleDate;
+    public boolean isCaptured = false;
 
+    public boolean isCaptured() {
+        return isCaptured;
+    }
+
+    public void setCaptured(boolean captured) {
+        isCaptured = captured;
+    }
 
     public void TicketInfoClass(String IssueID, String Address, String Latitude, String Longitude, String ServiceItemNumber, String AssetSerialNumber, String AssetSubType, String AssetType, String CategoryName, String CorporateName, String CreatedDate, String IssueText, String PhoneNo, String SLADate, String StatusId, String Subject, String TicketHolder, String UpdatedDate, String TicketNumber, String OEMNumber, String AssetDetail, String ContractSubTypeName, String ContractName, boolean IsVerified, String PreviousStatus, String LastTransportMode) {
         this.Latitude = Latitude;

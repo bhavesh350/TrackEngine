@@ -20,6 +20,12 @@ public class ApiResult {
         public String Message;
     }
 
+    public class CaptureTicket {
+        @SerializedName("Result")
+        public ApiResult.Result resData;
+
+    }
+
     public class ComplainCategory {
         @SerializedName("Id")
         public String Id;
@@ -266,6 +272,9 @@ public class ApiResult {
         @SerializedName("IsAssetVerificationEnable")
         public String IsAssetVerificationEnable;
 
+        @SerializedName("ScheduleDate")
+        public String scheduleDate;
+
         @SerializedName("lstDetails")
         public lstDetails IssueDetail[];
 
@@ -287,7 +296,6 @@ public class ApiResult {
             this.Expense = Expense;
             this.LastTransportMode = LastTransportMode;
             this.ModeOfTransport = LastTransportMode;
-
         }
 
         public IssueDetail(String IssueIds, String UserId, String IsAssetVerificationEnable, String DepartmentId, String LastAction) {
@@ -395,6 +403,9 @@ public class ApiResult {
             @SerializedName("Message")
             public String Message;
 
+            @SerializedName("ScheduleDate")
+            public String scheduleDate;
+
             @SerializedName("LastTransportMode")
             public String LastTransportMode;
 
@@ -407,7 +418,7 @@ public class ApiResult {
         public lstDetails data;
 
 
-        public class lstDetails implements Serializable{
+        public class lstDetails implements Serializable {
 
             private static final long serialVersionUID = 7562287L;
 

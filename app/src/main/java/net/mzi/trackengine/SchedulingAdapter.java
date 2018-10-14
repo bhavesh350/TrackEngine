@@ -167,24 +167,25 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     private class TicketHolder extends ViewHolder {
-        TextView IssueID, IssueText, time, Adress, StatusId;
+        TextView IssueID, IssueText, time, Adress, StatusId, schedule_date;
         FloatingActionButton acceptButton, rejectButton;
 
         public TicketHolder(View itemView) {
             super(itemView);
             View v = itemView;
-            IssueID = (TextView) v.findViewById(R.id.textView2);
-            IssueText = (TextView) v.findViewById(R.id.subject);
-            Adress = (TextView) v.findViewById(R.id.adrs);
-            StatusId = (TextView) v.findViewById(R.id.newtktstatus);
-            time = (TextView) v.findViewById(R.id.beontime);
-            acceptButton = (FloatingActionButton) v.findViewById(R.id.accept);
-            rejectButton = (FloatingActionButton) v.findViewById(R.id.reject);
+            IssueID = v.findViewById(R.id.textView2);
+            schedule_date = v.findViewById(R.id.schedule_date);
+            IssueText = v.findViewById(R.id.subject);
+            Adress = v.findViewById(R.id.adrs);
+            StatusId = v.findViewById(R.id.newtktstatus);
+            time = v.findViewById(R.id.beontime);
+            acceptButton = v.findViewById(R.id.accept);
+            rejectButton = v.findViewById(R.id.reject);
         }
     }
 
     private class SchedulingViewHolder extends ViewHolder {
-        TextView name, time, sub, location, mobile, stats, sIssueID, preTime;
+        TextView name, time, sub, location, mobile, stats, sIssueID, preTime, schedule_date_value;
         ImageView mbut;
         LinearLayout bot;
         RelativeLayout top;
@@ -192,17 +193,19 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
         public SchedulingViewHolder(View v) {
             super(v);
-            this.name = (TextView) v.findViewById(R.id.contactpersonname);
-            this.location = (TextView) v.findViewById(R.id.adrs);
-            this.mobile = (TextView) v.findViewById(R.id.cntctprsnmob);
-            this.time = (TextView) v.findViewById(R.id.beontime);
-            this.sub = (TextView) v.findViewById(R.id.subject);
-            this.mbut = (ImageView) v.findViewById(R.id.mb);
-            this.stats = (TextView) v.findViewById(R.id.status);
-            this.top = (RelativeLayout) v.findViewById(R.id.topLayout2);
-            this.bot = (LinearLayout) v.findViewById(R.id.bottomLayout);
-            this.sIssueID = (TextView) v.findViewById(R.id.issueId_Id);
+            this.name = v.findViewById(R.id.contactpersonname);
+            this.schedule_date_value = v.findViewById(R.id.schedule_date_value);
+            this.location = v.findViewById(R.id.adrs);
+            this.mobile = v.findViewById(R.id.cntctprsnmob);
+            this.time = v.findViewById(R.id.beontime);
+            this.sub = v.findViewById(R.id.subject);
+            this.mbut = v.findViewById(R.id.mb);
+            this.stats = v.findViewById(R.id.status);
+            this.top = v.findViewById(R.id.topLayout2);
+            this.bot = v.findViewById(R.id.bottomLayout);
+            this.sIssueID = v.findViewById(R.id.issueId_Id);
             popup = new PopupMenu(ctx, mbut);
+            popup.inflate(R.menu.toolbar_card_menu);
         }
     }
 
@@ -246,11 +249,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             } else {
                 sDateUI = sDateUI.substring(11, 19);
             }
+            Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
             ticketHolder.IssueID.setText(mTicketNumber.get(position));
             ticketHolder.Adress.setText(mLoc.get(position));
             ticketHolder.StatusId.setText(mCardType.get(position));
             ticketHolder.time.setText(sDateUI);
             ticketHolder.IssueText.setText(mSub.get(position));
+            ticketHolder.schedule_date.setText(map.get(mTicketNumber.get(position)));
             ticketHolder.acceptButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -328,7 +333,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6).toString() + "'", null);
                     cqueryForStatus.moveToFirst();
                     addCard(cquery.getString(0).toString(), cquery.getString(1).toString(), cquery.getString(2).toString(), cquery.getString(3).toString(), cquery.getString(4).toString(), cquery.getString(5).toString(), cqueryForStatus.getString(0).toString(), R.color.orange, Pending, position, cquery.getString(7).toString());
-                    cquery.close();
+//                    cquery.close();
                 }
             });
             ticketHolder.rejectButton.setOnClickListener(new View.OnClickListener() {
@@ -393,7 +398,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     cque.moveToLast();
                                     sColumnId = cquery.getString(0).toString();
                                 }
-                                cquery.close();
+//                                cquery.close();
                                 final ApiResult apiResult = new ApiResult();
                                 final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position), sAcceptStatus, commemt.getText().toString(), currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "-1", "", "", "");
                                 Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
@@ -427,7 +432,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                                 cqueryTemp.moveToFirst();
                                                 ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Delete");
                                             }
-                                            cqueryTemp.close();
+//                                            cqueryTemp.close();
                                         }
                                     }
 
@@ -451,6 +456,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             });
 
         } else {
+            Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
             final SchedulingViewHolder schedulingholder = (SchedulingViewHolder) holder;
             //fetchStatus(currentStatus,position);
             schedulingholder.mobile.setText(mMob.get(position));
@@ -458,7 +464,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.location.setText(mLoc.get(position));
             schedulingholder.time.setText(mTime.get(position));
             schedulingholder.name.setText(mName.get(position));
-            schedulingholder.popup.inflate(R.menu.toolbar_card_menu);
+            schedulingholder.schedule_date_value.setText(map.get(mTicketNumber.get(position)));
             schedulingholder.stats.setText(mCardType.get(position));
             schedulingholder.top.setBackgroundResource(mCardColor.get(position));
             schedulingholder.bot.setBackgroundResource(mCardColor.get(position));
@@ -520,7 +526,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         populateStatus(mIssueID.get(position), position, "", sPreviousId);
                     }
 
-                    cqueryIsVerified.close();
+//                    cqueryIsVerified.close();
                 }
             });
             String sMainStatusIdTemp = null;
@@ -533,11 +539,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     sMainStatusIdTemp = cqueryTemp1.getString(0).toString();
                 } else
                     sMainStatusIdTemp = "4";
-                cqueryTemp1.close();
+//                cqueryTemp1.close();
             } else {
                 sMainStatusIdTemp = "4";
             }
-            cqueryTemp.close();
+//            cqueryTemp.close();
             if (mTime.get(position).equals(""))
                 schedulingholder.time.setText("NA!!");
             else if (sMainStatusIdTemp.equals("4")) {
@@ -612,7 +618,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 Dialog.setCancelable(false);
                                 LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                                 View dialogView = li.inflate(R.layout.rejection, null);
-                                final EditText commemtVerify = (EditText) dialogView.findViewById(R.id.rejectionReason);
+                                final EditText commemtVerify = dialogView.findViewById(R.id.rejectionReason);
                                 commemtVerify.setHint("Asset Serial Number");
                                 Dialog.setView(dialogView);
                                 Dialog.setPositiveButton("Ok",
@@ -649,7 +655,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             } else {
                                 populateStatus(mIssueID.get(position), position, "", sPreviousId);
                             }
-                            cqueryIsVerified.close();
+//                            cqueryIsVerified.close();
                             return true;
                         case R.id.showDistance:
                             DecimalFormat df = new DecimalFormat("####.00");
@@ -924,7 +930,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         sCurrentStatusId = cquery.getString(1).toString();
         if (sCardType.equals("3"))
             MyApp.showMassage(ctx, "This ticket is already closed!!!");
-//            Toast.makeText(ctx, "This ticket is already closed!!!", Toast.LENGTH_LONG).show();
         else {
             fetchStatus(currentStatus, id, sCurrentStatusId);
             fetchTransportMode();
@@ -1222,7 +1227,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         return;
                     }
 
-
                     Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + LastTransportMode + "'", null);
                     Cursor cquery2 = sql.rawQuery("select StartingForSite from Issue_Status where StatusId ='" + sCurrentStatusId + "'", null);
                     if (cquery1.getCount() > 0 && cquery2.getCount() > 0) {
@@ -1338,7 +1342,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     public void UpdateTask(final Context ctx, Map postTktStatus, String sColumnId) {
-
+        Log.e("TicketStatusTable", "status value " + postTktStatus.get("StatusId"));
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         final ApiResult apiResult = new ApiResult();
@@ -1382,10 +1386,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             } catch (Exception e) {
                                 e.getMessage();
                             }
+                            Log.e("TicketStatusTable", "Success but not true");
                             ContentValues newValues = new ContentValues();
                             newValues.put("SyncStatus", "false");
                             sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                         } else {
+                            Log.e("TicketStatusTable", "Success" + " response " + iData.toString());
                             ContentValues newValues = new ContentValues();
                             newValues.put("SyncStatus", "true");
                             sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
@@ -1396,6 +1402,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                 @Override
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
+                    Log.e("TicketStatusTable", "On failure");
                     call.cancel();
                     ContentValues newValues = new ContentValues();
                     newValues.put("SyncStatus", "false");
@@ -1404,6 +1411,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
             });
         } catch (Exception e) {
+            Log.e("TicketStatusTable", "came to exception " + e.toString());
             return;
         }
 

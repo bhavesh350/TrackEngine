@@ -105,10 +105,12 @@ public class SwipeDeckAdapter extends BaseAdapter {
         } else {
             sDateUI = sDateUI.substring(11, 19);
         }
+        Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
         ((TextView) v.findViewById(R.id.textView2)).setText(data.get(position).TicketNumber);
         ((TextView) v.findViewById(R.id.subject)).setText(data.get(position).getSubject());
         ((TextView) v.findViewById(R.id.adrs)).setText(data.get(position).getAdress());
         ((TextView) v.findViewById(R.id.newtktstatus)).setText("New");
+        ((TextView) v.findViewById(R.id.schedule_date)).setText(map.get(data.get(position).TicketNumber));
         //((TextView) v.findViewById(R.id.newtktstatus)).setText(String.valueOf(data.get(position).getStatusId()));
         ((TextView) v.findViewById(R.id.beontime)).setText(sDateUI);
 

@@ -63,8 +63,8 @@ public class SessionManager {
         editor.putString("UserType", UserType);
         editor.putString("CompanyId", CompanyId);
         editor.putString("ParentCompanyId", ParentCompanyId);
-        MyApp.setSharedPrefString("checkInOutTime", CheckedInTime);
-        MyApp.setSharedPrefString("isCheckedInNew", CheckedInStatus);
+//        MyApp.setSharedPrefString("checkInOutTime", CheckedInTime);
+//        MyApp.setSharedPrefString("isCheckedInNew", CheckedInStatus);
         editor.putString("CheckedInTime", CheckedInTime);
         editor.putString("CheckedInStatus", CheckedInStatus);
         editor.putString("IsDefaultDepartment", isDefaultDepartment);

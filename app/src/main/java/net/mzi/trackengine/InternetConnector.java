@@ -9,6 +9,8 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import net.mzi.trackengine.model.TicketInfoClass;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +43,7 @@ public class InternetConnector {
 
                 cquery = sql.rawQuery("select * from Issue_History", null);
                 if (cquery.getCount() > 0) {
-
+                    Log.e("TicketStatusTable", "offline syncing with data");
                     Log.e("InternetConnector: ", "I am in Issue_History");
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                         if (cquery.getString(6).equals("true")) {
@@ -73,10 +75,13 @@ public class InternetConnector {
                         }
 
                     }
+                } else {
+                    Log.e("TicketStatusTable", "offline sync count is 0");
                 }
-                try{
+                try {
                     cquery.close();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 cquery = sql.rawQuery("select * from User_AppCheckIn", null);
                 Log.e("offlineSyncing: ", "dgdfgdfgfdgfgfgfgdfgdfgdfg");
                 if (cquery.getCount() > 0) {
@@ -100,9 +105,10 @@ public class InternetConnector {
                         }
                     }
                 }
-                try{
+                try {
                     cquery.close();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 cquery = sql.rawQuery("select * from User_BatteryLevel", null);
                 if (cquery.getCount() > 0) {
 
@@ -126,9 +132,11 @@ public class InternetConnector {
                         }
                     }
                 }
-                try{Toast.makeText(context, "Offline data syncing!!!", Toast.LENGTH_LONG).show();
+                try {
+                    Toast.makeText(context, "Offline data syncing!!!", Toast.LENGTH_LONG).show();
                     cquery.close();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 //if (networkInfo.isConnected()) {
 
                 int counter = 0;
@@ -212,9 +220,10 @@ public class InternetConnector {
 
                 }
 
-                try{
+                try {
                     cquery.close();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 cquery = sql.rawQuery("select * from User_MobileData", null);
                 if (cquery.getCount() > 0) {
                     Log.e("InternetConnector: ", "I am in User_MobileData");
@@ -235,9 +244,10 @@ public class InternetConnector {
                         }
                     }
                 }
-                try{
+                try {
                     cquery.close();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 cquery = sql.rawQuery("select * from User_Gps ", null);
                 if (cquery.getCount() > 0) {
                     Log.e("InternetConnector: ", "I am in User_Gps");
@@ -262,12 +272,26 @@ public class InternetConnector {
                 }
 
             } else {
-               try{ Toast.makeText(context, "Network not found", Toast.LENGTH_LONG).show();}catch (Exception e){}
+                try {
+                    Toast.makeText(context, "Network not found", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
             }
             cquery.close();
         } catch (Exception e) {
             e.getMessage().toString();
 
         }
+
+        Map<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+        for (String key : map.keySet()) {
+            if (!map.get(key).isCaptured) {
+                Firstfrag f = new Firstfrag();
+                f.callApiToMakeCapture(key);
+            } else {
+                map.remove(key);
+            }
+        }
+        MyApp.getApplication().writeTicketCapture(map);
     }
 }
