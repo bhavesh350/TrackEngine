@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity
     Map<String, String> appCheckInInfo = new HashMap<String, String>();
     static Intent batteryIntent, locationIntent;
     static PendingIntent batteryPendingIntent, locationPendingIntent;
-    static AlarmManager batteryAlarmManager, locationAlarmManager;
+    public static AlarmManager batteryAlarmManager, locationAlarmManager;
     RelativeLayout timerlayout;
     LinearLayout lTimerLayout;
     static RelativeLayout RLay;
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity
                         //sql.delete("Issue_Status", null, null);
                         session.logoutUser();
                         //clearPreferences();
-
+                        MyApp.getApplication().writeUser(null);
 
                         Intent i = new Intent(MainActivity.this, LoginActivity.class);
                         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -565,7 +565,7 @@ public class MainActivity extends AppCompatActivity
             locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
             locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
             locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 630 * 1000, locationPendingIntent);
+            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
 //           }
         } else {
             locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
@@ -670,6 +670,7 @@ public class MainActivity extends AppCompatActivity
             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nMgr.cancelAll();
             session.logoutUser();
+            MyApp.getApplication().writeUser(null);
             sql.delete("Issue_Detail", null, null);
             sql.delete("FirebaseIssueData", null, null);
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
@@ -794,11 +795,11 @@ public class MainActivity extends AppCompatActivity
         }
         updateMarkers();
         Utils.getLocationUpdatesResult(this);
-        new CheckInInfo().execute();
+        if (MyApp.getStatus("isCheckedInClicked")) {
+            new CheckInInfo().execute();
+        }
+
     }
-
-    // AddonVisoin Infotech integrated to call api in every 10 minutes
-
 
     @Override
     protected void onPause() {
@@ -1216,7 +1217,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void appCheckINOperation(Map appCheckInInfo, final String sColumnId) {
+    public void appCheckINOperation(Map appCheckInInfo, final String sColumnId) throws Exception {
         //sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         final ApiResult apiResult = new ApiResult();
@@ -1257,7 +1258,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onFailure(Call<ApiResult.UserCheckInOut> call, Throwable t) {
                 call.cancel();
-
+                ContentValues newValues = new ContentValues();
+                newValues.put("SyncStatus", "false");
+                sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
             }
         });
     }
@@ -1571,7 +1574,7 @@ public class MainActivity extends AppCompatActivity
                     return;
                 }
                 if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
-
+                    MyApp.setStatus("isCheckedInClicked", true);
                     Date cDate = new Date();
                     currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                     editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
@@ -1610,6 +1613,7 @@ public class MainActivity extends AppCompatActivity
                     cquery.close();
                     setData();
                 } else {
+                    MyApp.setStatus("isCheckedInClicked", false);
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                     editor.putString("CheckedInTime", currentDateTimeString);
@@ -1802,7 +1806,11 @@ public class MainActivity extends AppCompatActivity
                     sColumnId = cquery.getString(0).toString();
                 }
                 cquery.close();
-                appCheckINOperation(appCheckInInfo, sColumnId);
+                try {
+                    appCheckINOperation(appCheckInInfo, sColumnId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
 

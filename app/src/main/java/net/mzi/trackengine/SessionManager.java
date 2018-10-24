@@ -63,10 +63,13 @@ public class SessionManager {
         editor.putString("UserType", UserType);
         editor.putString("CompanyId", CompanyId);
         editor.putString("ParentCompanyId", ParentCompanyId);
-//        MyApp.setSharedPrefString("checkInOutTime", CheckedInTime);
-//        MyApp.setSharedPrefString("isCheckedInNew", CheckedInStatus);
         editor.putString("CheckedInTime", CheckedInTime);
         editor.putString("CheckedInStatus", CheckedInStatus);
+        if (CheckedInStatus.equals("True") || CheckedInStatus.equals("true")) {
+            MyApp.setStatus("isCheckedInClicked", true);
+        } else {
+            MyApp.setStatus("isCheckedInClicked", false);
+        }
         editor.putString("IsDefaultDepartment", isDefaultDepartment);
         editor.putString("IsDefaultDepartment", isDefaultDepartment);
         editor.putInt("AppLocationSendingFrequency", AppLocationSendingFrequency);

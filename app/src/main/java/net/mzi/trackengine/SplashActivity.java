@@ -41,7 +41,7 @@ public class SplashActivity extends AppCompatActivity {
 //        getSupportActionBar().hide();
         //if(checkAndRequestPermissions()) {}
 
-        call_permissions();
+//        call_permissions();
         Firebase.setAndroidContext(this);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         session = new SessionManager(getApplicationContext());

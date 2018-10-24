@@ -160,22 +160,18 @@ public class ServiceBattery extends Service {
         }
         long differ = System.currentTimeMillis() - lastBatteryTime;
         if (differ < (15 * 60 * 1000)) {
-            Log.d(">>>>>>>>>>","returned battery less 15");
             return;
         }
-        Log.d(">>>>>>>>>>","not returened");
+        try{
+            startService(new Intent(getApplicationContext(), ServiceLocation.class));
+        }catch (Exception e){}
         MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
-        Log.d(">>>>>>>>>>","reading sql");
         try{sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);}catch (Exception e){}
-        Log.d(">>>>>>>>>>","read sql");
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Log.e(">>>>>>>>>>>: ", batteryInfo.toString());
         final ApiResult apiResult = new ApiResult();
 
         final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("true", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
         Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
-//        final String finalColumnId = sColumnId;
-        Log.d(">>>>>>>>>>","eneque called");
         call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
             @Override
             public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
@@ -193,16 +189,12 @@ public class ServiceBattery extends Service {
                         sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
                     }
                 } catch (Exception e) {
-                    Log.d(">>>>>>>>>>","success but exception"+e.getMessage()+" \n"+e.getLocalizedMessage());
-//                   MyApp.showMassage();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResult.User_BatteryLevel> call, Throwable t) {
                 call.cancel();
-
-                Log.d(">>>>>>>>>>","failed");
             }
         });
     }

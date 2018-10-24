@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -136,30 +137,30 @@ public class TicketInfo extends AppCompatActivity {
         StrictMode.setVmPolicy(builder.build());
         app = findViewById(R.id.app_bar);
         iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
-        tCname =  findViewById(R.id.contactpersonname);
-        tCAdrs =  findViewById(R.id.adrs);
-        tMNumber =  findViewById(R.id.cntctprsnmob);
-        tExpectedTime =  findViewById(R.id.beontime);
-        tTIssue =  findViewById(R.id.subject);
-        txt_alternate_number =  findViewById(R.id.txt_alternate_number);
-        txt_email =  findViewById(R.id.txt_email);
-        tTStatus =  findViewById(R.id.status);
-        tCreatedDate =  findViewById(R.id.createddate);
-        tUpdatedDate =  findViewById(R.id.updateddate);
-        tCAssetName =  findViewById(R.id.assetName);
-        tCAssetType =  findViewById(R.id.assetType);
-        tCAssetSubtype =  findViewById(R.id.assetSubType);
-        tCAssetSerialNumber =  findViewById(R.id.assetserialNumber);
+        tCname = findViewById(R.id.contactpersonname);
+        tCAdrs = findViewById(R.id.adrs);
+        tMNumber = findViewById(R.id.cntctprsnmob);
+        tExpectedTime = findViewById(R.id.beontime);
+        tTIssue = findViewById(R.id.subject);
+        txt_alternate_number = findViewById(R.id.txt_alternate_number);
+        txt_email = findViewById(R.id.txt_email);
+        tTStatus = findViewById(R.id.status);
+        tCreatedDate = findViewById(R.id.createddate);
+        tUpdatedDate = findViewById(R.id.updateddate);
+        tCAssetName = findViewById(R.id.assetName);
+        tCAssetType = findViewById(R.id.assetType);
+        tCAssetSubtype = findViewById(R.id.assetSubType);
+        tCAssetSerialNumber = findViewById(R.id.assetserialNumber);
         lyAssetSerial = (LinearLayout) findViewById(R.id.idSRnumberLayout);
         lyServiceItem = (LinearLayout) findViewById(R.id.idSIlayout);
-        tCorporateName =  findViewById(R.id.corporateName);
-        tidOEMInfo =  findViewById(R.id.idOEMInfo);
+        tCorporateName = findViewById(R.id.corporateName);
+        tidOEMInfo = findViewById(R.id.idOEMInfo);
         vCamera = (RadioButton) findViewById(R.id.vCam);
         vGallery = (RadioButton) findViewById(R.id.vGal);
-        tAssetDescription =  findViewById(R.id.idAssetDescription);
-        tServiceType =  findViewById(R.id.idServiceType);
-        tServiceSubType =  findViewById(R.id.idServiceSubType);
-        tIssueText =  findViewById(R.id.issueText);
+        tAssetDescription = findViewById(R.id.idAssetDescription);
+        tServiceType = findViewById(R.id.idServiceType);
+        tServiceSubType = findViewById(R.id.idServiceSubType);
+        tIssueText = findViewById(R.id.issueText);
 
         //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
         comment = (EditText) findViewById(R.id.agentComment);
@@ -191,12 +192,16 @@ public class TicketInfo extends AppCompatActivity {
             lyAssetSerial.setVisibility(View.VISIBLE);
         }
         sStatusId = cquery.getString(15).toString();
-        Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
-        if (cqueryForStatus.getCount() > 0) {
-            cqueryForStatus.moveToFirst();
-            tStatus = cqueryForStatus.getString(0).toString();
-        } else
+        try {
+            Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+            if (cqueryForStatus.getCount() > 0) {
+                cqueryForStatus.moveToFirst();
+                tStatus = cqueryForStatus.getString(0).toString();
+            } else
+                tStatus = "NA";
+        } catch (Exception e) {
             tStatus = "NA";
+        }
         cname = cquery.getString(19).toString();
         mNumber = cquery.getString(13).toString();
         tIssue = cquery.getString(3).toString();
@@ -671,22 +676,26 @@ public class TicketInfo extends AppCompatActivity {
                 };
             }
         }
-        if ("content".equalsIgnoreCase(uri.getScheme())) {
-            String[] projection = {
-                    MediaStore.Images.Media.DATA
-            };
-            Cursor cursor = null;
-            try {
-                cursor = context.getContentResolver()
-                        .query(uri, projection, selection, selectionArgs, null);
-                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                if (cursor.moveToFirst()) {
-                    return cursor.getString(column_index);
+        try{
+            if ("content".equalsIgnoreCase(uri.getScheme())) {
+                String[] projection = {
+                        MediaStore.Images.Media.DATA
+                };
+                Cursor cursor = null;
+                try {
+                    cursor = context.getContentResolver()
+                            .query(uri, projection, selection, selectionArgs, null);
+                    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                    if (cursor.moveToFirst()) {
+                        return cursor.getString(column_index);
+                    }
+                } catch (Exception e) {
                 }
-            } catch (Exception e) {
+            } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+                return uri.getPath();
             }
-        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
+        }catch (Exception e){
+
         }
         return null;
     }

@@ -4,64 +4,66 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginLeft="0dp"
     android:layout_marginTop="5dp"
     android:layout_marginBottom="5dp"
-    card_view:cardCornerRadius="5dp"
     android:elevation="20dp"
     card_view:cardBackgroundColor="#00ffffff"
-    android:layout_marginLeft="0dp">
+    card_view:cardCornerRadius="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginLeft="@dimen/_5sdp"
-        android:layout_marginTop="5dp">
+        android:layout_marginTop="5dp"
+        android:orientation="vertical">
 
         <TextView
+            android:id="@+id/issueIdFollowup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableRight="@drawable/ic_attachment"
             android:text="Id"
-            android:typeface="serif"
             android:textSize="@dimen/_18ssp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/issueIdFollowup" />
+            android:typeface="serif" />
 
         <TextView
-            android:text="Gaurab Guha"
-            android:textSize="@dimen/_18ssp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/assignedTo"
-            android:layout_alignParentTop="true"/>
-        <TextView
-            android:text="Open"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:typeface="serif"
-            android:textSize="@dimen/_18ssp"
+            android:layout_alignParentTop="true"
+            android:text="Gaurab Guha"
+            android:textSize="@dimen/_18ssp" />
+
+        <TextView
             android:id="@+id/statusFollowup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Open"
+            android:textSize="@dimen/_18ssp"
+            android:typeface="serif"
 
             />
 
         <TextView
+            android:id="@+id/commentFollowup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Comment:xcvxcvxcv aaaa"
             android:textSize="@dimen/_18ssp"
-            android:typeface="serif"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/commentFollowup" />
+            android:typeface="serif" />
 
         <TextView
-            android:text="Updated On: 21/3/2014"
-            android:gravity="right"
-            android:textColor="#fff"
-            android:textSize="@dimen/_15ssp"
-            android:layout_marginRight="3dp"
-            android:background="#254250"
-            android:typeface="serif"
+            android:id="@+id/dateFollowup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/dateFollowup" />
+            android:layout_marginRight="3dp"
+            android:background="#254250"
+            android:gravity="right"
+            android:text="Updated On: 21/3/2014"
+            android:textColor="#fff"
+            android:textSize="@dimen/_15ssp"
+            android:typeface="serif" />
 
     </LinearLayout>
 

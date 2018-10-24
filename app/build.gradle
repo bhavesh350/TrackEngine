@@ -16,7 +16,14 @@ repositories {
 
 
 android {
-
+    signingConfigs {
+        config {
+            keyAlias 'vaishali'
+            keyPassword 'vaishali@123'
+            storeFile file('C:/AIWsoft/AddOnVision/Geo location project/TrackEngine with Retrofit/TrackEngine/trkengn.jks')
+            storePassword 'vaishali@123'
+        }
+    }
     compileSdkVersion 27
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
@@ -31,17 +38,17 @@ android {
 
     }
     lintOptions {
-
         checkReleaseBuilds false
-
+        abortOnError false
     }
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
             useProguard true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
+        }
+        debug {
+            signingConfig signingConfigs.config
         }
     }
     packagingOptions {
@@ -49,10 +56,10 @@ android {
         exclude 'META-INF/LICENSE-FIREBASE.txt'
         exclude 'META-INF/NOTICE'
     }
-    aaptOptions {
-        cruncherEnabled = false
-    }
-    buildToolsVersion '28.0.2'
+//    aaptOptions {
+//        cruncherEnabled = false
+//    }
+    buildToolsVersion '28.0.3'
 }
 
 dependencies {
@@ -84,7 +91,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1'
     implementation 'com.squareup.okhttp3:okhttp:3.4.1'
     implementation 'id.zelory:compressor:2.1.0'
-
     compile('com.crashlytics.sdk.android:crashlytics:2.9.5@aar') {
         transitive = true;
     }

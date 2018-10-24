@@ -468,7 +468,9 @@ public class ApiResult {
 
     }
 
-    public class User {
+    public class User implements Serializable {
+
+        private static final long serialVersionUID = 756228897L;
 
         @SerializedName("UserId")
         public String UserId;
@@ -496,6 +498,9 @@ public class ApiResult {
 
         @SerializedName("DeviceModel")
         public String DeviceModel;
+
+        @SerializedName("StatusByHierarchy")
+        public boolean StatusByHierarchy;
 
 
         @SerializedName("LoggedInUserDetail")
@@ -549,7 +554,8 @@ public class ApiResult {
         @SerializedName("LoggedInUserDetail")
         public Datum data;
 
-        public class Datum {
+        public class Datum implements Serializable {
+            private static final long serialVersionUID = 756223487L;
             @SerializedName("UserName")
             public String Username;
 
@@ -685,7 +691,10 @@ public class ApiResult {
     }
 
 
-    public class ModeOfTrasportList {
+    public class ModeOfTrasportList implements Serializable {
+
+        private static final long serialVersionUID = 75622348967L;
+
         @SerializedName("Id")
         public String Id;
 
@@ -816,8 +825,8 @@ public class ApiResult {
     }
 
 
-    public class IssueAssetPartList {
-
+    public class IssueAssetPartList implements Serializable {
+        private static final long serialVersionUID = 756223487147L;
         @SerializedName("Id")
         public String Id;
 

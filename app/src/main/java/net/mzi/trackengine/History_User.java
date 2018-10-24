@@ -141,7 +141,7 @@ public class History_User extends Fragment {
 
             mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
             mRecyclerView.setLayoutManager(mLayoutManager);
-            followUpAdapter = new FollowUpAdapter(getActivity(), mAssignedTo, mComment, mCreadteDate, mStatus, mDatasetTypes, mIssueId);
+            followUpAdapter = new FollowUpAdapter(getActivity(), mAssignedTo, mComment, mCreadteDate, mStatus, mDatasetTypes, mIssueId,new ArrayList<String>());
             mRecyclerView.setAdapter(followUpAdapter);
         }
     }

@@ -188,28 +188,32 @@ public class SwipeDeckAdapter extends BaseAdapter {
                                     @Override
                                     public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
                                         ApiResult.IssueDetail iData = response.body();
-                                        if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                                            try {
-                                                MyApp.showMassage(context, context.getString(R.string.internet_error));
-//                                            Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
-                                            } catch (Exception e) {
-                                                e.getMessage();
+                                        try {
+                                            if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                                                try {
+                                                    MyApp.showMassage(context, context.getString(R.string.internet_error));
+//                                                  Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                                } catch (Exception e) {
+                                                    e.getMessage();
+                                                }
+                                                ContentValues newValues = new ContentValues();
+                                                newValues.put("SyncStatus", "false");
+                                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                            } else {
+                                                MainActivity m = new MainActivity();
+                                                m.updateCounter(context);
+                                                ContentValues newValues = new ContentValues();
+                                                newValues.put("SyncStatus", "true");
+                                                sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
+                                                Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
+                                                ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                                                if (cqueryTemp.getCount() > 0) {
+                                                    cqueryTemp.moveToFirst();
+                                                    ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Delete");
+                                                }
                                             }
-                                            ContentValues newValues = new ContentValues();
-                                            newValues.put("SyncStatus", "false");
-                                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                                        } else {
-                                            MainActivity m = new MainActivity();
-                                            m.updateCounter(context);
-                                            ContentValues newValues = new ContentValues();
-                                            newValues.put("SyncStatus", "true");
-                                            sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
-                                            Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
-                                            ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                            if (cqueryTemp.getCount() > 0) {
-                                                cqueryTemp.moveToFirst();
-                                                ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Delete");
-                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
                                         }
                                     }
 
@@ -294,30 +298,33 @@ public class SwipeDeckAdapter extends BaseAdapter {
                     call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                         @Override
                         public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
-                            ApiResult.IssueDetail iData = response.body();
-                            if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                                try {
-                                    Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
-                                } catch (Exception e) {
-                                    e.getMessage();
-                                }
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
-                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                            } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                                try {
-                                    Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
-                                    ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                    if (cqueryTemp.getCount() > 0) {
-                                        cqueryTemp.moveToFirst();
-                                        ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Update");
-
+                            try {
+                                ApiResult.IssueDetail iData = response.body();
+                                if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                                    try {
+                                        Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                    } catch (Exception e) {
+                                        e.getMessage();
                                     }
-                                } catch (Exception e) {
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("SyncStatus", "false");
+                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                } else {
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("SyncStatus", "true");
+                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                    try {
+                                        Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + data.get(position).IssueID + "'", null);
+                                        ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                                        if (cqueryTemp.getCount() > 0) {
+                                            cqueryTemp.moveToFirst();
+                                            ref.child(MainActivity.LOGINID).child(data.get(position).IssueID).child("Action").setValue("Update");
+
+                                        }
+                                    } catch (Exception e) {
+                                    }
                                 }
+                            } catch (Exception e) {
                             }
                         }
 

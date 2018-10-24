@@ -614,4 +614,54 @@ public class MyApp extends MultiDexApplication {
     }
 
 
+    public void writeUser(ApiResult.User user) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/user.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(user);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ApiResult.User readUser() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/user.ser";
+        File f = new File(path);
+        ApiResult.User user = null;
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                user = (ApiResult.User) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return user;
+    }
+
+
 }

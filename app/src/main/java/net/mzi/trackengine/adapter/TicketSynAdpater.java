@@ -17,20 +17,19 @@ import java.util.List;
  */
 
 public class TicketSynAdpater extends RecyclerView.Adapter<TicketSynAdpater.ViewHolder> {
-    List<String> lTicketTime=new ArrayList<String>();
-    List<String> lTicketStatus=new ArrayList<String>();
-    List<String> lTicketComment=new ArrayList<String>();
-    List<String> lTicketNumber=new ArrayList<String>();
-    List<Integer> lColors=new ArrayList<Integer>();
+    List<String> lTicketTime = new ArrayList<String>();
+    List<String> lTicketStatus = new ArrayList<String>();
+    List<String> lTicketComment = new ArrayList<String>();
+    List<String> lTicketNumber = new ArrayList<String>();
+    List<Integer> lColors = new ArrayList<Integer>();
 
 
-
-    public TicketSynAdpater(List<String> lTicketNumber,List<String> lTicketStatus,List<String> lTicketTime, List<String> lTicketComment, List<Integer> lColors){
-        this.lTicketTime=lTicketTime;
-        this.lTicketStatus=lTicketStatus;
-        this.lTicketComment=lTicketComment;
-        this.lTicketNumber=lTicketNumber;
-        this.lColors=lColors;
+    public TicketSynAdpater(List<String> lTicketNumber, List<String> lTicketStatus, List<String> lTicketTime, List<String> lTicketComment, List<Integer> lColors) {
+        this.lTicketTime = lTicketTime;
+        this.lTicketStatus = lTicketStatus;
+        this.lTicketComment = lTicketComment;
+        this.lTicketNumber = lTicketNumber;
+        this.lColors = lColors;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class TicketSynAdpater extends RecyclerView.Adapter<TicketSynAdpater.View
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        TicketSyncHolder syncHolder=(TicketSyncHolder) holder;
+        TicketSyncHolder syncHolder = (TicketSyncHolder) holder;
         syncHolder.tTicketTime.setText(lTicketTime.get(position));
         syncHolder.tTicketStatus.setText(lTicketStatus.get(position));
         syncHolder.tTicketNumber.setText(lTicketNumber.get(position));
@@ -56,21 +55,23 @@ public class TicketSynAdpater extends RecyclerView.Adapter<TicketSynAdpater.View
         return lTicketNumber.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
         }
     }
-    private class TicketSyncHolder extends TicketSynAdpater.ViewHolder{
-        TextView tTicketTime,tTicketStatus,tTicketNumber,tTicketComment;
+
+    private class TicketSyncHolder extends TicketSynAdpater.ViewHolder {
+        TextView tTicketTime, tTicketStatus, tTicketNumber, tTicketComment;
         LinearLayout tktLayout;
+
         public TicketSyncHolder(View itemView) {
             super(itemView);
-            this.tTicketTime=(TextView)itemView.findViewById(R.id.id_date);
-            this.tTicketStatus=(TextView)itemView.findViewById(R.id.id_status);
-            this.tTicketNumber=(TextView)itemView.findViewById(R.id.id_TNumber);
-            this.tTicketComment=(TextView)itemView.findViewById(R.id.id_comment);
-            this.tktLayout=(LinearLayout) itemView.findViewById(R.id.tktsynclayout);
+            this.tTicketTime = (TextView) itemView.findViewById(R.id.id_date);
+            this.tTicketStatus = (TextView) itemView.findViewById(R.id.id_status);
+            this.tTicketNumber = (TextView) itemView.findViewById(R.id.id_TNumber);
+            this.tTicketComment = (TextView) itemView.findViewById(R.id.id_comment);
+            this.tktLayout = (LinearLayout) itemView.findViewById(R.id.tktsynclayout);
         }
     }
 

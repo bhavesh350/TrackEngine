@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -260,7 +261,13 @@ public class ServiceLocation extends Service {
         Firebase.setAndroidContext(getApplicationContext());
         pref = getSharedPreferences("login", 0);
         editor = pref.edit();
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+        try {
+            sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+        } catch (SQLiteDatabaseLockedException e) {
+            flags = START_STICKY;
+            return super.onStartCommand(intent, flags, startId);
+        }
+
         gps = new Gps(getApplicationContext());
         Date cDate = new Date();
         currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -587,7 +594,9 @@ public class ServiceLocation extends Service {
 //            isLocationCalled = false;
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+            try{
+                sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+            }catch (Exception e){}
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -907,5 +916,9 @@ public class ServiceLocation extends Service {
 
             }
         });
+
+        try{
+            startService(new Intent(getApplicationContext(), ServiceLocation.class));
+        }catch (Exception e){}
     }
 }

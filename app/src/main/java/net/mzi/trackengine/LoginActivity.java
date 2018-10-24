@@ -190,11 +190,13 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void onResponse(Call<ApiResult.User> call, Response<ApiResult.User> response) {
                                 ApiResult.User user = response.body();
+                                MyApp.getApplication().writeUser(user);
                                 ref.child(user.data.UserId).child("DeviceId").setValue(sDeviceId);
                                 if (user.data.Status.equals("true")) {
                                     Cursor cqueryTemp = sql.rawQuery("select * from Issue_Status where DepartmentId='" + user.data.DepartmentId + "'", null);
                                     if (cqueryTemp.getCount() > 0) ;
                                     else {
+//                                        str.replaceAll("[^\\d.]", "");
                                         MyApp.getApplication().writeIssuesStatusList(user.data.dataStatus);
                                         for (int i = 0; i < user.data.dataStatus.length; i++) {
                                             Log.e("TAG", "onPostExecute: " + user.data.dataStatus[i]);
@@ -222,6 +224,7 @@ public class LoginActivity extends AppCompatActivity {
                                     }
                                     cqueryTemp.close();
                                     session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
+                                    MyApp.setStatus("statusByHierarchy", user.StatusByHierarchy);
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                     LoginActivity.this.finish();
                                     intent.putExtra("fromLogin", true);

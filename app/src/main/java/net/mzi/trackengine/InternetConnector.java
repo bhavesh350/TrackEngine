@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.TicketInfoClass;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,7 +102,9 @@ public class InternetConnector {
                             String sAppCheckInInfo = new Gson().toJson(appCheckInInfo);
                             Log.e("onCheckedChanged: ", sAppCheckInInfo);
                             MainActivity m = new MainActivity();
-                            m.appCheckINOperation(appCheckInInfo, cquery.getString(0).toString());
+                            try{
+                                m.appCheckINOperation(appCheckInInfo, cquery.getString(0).toString());
+                            }catch (Exception e){}
                         }
                     }
                 }
@@ -283,15 +286,19 @@ public class InternetConnector {
 
         }
 
-        Map<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
-        for (String key : map.keySet()) {
-            if (!map.get(key).isCaptured) {
-                Firstfrag f = new Firstfrag();
-                f.callApiToMakeCapture(key);
-            } else {
-                map.remove(key);
+        try {
+            Map<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+            for (String key : map.keySet()) {
+                if (!map.get(key).isCaptured) {
+                    Firstfrag f = new Firstfrag();
+                    f.callApiToMakeCapture(key);
+                } else {
+                    map.remove(key);
+                }
             }
+            MyApp.getApplication().writeTicketCapture(map);
+        } catch (Exception e) {
         }
-        MyApp.getApplication().writeTicketCapture(map);
+
     }
 }

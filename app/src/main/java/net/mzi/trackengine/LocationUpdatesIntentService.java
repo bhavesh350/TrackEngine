@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -88,7 +89,12 @@ public class LocationUpdatesIntentService extends IntentService {
                     Firebase.setAndroidContext(this);
                     pref = this.getSharedPreferences("login", 0);
                     editor = pref.edit();
-                    sql = this.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+                    try {
+                        sql = this.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+                    } catch (SQLiteDatabaseLockedException e) {
+                        return;
+                    }
+
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                     //editor = pref.edit();
@@ -306,7 +312,7 @@ public class LocationUpdatesIntentService extends IntentService {
                                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                             "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
                                             + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                    Log.e("Location insertion","Inserted by LocationUpdatesIntentService at 292");
+                                    Log.e("Location insertion", "Inserted by LocationUpdatesIntentService at 292");
                                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                     String sColumnId = null;
@@ -374,7 +380,7 @@ public class LocationUpdatesIntentService extends IntentService {
                     sublocalityString = "NA";
                 }
 
-                final ApiResult.User_Location user_location ;
+                final ApiResult.User_Location user_location;
                 Log.e("postcoordinat", "LocationUpdateIntentService at 359");
                 Call<ApiResult.User_Location> call1;
                 if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {

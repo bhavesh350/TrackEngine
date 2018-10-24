@@ -122,75 +122,71 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 
                 Date cDate = new Date();
                 String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-               try{
-                   Cursor cqueryTemp = sql.rawQuery("select StatusId from Issue_Detail where IssueId ='" + mIssueID.get(position) + "'", null);
-                   cqueryTemp.moveToFirst();
-                   ContentValues newValues = new ContentValues();
-                   newValues.put("StatusId", sAcceptStatus);
-                   newValues.put("IsAccepted", "1");
-                   newValues.put("UpdatedDate", currentDateTimeString);
-                   newValues.put("PreviousStatus", cqueryTemp.getString(0).toString());
-                   sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
-                   sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                           "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
-                   Cursor cque = sql.rawQuery("select * from Issue_History ", null);
-                   String sColumnId = null;
-                   if (cque.getCount() > 0) {
-                       cque.moveToLast();
-                       sColumnId = cquery.getString(0).toString();
+                try {
+                    Cursor cqueryTemp = sql.rawQuery("select StatusId from Issue_Detail where IssueId ='" + mIssueID.get(position) + "'", null);
+                    cqueryTemp.moveToFirst();
+                    ContentValues newValues = new ContentValues();
+                    newValues.put("StatusId", sAcceptStatus);
+                    newValues.put("IsAccepted", "1");
+                    newValues.put("UpdatedDate", currentDateTimeString);
+                    newValues.put("PreviousStatus", cqueryTemp.getString(0).toString());
+                    sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
+                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+                            "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
+                    Cursor cque = sql.rawQuery("select * from Issue_History ", null);
+                    String sColumnId = null;
+                    if (cque.getCount() > 0) {
+                        cque.moveToLast();
+                        sColumnId = cquery.getString(0).toString();
 
-                   }
-                   cquery.close();
-                   final ApiResult apiResult = new ApiResult();
-                   final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
-                           mIssueID.get(position), sAcceptStatus, "Accept by Engineer", currentDateTimeString,
-                           DepartmentId, "", "", "", sDeviceId, "-1",
-                           "", "", "");
-                   Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
+                    }
+                    cquery.close();
+                    final ApiResult apiResult = new ApiResult();
+                    final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
+                            mIssueID.get(position), sAcceptStatus, "Accept by Engineer", currentDateTimeString,
+                            DepartmentId, "", "", "", sDeviceId, "-1",
+                            "", "", "");
+                    Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
-                   final String finalColumnId = sColumnId;
-                   call1.enqueue(new Callback<ApiResult.IssueDetail>() {
-                       @Override
-                       public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
-                           try {
-                               ApiResult.IssueDetail iData = response.body();
-                               if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                                   try {
-                                       Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
-                                   } catch (Exception e) {
-                                       e.getMessage();
-                                   }
-                                   ContentValues newValues = new ContentValues();
-                                   newValues.put("SyncStatus", "false");
-                                   sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                               } else {
-                                   ContentValues newValues = new ContentValues();
-                                   newValues.put("SyncStatus", "true");
-                                   sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
-                                   Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
-                                   ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                   if (cqueryTemp.getCount() > 0) {
-                                       cqueryTemp.moveToFirst();
-                                       ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Update");
+                    final String finalColumnId = sColumnId;
+                    call1.enqueue(new Callback<ApiResult.IssueDetail>() {
+                        @Override
+                        public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
+                            try {
+                                ApiResult.IssueDetail iData = response.body();
+                                if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                                    try {
+                                        Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                    } catch (Exception e) {
+                                        e.getMessage();
+                                    }
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("SyncStatus", "false");
+                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                } else {
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("SyncStatus", "true");
+                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                    Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
+                                    ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                                    if (cqueryTemp.getCount() > 0) {
+                                        cqueryTemp.moveToFirst();
+                                        ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Update");
 
-                                   }
-                                   cqueryTemp.close();
-                               }
-                           }catch (Exception e){}
-                       }
+                                    }
+                                    cqueryTemp.close();
+                                }
+                            } catch (Exception e) {
+                            }
+                        }
 
-                       @Override
-                       public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
-                           call.cancel();
-                       }
-                   });
-               }catch (Exception e){}
-
-
-
-
-
-
+                        @Override
+                        public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
+                            call.cancel();
+                        }
+                    });
+                } catch (Exception e) {
+                }
                 // new UpdateTask(context,postTktStatus,"0",sColumnId).execute();
 
                 removeCard(position);
@@ -239,7 +235,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                 sAcceptStatus = cquery.getString(0).toString();
                             } else
                                 sAcceptStatus = "0";
-                            Firstfrag f=new Firstfrag();
+                            Firstfrag f = new Firstfrag();
                             Date cDate = new Date();
                             String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                             sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
@@ -327,7 +323,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
     }
 
     private class TicketHolder extends ViewHolder {
-        TextView IssueID, IssueText, time, Adress, StatusId,schedule_date;
+        TextView IssueID, IssueText, time, Adress, StatusId, schedule_date;
         FloatingActionButton acceptButton, rejectButton;
 
         public TicketHolder(View itemView) {
@@ -345,15 +341,19 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
     }
 
     private void removeCard(int position) {
-        mIssueID.remove(position);
-        mTime.remove(position);
-        mSub.remove(position);
-        mStatus.remove(position);
-        mLoc.remove(position);
-        mTicketNumber.remove(position);
-        mDatasetTypes.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, mDatasetTypes.size());
+        try {
+            mIssueID.remove(position);
+            mTime.remove(position);
+            mSub.remove(position);
+            mStatus.remove(position);
+            mLoc.remove(position);
+            mTicketNumber.remove(position);
+            mDatasetTypes.remove(position);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, mDatasetTypes.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

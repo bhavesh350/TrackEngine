@@ -126,13 +126,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     static Firebase ref = null;
     Context ctx = null;
     Context context;
+    private boolean statusByHierarchy;
 
     public SchedulingAdapter() {
 
     }
 
     public SchedulingAdapter(List<String> mIssueID, List<String> mName, List<String> mTime, List<String> mLoc, List<String> mMob, List<String> mSub, List<Integer> mDatasetTypes, List<Integer> mCardColor, List<String> mCardType, List<String> mTicketNumber, Context context) {
-
+        this.statusByHierarchy = MyApp.getStatus("statusByHierarchy");
         this.mName = mName;
         this.mTime = mTime;
         this.mLoc = mLoc;
@@ -490,8 +491,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         Dialog.setCancelable(false);
                         LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                         View dialogView = li.inflate(R.layout.rejection, null);
-                        final EditText commemtVerify = (EditText) dialogView.findViewById(R.id.rejectionReason);
-                        commemtVerify.setHint("Asset Serial Number");
+                        final EditText commentVerify = dialogView.findViewById(R.id.rejectionReason);
+                        commentVerify.setHint("Asset Serial Number");
                         Dialog.setView(dialogView);
                         Dialog.setPositiveButton("Ok",
                                 new DialogInterface.OnClickListener() {
@@ -511,13 +512,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             @Override
                             public void onClick(View v) {
                                 Boolean wantToCloseDialog = true;
-                                if (commemtVerify.getText().toString().length() == 0) {
-                                    commemtVerify.setError("Please enter Asset Serial Number");
+                                if (commentVerify.getText().toString().length() == 0) {
+                                    commentVerify.setError("Please enter Asset Serial Number");
                                     wantToCloseDialog = false;
                                 }
                                 if (wantToCloseDialog) {
                                     dialog.dismiss();
-                                    populateStatus(mIssueID.get(position), position, commemtVerify.getText().toString(), sPreviousId);
+                                    populateStatus(mIssueID.get(position), position, commentVerify.getText().toString(), sPreviousId);
 
                                 }
                             }
@@ -611,6 +612,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         case R.id.chStatus:
                             currentStatus = mCardType.get(position);
                             Cursor cqueryIsVerified = sql.rawQuery("select IsVerified from Issue_Detail where IssueId='" + mIssueID.get(position) + "'", null);
+                            if (cqueryIsVerified.getCount() == 0) {
+                                return false;
+                            }
                             cqueryIsVerified.moveToFirst();
                             if (cqueryIsVerified.getString(0).toString().equals("0")) {
                                 final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
@@ -938,13 +942,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             DialogMain.setCancelable(false);
             LayoutInflater li = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View dialogView = li.inflate(R.layout.option, null);
-            Spinner spinnercategory = (Spinner) dialogView
+            Spinner spinnercategory = dialogView
                     .findViewById(R.id.viewSpin);
-            Spinner spinnerTransport = (Spinner) dialogView
+            Spinner spinnerTransport = dialogView
                     .findViewById(R.id.id_transportMode);
-            final EditText commemt = (EditText) dialogView.findViewById(R.id.comment);
-            final EditText eTransport = (EditText) dialogView.findViewById(R.id.amount);
-            layoutTransport = (LinearLayout) dialogView.findViewById(R.id.id_transportlayout);
+            final EditText commemt = dialogView.findViewById(R.id.comment);
+            final EditText eTransport = dialogView.findViewById(R.id.amount);
+            layoutTransport = dialogView.findViewById(R.id.id_transportlayout);
             DialogMain.setView(dialogView);
             DialogMain.setPositiveButton("Ok",
                     new DialogInterface.OnClickListener() {
@@ -1005,7 +1009,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 newValues.put("IsAccepted", "3");
                                 newValues.put("UpdatedDate", currentTime);
                                 newValues.put("PreviousStatus", sCurrentStatusId);
-                                sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                try {
+                                    sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                } catch (Exception e) {
+                                }
                                 MainActivity m = new MainActivity();
                                 m.updateCounter(ctx);
                                 Snackbar.make(v, "Status updated successfully!!!", Snackbar.LENGTH_LONG).show();
@@ -1032,19 +1039,24 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                             + "','" + postTktStatus.get("ActivityDate") + "','-1')");
                                 } catch (Exception e) {
                                 }
-                                Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
-                                if (cqueryTemp.getCount() > 0) {
-                                    cqueryTemp.moveToFirst();
-                                    ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
+
+                                try {
+                                    Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
+                                    String sColumnId = null;
+                                    if (cquery.getCount() > 0) {
+                                        cquery.moveToLast();
+                                        sColumnId = cquery.getString(0).toString();
+                                    }
+                                    Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
+                                    if (cqueryTemp.getCount() > 0) {
+                                        cqueryTemp.moveToFirst();
+                                        if (!nh_userid.equals("0"))
+                                            ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
+                                    }
+                                    UpdateTask(context, postTktStatus, sColumnId);
+                                } catch (Exception e) {
                                 }
 
-                                UpdateTask(context, postTktStatus, sColumnId);
                                 LastTransportMode = postTktStatus.get("ModeOfTransport");
 
                                 editor.putString("LastTransport", LastTransportMode);
@@ -1161,7 +1173,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                                 if (cqueryTemp.getCount() > 0) {
                                     cqueryTemp.moveToFirst();
-                                    ref.child(nh_userid).child(id).child("Action").setValue("Update");
+                                    if (!nh_userid.equals("0"))
+                                        ref.child(nh_userid).child(id).child("Action").setValue("Update");
                                 }
                                 MainActivity m = new MainActivity();
                                 m.updateCounter(ctx);
@@ -1397,6 +1410,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                         }
                     } catch (Exception e) {
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "false");
+                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                     }
                 }
 
@@ -1412,6 +1428,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             });
         } catch (Exception e) {
             Log.e("TicketStatusTable", "came to exception " + e.toString());
+            ContentValues newValues = new ContentValues();
+            newValues.put("SyncStatus", "false");
+            sql.update("Issue_History", newValues, "Id=" + sColumnId, null);
             return;
         }
 
@@ -1467,6 +1486,16 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
             }
         }
+
+//        if(!statusByHierarchy){
+//            statusList.clear();
+//            statusListIds.clear();
+//            ApiResult.IssueStatus.lstDetails data[] = MyApp.getApplication().readIssuesStatusList();
+//            for (int i = 0; i <data.length ; i++) {
+//                statusList.add(data[i].StatusName);
+//                statusListIds.add(data[i].Id);
+//            }
+//        }
     }
 
     void getLocation() {

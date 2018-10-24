@@ -90,6 +90,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
         databaseFirebase.getInstance();
         pref = getApplicationContext().getSharedPreferences("login", 0);
         editor = pref.edit();
+
         //editor = pref.edit();
         if (pref.contains("userid")) {
             nh_userid = pref.getString("userid", "0");
@@ -99,6 +100,14 @@ public class ServiceDataUpdateFirstFragment extends Service {
         }
 
         try {
+            ApiResult.User u = MyApp.getApplication().readUser();
+            if (nh_userid.equals("0")) {
+                if (u == null)
+                    return Service.START_STICKY;
+                else
+                    nh_userid = MyApp.getApplication().readUser().data.UserId;
+
+            }
             drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
             drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                 @Override
@@ -266,8 +275,11 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     cquery.moveToFirst();
                                     if (cquery.getString(0).toString().equals("Delete") || cquery.getString(0).toString().equals("delete")) {
                                         ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                        ref.child(nh_userid).child(t.IssueID).removeValue();
-                                        sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                        if (!nh_userid.equals("0")) {
+                                            ref.child(nh_userid).child(t.IssueID).removeValue();
+                                            sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                        }
+
 
                                     } else if (cquery.getString(0).toString().equals("New") || cquery.getString(0).toString().equals("new")) {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);

@@ -139,8 +139,14 @@ public class Firstfrag extends Fragment {
             sIsAssetVerification = pref.getBoolean("AssetVerification", false);
             sLastAction = pref.getString("LastAction", "2017-01-01");
         }
-
+        ApiResult.User u = MyApp.getApplication().readUser();
         try {
+            if (nh_userid.equals("0")) {
+                if (u == null)
+                    return view;
+                else
+                    nh_userid = MyApp.getApplication().readUser().data.UserId;
+            }
             drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
             drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                 @Override
@@ -467,7 +473,7 @@ public class Firstfrag extends Fragment {
                                 t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
                                 t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
                                 t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
-                                scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate));
+                                scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
                                 editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
                                 editor.apply();
                                 editor.commit();
@@ -476,8 +482,11 @@ public class Firstfrag extends Fragment {
                                     cquery.moveToFirst();
                                     if (cquery.getString(0).toString().equals("Delete") || cquery.getString(0).toString().equals("delete")) {
                                         ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                        ref.child(nh_userid).child(t.IssueID).removeValue();
-                                        sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                        if (!nh_userid.equals("0")) {
+                                            ref.child(nh_userid).child(t.IssueID).removeValue();
+                                            sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                        }
+
 
                                     } else if (cquery.getString(0).toString().equals("New") || cquery.getString(0).toString().equals("new")) {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
@@ -591,7 +600,8 @@ public class Firstfrag extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                if (isOnline(context) && firstTimeDone) {
+                if (isOnline(context) && firstTimeDone && !nh_userid.equals("0")) {
+
                     drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRef).child(nh_userid);
                     drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                         @Override

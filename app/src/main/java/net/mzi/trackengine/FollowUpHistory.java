@@ -27,29 +27,31 @@ public class FollowUpHistory extends AppCompatActivity {
     FollowUpAdapter followUpAdapter;
     public static final int TASK = 0;
     RecyclerView mRecyclerView;
-    String id,TNumber;
-    List<String> mStatus=new ArrayList<String>();
-    List<String> mComment=new ArrayList<String>();
-    List<String> mAssignedTo=new ArrayList<String>();
-    List<String> mCreadteDate=new ArrayList<String>();
-    List<Integer> mDatasetTypes=new ArrayList<Integer>();
-    List<String> mIssueId=new ArrayList<String>();
+    String id, TNumber;
+    List<String> mStatus = new ArrayList<String>();
+    List<String> mComment = new ArrayList<String>();
+    List<String> mAssignedTo = new ArrayList<String>();
+    List<String> attachments = new ArrayList<String>();
+    List<String> mCreadteDate = new ArrayList<String>();
+    List<Integer> mDatasetTypes = new ArrayList<Integer>();
+    List<String> mIssueId = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_follow_up_history);
         Bundle bundle = getIntent().getExtras();
-        id=bundle.getString("ID");
-        TNumber=bundle.getString("TNumber");
+        id = bundle.getString("ID");
+        TNumber = bundle.getString("TNumber");
         getSupportActionBar().setTitle("Follow up History");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mRecyclerView = (RecyclerView) findViewById(R.id.folllowUpview);
 
-        API_URL = PostUrl.sUrl+"GetIssueHistory?IssueId="+id;
+        API_URL = PostUrl.sUrl + "GetIssueHistory?IssueId=" + id;
         new FollowUp().execute();
     }
+
     private class FollowUp extends AsyncTask<String, Void, String> {
 
         @Override
@@ -60,73 +62,75 @@ public class FollowUpHistory extends AppCompatActivity {
             mStatus.clear();
             mCreadteDate.clear();
             mComment.clear();
-
+            attachments.clear();
             mAssignedTo.clear();
             mIssueId.clear();
         }
 
         @Override
-            protected String doInBackground(String... params) {
+        protected String doInBackground(String... params) {
+            try {
+                URL url = new URL(API_URL);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 try {
-                    URL url = new URL(API_URL);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    try {
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                        StringBuilder stringBuilder = new StringBuilder();
-                        String line;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            stringBuilder.append(line).append("\n");
-                        }
-                        bufferedReader.close();
-                        return stringBuilder.toString();
-                    } finally {
-                        urlConnection.disconnect();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
                     }
-                } catch (Exception e) {
-                    Log.e("FollowUp CLASS,", e.getMessage(), e);
-                    return null;
+                    bufferedReader.close();
+                    return stringBuilder.toString();
+                } finally {
+                    urlConnection.disconnect();
                 }
-            }
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-                if (s == null) {
-                    s = "THERE WAS AN ERROR";
-                }
-                Log.i("INFO", s);
-
-                try {
-                    JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
-                    JSONArray jdata = jsonObject.getJSONArray("IssueHistories");
-                    for(int i=0;i<jdata.length();i++)
-                    {
-                        JSONObject object=jdata.getJSONObject(i);
-                        mAssignedTo.add(object.getString("ActionedBy"));
-                        mComment.add(object.getString("Comment"));
-                        mCreadteDate.add(object.getString("CreatedDate"));
-                        mStatus.add(object.getString("IssueStatus"));
-                        mIssueId.add(TNumber);
-                        mDatasetTypes.add(TASK);
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                mLayoutManager = new LinearLayoutManager(FollowUpHistory.this,LinearLayoutManager.VERTICAL,false);
-                mRecyclerView.setLayoutManager(mLayoutManager);
-                followUpAdapter=new FollowUpAdapter(FollowUpHistory.this,mAssignedTo,mComment,mCreadteDate, mStatus,mDatasetTypes,mIssueId);
-                mRecyclerView.setAdapter(followUpAdapter);
-
+            } catch (Exception e) {
+                Log.e("FollowUp CLASS,", e.getMessage(), e);
+                return null;
             }
         }
+
         @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            switch (item.getItemId()) {
-                case android.R.id.home:
-                    onBackPressed();
-                    return true;
-                default:
-                    return super.onOptionsItemSelected(item);
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s == null) {
+                s = "THERE WAS AN ERROR";
+            }
+            Log.i("INFO", s);
+
+            try {
+                JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
+                JSONArray jdata = jsonObject.getJSONArray("IssueHistories");
+                for (int i = 0; i < jdata.length(); i++) {
+                    JSONObject object = jdata.getJSONObject(i);
+                    mAssignedTo.add(object.getString("ActionedBy"));
+                    mComment.add(object.getString("Comment"));
+                    attachments.add(object.getString("AttachmentUrl"));
+                    mCreadteDate.add(object.getString("CreatedDate"));
+                    mStatus.add(object.getString("IssueStatus"));
+                    mIssueId.add(TNumber);
+                    mDatasetTypes.add(TASK);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mLayoutManager = new LinearLayoutManager(FollowUpHistory.this, LinearLayoutManager.VERTICAL, false);
+            mRecyclerView.setLayoutManager(mLayoutManager);
+            followUpAdapter = new FollowUpAdapter(FollowUpHistory.this, mAssignedTo, mComment, mCreadteDate, mStatus, mDatasetTypes, mIssueId, attachments);
+            mRecyclerView.setAdapter(followUpAdapter);
+
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 }

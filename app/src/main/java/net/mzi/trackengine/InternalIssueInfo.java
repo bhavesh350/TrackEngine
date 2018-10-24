@@ -110,7 +110,7 @@ public class InternalIssueInfo extends AppCompatActivity {
             }
             mLayoutManager = new LinearLayoutManager(InternalIssueInfo.this,LinearLayoutManager.VERTICAL,false);
             mRecyclerView.setLayoutManager(mLayoutManager);
-            followUpAdapter=new FollowUpAdapter(InternalIssueInfo.this,mAssignedTo,mComment,mCreadteDate, mStatus,mDatasetTypes,mIssueId);
+            followUpAdapter=new FollowUpAdapter(InternalIssueInfo.this,mAssignedTo,mComment,mCreadteDate, mStatus,mDatasetTypes,mIssueId,new ArrayList<String>());
             mRecyclerView.setAdapter(followUpAdapter);
         }
     }
