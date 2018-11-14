@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +27,9 @@ import net.mzi.trackengine.model.PostUrl;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -109,7 +112,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         ticketHolder.StatusId.setText(mStatus.get(position));
         ticketHolder.time.setText(sDateUI);
         ticketHolder.IssueText.setText(mSub.get(position));
-        ticketHolder.acceptButton.setOnClickListener(new View.OnClickListener() {
+        ticketHolder.btn_accetp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SchedulingAdapter.isAttended = "0";
@@ -131,24 +134,36 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                     newValues.put("UpdatedDate", currentDateTimeString);
                     newValues.put("PreviousStatus", cqueryTemp.getString(0).toString());
                     sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
-                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                            "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
-                    Cursor cque = sql.rawQuery("select * from Issue_History ", null);
-                    String sColumnId = null;
-                    if (cque.getCount() > 0) {
-                        cque.moveToLast();
-                        sColumnId = cquery.getString(0).toString();
 
-                    }
+                    Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+                    Map<String, String> map = new HashMap<>();
+                    map.put("TicketId", mIssueID.get(position));
+                    map.put("UserId", nh_userid);
+                    map.put("StatusId", sAcceptStatus);
+                    map.put("ParentCompanyId", sParentComapnyId);
+                    map.put("Comment", "Accepted By Engineer");
+                    map.put("ActivityDate", currentDateTimeString);
+                    map.put("SyncStatus", "-1");
+                    ticketsMap.put(mIssueID.get(position), map);
+                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+
+//                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                            "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
+//                    Cursor cque = sql.rawQuery("select * from Issue_History ", null);
+//                    String sColumnId = null;
+//                    if (cque.getCount() > 0) {
+//                        cque.moveToLast();
+//                        sColumnId = cquery.getString(0).toString();
+//
+//                    }
                     cquery.close();
                     final ApiResult apiResult = new ApiResult();
                     final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
-                            mIssueID.get(position), sAcceptStatus, "Accept by Engineer", currentDateTimeString,
+                            mIssueID.get(position), sAcceptStatus, "Accepted by Engineer", currentDateTimeString,
                             DepartmentId, "", "", "", sDeviceId, "-1",
                             "", "", "");
                     Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
-                    final String finalColumnId = sColumnId;
                     call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                         @Override
                         public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
@@ -160,13 +175,28 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     } catch (Exception e) {
                                         e.getMessage();
                                     }
-                                    ContentValues newValues = new ContentValues();
-                                    newValues.put("SyncStatus", "false");
-                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                    Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                    try {
+                                        Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                        map.put("SyncStatus", "false");
+                                        MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                    } catch (Exception e) {
+                                    }
+//                                    ContentValues newValues = new ContentValues();
+//                                    newValues.put("SyncStatus", "false");
+//                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                 } else {
-                                    ContentValues newValues = new ContentValues();
-                                    newValues.put("SyncStatus", "true");
-                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                    Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                    try {
+                                        Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                        map.put("SyncStatus", "true");
+                                        issueMap.remove(mIssueID.get(position));
+                                        MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                    } catch (Exception e) {
+                                    }
+//                                    ContentValues newValues = new ContentValues();
+//                                    newValues.put("SyncStatus", "true");
+//                                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                     Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
                                     ref = new Firebase(PostUrl.sFirebaseUrlTickets);
                                     if (cqueryTemp.getCount() > 0) {
@@ -192,7 +222,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                 removeCard(position);
             }
         });
-        ticketHolder.rejectButton.setOnClickListener(new View.OnClickListener() {
+        ticketHolder.btn_reject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SchedulingAdapter.isAttended = "0";
@@ -238,15 +268,28 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                             Firstfrag f = new Firstfrag();
                             Date cDate = new Date();
                             String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                            sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                    "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + commemt.getText().toString() + "','" + currentDateTimeString + "','-1')");
-                            Cursor cque = sql.rawQuery("select * from Issue_History ", null);
-                            String sColumnId = null;
-                            if (cque.getCount() > 0) {
-                                cque.moveToLast();
-                                sColumnId = cquery.getString(0).toString();
-                            }
-                            cquery.close();
+
+                            Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+                            Map<String, String> map = new HashMap<>();
+                            map.put("TicketId", mIssueID.get(position));
+                            map.put("UserId", nh_userid);
+                            map.put("StatusId", sAcceptStatus);
+                            map.put("ParentCompanyId", sParentComapnyId);
+                            map.put("Comment", "Accepted By Engineer");
+                            map.put("ActivityDate", currentDateTimeString);
+                            map.put("SyncStatus", "-1");
+                            ticketsMap.put(mIssueID.get(position), map);
+                            MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+
+//                            sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                                    "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + commemt.getText().toString() + "','" + currentDateTimeString + "','-1')");
+//                            Cursor cque = sql.rawQuery("select * from Issue_History ", null);
+//                            String sColumnId = null;
+//                            if (cque.getCount() > 0) {
+//                                cque.moveToLast();
+//                                sColumnId = cquery.getString(0).toString();
+//                            }
+//                            cquery.close();
                             final ApiResult apiResult = new ApiResult();
                             final ApiResult.IssueDetail issueDetail = apiResult.new
                                     IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position),
@@ -256,9 +299,9 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     "", "", "");
                             Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
-                            final String finalColumnId = sColumnId;
+//                            final String finalColumnId = sColumnId;
 
-                            final String finalSColumnId = sColumnId;
+//                            final String finalSColumnId = sColumnId;
                             call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                                 @Override
                                 public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
@@ -269,15 +312,30 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                         } catch (Exception e) {
                                             e.getMessage();
                                         }
-                                        ContentValues newValues = new ContentValues();
-                                        newValues.put("SyncStatus", "false");
-                                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                        Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                        try {
+                                            Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                            map.put("SyncStatus", "false");
+                                            MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                        } catch (Exception e) {
+                                        }
+//                                        ContentValues newValues = new ContentValues();
+//                                        newValues.put("SyncStatus", "false");
+//                                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                     } else {
                                         MainActivity m = new MainActivity();
                                         m.updateCounter(context);
-                                        ContentValues newValues = new ContentValues();
-                                        newValues.put("SyncStatus", "true");
-                                        sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
+//                                        ContentValues newValues = new ContentValues();
+//                                        newValues.put("SyncStatus", "true");
+//                                        sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
+                                        Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                        try {
+                                            Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                            map.put("SyncStatus", "true");
+                                            issueMap.remove(mIssueID.get(position));
+                                            MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                        } catch (Exception e) {
+                                        }
                                         try {
                                             Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
                                             ref = new Firebase(PostUrl.sFirebaseUrlTickets);
@@ -324,7 +382,8 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 
     private class TicketHolder extends ViewHolder {
         TextView IssueID, IssueText, time, Adress, StatusId, schedule_date;
-        FloatingActionButton acceptButton, rejectButton;
+        //        FloatingActionButton acceptButton, rejectButton;
+        FloatingActionButton btn_accetp, btn_reject;
 
         public TicketHolder(View itemView) {
             super(itemView);
@@ -335,8 +394,8 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
             Adress = (TextView) v.findViewById(R.id.adrs);
             StatusId = (TextView) v.findViewById(R.id.newtktstatus);
             time = (TextView) v.findViewById(R.id.beontime);
-            acceptButton = (FloatingActionButton) v.findViewById(R.id.accept);
-            rejectButton = (FloatingActionButton) v.findViewById(R.id.reject);
+            btn_accetp = v.findViewById(R.id.btn_accept);
+            btn_reject = v.findViewById(R.id.btn_reject);
         }
     }
 

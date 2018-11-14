@@ -499,6 +499,15 @@ public class ApiResult {
         @SerializedName("DeviceModel")
         public String DeviceModel;
 
+        @SerializedName("AppVersionCode")
+        public String AppVersionCode;
+
+        @SerializedName("AppVersionName")
+        public String AppVersionName;
+
+        @SerializedName("AndroidVersion")
+        public String AndroidVersion;
+
         @SerializedName("StatusByHierarchy")
         public boolean StatusByHierarchy;
 
@@ -506,13 +515,15 @@ public class ApiResult {
         @SerializedName("LoggedInUserDetail")
         public LoginDetail.Datum data;
 
-        public User(String sUsername, String sPassword, String sDeviceId, String sDeviceModel, String ActivityDate) {
+        public User(String sUsername, String sPassword, String sDeviceId, String sDeviceModel, String ActivityDate, String AndroidVersion, String AppVersionCode, String AppVersionName) {
             this.Username = sUsername;
             this.Password = sPassword;
             this.DeviceId = sDeviceId;
             this.DeviceModel = sDeviceModel;
             this.ActivityDate = ActivityDate;
-
+            this.AndroidVersion = AndroidVersion;
+            this.AppVersionCode = AppVersionCode;
+            this.AppVersionName = AppVersionName;
         }
     }
 

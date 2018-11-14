@@ -55,40 +55,41 @@ public class FollowUpAdapter extends RecyclerView.Adapter<FollowUpAdapter.ViewHo
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!attachments.get(getLayoutPosition()).isEmpty()) {
-                        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-                        WebView wv = new WebView(context);
-                        wv.getSettings().setBuiltInZoomControls(true);
-                        wv.loadUrl(attachments.get(getLayoutPosition()));
-                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
-                                RelativeLayout.LayoutParams.MATCH_PARENT);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-                        wv.setLayoutParams(params);
+                    if (attachments.size() > 0)
+                        if (!attachments.get(getLayoutPosition()).isEmpty()) {
+                            AlertDialog.Builder alert = new AlertDialog.Builder(context);
+                            WebView wv = new WebView(context);
+                            wv.getSettings().setBuiltInZoomControls(true);
+                            wv.loadUrl(attachments.get(getLayoutPosition()));
+                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+                                    RelativeLayout.LayoutParams.MATCH_PARENT);
+                            params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+                            wv.setLayoutParams(params);
 
-                        wv.setWebViewClient(new WebViewClient() {
-                            @Override
-                            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                view.loadUrl(url);
+                            wv.setWebViewClient(new WebViewClient() {
+                                @Override
+                                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                    view.loadUrl(url);
 
-                                return true;
-                            }
-                        });
+                                    return true;
+                                }
+                            });
 
-                        alert.setView(wv);
-                        alert.setNegativeButton("Close", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.dismiss();
-                            }
-                        });
-                        AlertDialog dialog = alert.create();
-                        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-                        layoutParams.copyFrom(dialog.getWindow().getAttributes());
-                        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-                        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-                        dialog.getWindow().setAttributes(layoutParams);
-                        dialog.show();
-                    }
+                            alert.setView(wv);
+                            alert.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            AlertDialog dialog = alert.create();
+                            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+                            layoutParams.copyFrom(dialog.getWindow().getAttributes());
+                            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+                            layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+                            dialog.getWindow().setAttributes(layoutParams);
+                            dialog.show();
+                        }
                 }
             });
         }
@@ -112,11 +113,16 @@ public class FollowUpAdapter extends RecyclerView.Adapter<FollowUpAdapter.ViewHo
             ticketHolder.Comment.setText("Comment: " + mComment.get(position));
             ticketHolder.AssignedTo.setText("Updated By: " + mAssignedTo.get(position));
             ticketHolder.CreadteDate.setText("Updated On: " + mCreadteDate.get(position));
-            if (attachments.get(position).isEmpty()) {
-                ticketHolder.IssueID.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+            if (attachments.size() > 0) {
+                if (attachments.get(position).isEmpty()) {
+                    ticketHolder.IssueID.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                } else {
+                    ticketHolder.IssueID.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_attachment, 0);
+                }
             } else {
-                ticketHolder.IssueID.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_attachment, 0);
+                ticketHolder.IssueID.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

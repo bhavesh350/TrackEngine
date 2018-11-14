@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import net.mzi.trackengine.model.PostUrl;
 
@@ -41,6 +42,7 @@ public class History_User extends Fragment {
     List<Integer> mDatasetTypes = new ArrayList<Integer>();
     List<String> mIssueId = new ArrayList<String>();
     private ProgressDialog progress;
+    private RelativeLayout rl_progress;
 
     public History_User() {
 
@@ -55,6 +57,8 @@ public class History_User extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.historyuser, container, false);
+        rl_progress = view.findViewById(R.id.rl_progress);
+        rl_progress.setVisibility(View.VISIBLE);
         API_URL = PostUrl.sUrl + "GetWorkedUpOnIssue?iUserId=" + MainActivity.LOGINID + "&dtFromDate=1900-01-01&dtToDate=2200-01-01";
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
         new UserFollowUp().execute();
@@ -66,7 +70,7 @@ public class History_User extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                MyApp.showMassage(getContext(), "Loading data!!!");
+//                MyApp.showMassage(getContext(), "Loading data!!!");
 //                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
            /* if(!((Activity) getActivity()).isFinishing()) {
@@ -108,6 +112,7 @@ public class History_User extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
+            rl_progress.setVisibility(View.GONE);
             if (progress != null) {
                 progress.dismiss();
             }

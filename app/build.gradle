@@ -6,7 +6,10 @@ buildscript {
     dependencies {
         classpath 'io.fabric.tools:gradle:1.+'
     }
+
+
 }
+
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
@@ -24,14 +27,14 @@ android {
             storePassword 'vaishali@123'
         }
     }
-    compileSdkVersion 27
+    compileSdkVersion 28
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "net.mzi.trackengine"
         minSdkVersion 16
-        targetSdkVersion 27
-        versionCode 23
-        versionName "1.5.4"
+        targetSdkVersion 28
+        versionCode 25
+        versionName "1.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
 
@@ -40,6 +43,9 @@ android {
     lintOptions {
         checkReleaseBuilds false
         abortOnError false
+    }
+    aaptOptions {
+        cruncherEnabled false
     }
     buildTypes {
         release {
@@ -63,21 +69,21 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     //noinspection GradleCompatible
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:support-v4:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+//    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
     implementation 'com.firebase:firebase-client-android:2.5.2'
     implementation 'com.google.firebase:firebase-database:11.8.0'
     implementation 'com.google.android.gms:play-services:11.8.0'
-    implementation 'com.android.support:cardview-v7:27.1.1'
-    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.google.firebase:firebase-core:11.8.0'
-    implementation 'com.daprlabs.aaron:cardstack:0.3.1-beta0'
+//    implementation 'com.daprlabs.aaron:cardstack:0.3.1-beta0'
     implementation 'com.github.PhilJay:MPAndroidChart:v2.1.6'
     implementation 'com.google.code.gson:gson:2.2.4'
     implementation 'com.intuit.sdp:sdp-android:1.0.4'
@@ -91,8 +97,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1'
     implementation 'com.squareup.okhttp3:okhttp:3.4.1'
     implementation 'id.zelory:compressor:2.1.0'
-    compile('com.crashlytics.sdk.android:crashlytics:2.9.5@aar') {
+    implementation "com.yuyakaido.android:card-stack-view:2.0.0"
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.5@aar') {
         transitive = true;
     }
+
 }
+
 apply plugin: 'com.google.gms.google-services'

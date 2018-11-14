@@ -664,4 +664,104 @@ public class MyApp extends MultiDexApplication {
     }
 
 
+    public void writeCheckInOutData(Map<String, Map<String, String>> map) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/checkInOut.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(map);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Map<String, String>> readCheckInOutData() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/checkInOut.ser";
+        File f = new File(path);
+        Map<String, Map<String, String>> map = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                map = (Map<String, Map<String, String>>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
+
+    public void writeTicketsIssueHistory(Map<String, Map<String, String>> map) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/issueHistory.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(map);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Map<String, String>> readTicketsIssueHistory() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/issueHistory.ser";
+        File f = new File(path);
+        Map<String, Map<String, String>> map = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                map = (Map<String, Map<String, String>>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
+
 }

@@ -17,14 +17,14 @@ import java.util.List;
  */
 
 public class CheckInSynAdpater extends RecyclerView.Adapter<CheckInSynAdpater.ViewHolder> {
-    List<String> lCheckInTime=new ArrayList<String>();
-    List<String> lCheckInStatus=new ArrayList<String>();
-    List<Integer> lColors=new ArrayList<Integer>();
+    List<String> lCheckInTime = new ArrayList<String>();
+    List<String> lCheckInStatus = new ArrayList<String>();
+    List<Integer> lColors = new ArrayList<Integer>();
 
-    public CheckInSynAdpater(List<String> lCheckInTime, List<String> lCheckInStatus,List<Integer> lColors){
-        this.lCheckInTime=lCheckInTime;
-        this.lCheckInStatus=lCheckInStatus;
-        this.lColors=lColors;
+    public CheckInSynAdpater(List<String> lCheckInTime, List<String> lCheckInStatus, List<Integer> lColors) {
+        this.lCheckInTime = lCheckInTime;
+        this.lCheckInStatus = lCheckInStatus;
+        this.lColors = lColors;
     }
 
 
@@ -38,7 +38,7 @@ public class CheckInSynAdpater extends RecyclerView.Adapter<CheckInSynAdpater.Vi
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        CheckInSyncHolder syncHolder=(CheckInSyncHolder) holder;
+        CheckInSyncHolder syncHolder = (CheckInSyncHolder) holder;
         syncHolder.tCheckInStatus.setText(lCheckInStatus.get(position));
         syncHolder.tCheckInTime.setText(lCheckInTime.get(position));
         syncHolder.tktlayout.setBackgroundResource(lColors.get(position));
@@ -51,19 +51,21 @@ public class CheckInSynAdpater extends RecyclerView.Adapter<CheckInSynAdpater.Vi
         //return 51;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
         }
     }
-    private class CheckInSyncHolder extends CheckInSynAdpater.ViewHolder{
-        TextView tCheckInTime,tCheckInStatus;
+
+    private class CheckInSyncHolder extends CheckInSynAdpater.ViewHolder {
+        TextView tCheckInTime, tCheckInStatus;
         LinearLayout tktlayout;
+
         public CheckInSyncHolder(View itemView) {
             super(itemView);
-            this.tCheckInTime=(TextView)itemView.findViewById(R.id.id_date);
-            this.tCheckInStatus=(TextView)itemView.findViewById(R.id.id_status);
-            this.tktlayout=(LinearLayout) itemView.findViewById(R.id.checkinlayout);
+            this.tCheckInTime = itemView.findViewById(R.id.id_date);
+            this.tCheckInStatus = itemView.findViewById(R.id.id_status);
+            this.tktlayout = itemView.findViewById(R.id.checkinlayout);
         }
     }
 

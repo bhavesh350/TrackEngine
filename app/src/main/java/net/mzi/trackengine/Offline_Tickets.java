@@ -17,7 +17,9 @@ import android.widget.Toast;
 import net.mzi.trackengine.adapter.TicketSynAdpater;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Poonam on 1/19/2018.
@@ -82,52 +84,76 @@ public class Offline_Tickets extends Fragment {
         lTicketStatus.clear();
         lTicketTime.clear();
         lColors.clear();
-        final Cursor cquery = sql.rawQuery("select * from Issue_History where UserId='" + sUserId + "'", null);
-        if (cquery.getCount() > 0) {
+        final Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+//        final Cursor cquery = sql.rawQuery("select * from Issue_History where UserId='" + sUserId + "'", null);
+        if (savedMap.keySet().size() > 0) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        Cursor cqueryTemp = sql.rawQuery("select TicketNumber from Issue_Detail where issueid='" + cquery.getString(1).toString() + "'", null);
-                        if (cquery.getString(6).toString().equals("true"))
+                    for (String key : savedMap.keySet()) {
+                        if (savedMap.get(key).get("SyncStatus").equals("true")) {
                             lColors.add(R.drawable.cardbk_green);
-                        else
+                        } else
                             lColors.add(R.drawable.cardbk_red);
+                        Cursor cqueryTemp = sql.rawQuery("select TicketNumber from Issue_Detail where issueid='" + savedMap.get(key).get("TicketId") + "'", null);
                         if (cqueryTemp.getCount() > 0) {
                             cqueryTemp.moveToFirst();
                             lTicketNumber.add(cqueryTemp.getString(0).toString());
                         } else {
                             lTicketNumber.add("NA");
                         }
-                        cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + cquery.getString(3).toString(), null);
+                        cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + savedMap.get(key).get("StatusId"), null);
                         cqueryTemp.moveToFirst();
-                        lTicketComment.add(cquery.getString(4).toString());
-                        lTicketStatus.add(cqueryTemp.getString(0).toString());
-                        lTicketTime.add(cquery.getString(5).toString());
+                        lTicketComment.add(savedMap.get(key).get("Comment"));
+                        lTicketStatus.add(cqueryTemp.getString(0));
+                        lTicketTime.add(savedMap.get(key).get("ActivityDate"));
                     }
+//                }
+//                    for(cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext())
+//
+//                {
+//                    if (cquery.getString(6).toString().equals("true"))
+//                        lColors.add(R.drawable.cardbk_green);
+//                    else
+//                        lColors.add(R.drawable.cardbk_red);
+//                    if (cqueryTemp.getCount() > 0) {
+//                        cqueryTemp.moveToFirst();
+//                        lTicketNumber.add(cqueryTemp.getString(0).toString());
+//                    } else {
+//                        lTicketNumber.add("NA");
+//                    }
+//                    cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + cquery.getString(3).toString(), null);
+//                    cqueryTemp.moveToFirst();
+//                    lTicketComment.add(cquery.getString(4).toString());
+//                    lTicketStatus.add(cqueryTemp.getString(0).toString());
+//                    lTicketTime.add(cquery.getString(5).toString());
+//                }
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-                            mRecyclerView.setLayoutManager(mLayoutManager);
-                            mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
-                            mRecyclerView.setAdapter(mAdapter);
-                        }
-                    });
-                }
-            }).start();
-        } else {
-            try {
-                Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run () {
+                        mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+                        mRecyclerView.setLayoutManager(mLayoutManager);
+                        mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
+                        mRecyclerView.setAdapter(mAdapter);
+                    }
+                });
             }
-        }
+        }).start();
+    } else
 
+    {
+        try {
+            Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+        }
     }
 
+}
+
     public void removeData() {
-        sql.delete("Issue_History", null, null);
+        MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());
+//        sql.delete("Issue_History", null, null);
         lTicketComment.clear();
         lTicketTime.clear();
         lTicketNumber.clear();

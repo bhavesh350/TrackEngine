@@ -11,11 +11,11 @@
         android:orderInCategory="100"
         android:title="Navigate to Route"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/atkt"
-        android:orderInCategory="100"
-        android:title="Assign Ticket"
-        app:showAsAction="never" />
+    <!--<item-->
+        <!--android:id="@+id/atkt"-->
+        <!--android:orderInCategory="100"-->
+        <!--android:title="Assign Ticket"-->
+        <!--app:showAsAction="never" />-->
     <item
         android:id="@+id/chStatus"
         android:orderInCategory="100"

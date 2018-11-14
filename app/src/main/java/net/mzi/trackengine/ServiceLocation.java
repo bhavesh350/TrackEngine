@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.firebase.FirebaseApp;
+import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.User_Location;
 
@@ -266,6 +267,10 @@ public class ServiceLocation extends Service {
         } catch (SQLiteDatabaseLockedException e) {
             flags = START_STICKY;
             return super.onStartCommand(intent, flags, startId);
+        } catch (RuntimeException ee) {
+            return super.onStartCommand(intent, flags, startId);
+        } catch (Exception eee) {
+            return super.onStartCommand(intent, flags, startId);
         }
 
         gps = new Gps(getApplicationContext());
@@ -413,9 +418,9 @@ public class ServiceLocation extends Service {
                                     sColumnId = cquery.getString(0).toString();
                                 }
                                 cquery.close();
-                                LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                                LocationOperation(locationInfo, getApplicationContext(), sColumnId, false);
                             } catch (Exception e) {
-                                LocationOperation(locationInfo, getApplicationContext(), "");
+                                LocationOperation(locationInfo, getApplicationContext(), "", false);
                             }
                         }
                     } else {
@@ -503,9 +508,9 @@ public class ServiceLocation extends Service {
                                 sColumnId = cquery.getString(0).toString();
                             }
                             cquery.close();
-                            LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                            LocationOperation(locationInfo, getApplicationContext(), sColumnId, false);
                         } catch (Exception e) {
-                            LocationOperation(locationInfo, getApplicationContext(), "");
+                            LocationOperation(locationInfo, getApplicationContext(), "", false);
                         }
                     }
                 } else {
@@ -564,7 +569,36 @@ public class ServiceLocation extends Service {
     }
 
 
-    public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
+    public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId, boolean isOffline) {
+
+        Map<String, String> mMobileDataInfo = new HashMap<>();
+        if (!isOffline) {
+            InternetConnector icDataSyncing = new InternetConnector();
+            if (!nh_userid.equals("0"))
+                if (MyApp.isConnectingToInternet(ctx)) {
+                    try {
+                        icDataSyncing.offlineSyncing(ctx, 1);
+
+                        mMobileDataInfo.put("UserId", nh_userid);
+                        mMobileDataInfo.put("DeviceId", sDeviceId);
+                        mMobileDataInfo.put("Enabled", "true");
+                        mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                        mMobileDataInfo.put("RealTimeUpdate", "true");
+
+                    } catch (Exception e) {
+                    }
+                } else {
+                    mMobileDataInfo.put("UserId", nh_userid);
+                    mMobileDataInfo.put("DeviceId", sDeviceId);
+                    mMobileDataInfo.put("Enabled", "false");
+                    mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                    mMobileDataInfo.put("RealTimeUpdate", "true");
+
+                }
+
+        }
+
+
         String sCheckInStatus = pref.getString("CheckedInStatus", "0");
         if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
             long lastLocTime = MyApp.getSharedPrefLong("LOC");
@@ -575,6 +609,8 @@ public class ServiceLocation extends Service {
             if (differLoc < (2 * 58 * 1000)) {
                 return;
             }
+
+
             MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
@@ -594,9 +630,10 @@ public class ServiceLocation extends Service {
 //            isLocationCalled = false;
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-            try{
+            try {
                 sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -671,6 +708,15 @@ public class ServiceLocation extends Service {
             }
             long differ = System.currentTimeMillis() - lastBatteryTime;
             if (differ >= (15 * 57 * 1000)) {
+                if (MyApp.isConnectingToInternet(ctx)) {
+                    PushMobileData(mMobileDataInfo);
+                } else {
+                    try {
+                        sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
+                                "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
+                    } catch (Exception e) {
+                    }
+                }
                 MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
 
                 BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
@@ -697,8 +743,34 @@ public class ServiceLocation extends Service {
         }
     }
 
+    public void PushMobileData(Map mMobileDataInfo) {
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        Log.e("PushMobileData: ", mMobileDataInfo.toString());
+        final ApiResult apiResult = new ApiResult();
+        final ApiResult.User_MobileData user_MobileData = apiResult.new User_MobileData("false", mMobileDataInfo.get("UserId").toString(), mMobileDataInfo.get("DeviceId").toString(), mMobileDataInfo.get("Enabled").toString(), mMobileDataInfo.get("ActionDate").toString());
+        Call<ApiResult.User_MobileData> call1 = apiInterface.PostMobileData(user_MobileData);
+        call1.enqueue(new Callback<ApiResult.User_MobileData>() {
+            @Override
+            public void onResponse(Call<ApiResult.User_MobileData> call, Response<ApiResult.User_MobileData> response) {
+                try {
+                    ApiResult.User_MobileData iData = response.body();
+                    if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-    public void LocationOperationOffline(Map locationInfo, final Context ctx, final String sColumnId) {
+                    } else {
+                        MyApp.showMassage(getApplication(), "Location sent successfully!!!");
+                    }
+                } catch (Exception e) {
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult.User_MobileData> call, Throwable t) {
+                call.cancel();
+            }
+        });
+    }
+
+    public void LocationOperationOffline(Map locationInfo, final Context ctx, final String sColumnId, final boolean showToast) {
 
         pref = ctx.getSharedPreferences("login", 0);
         editor = pref.edit();
@@ -771,6 +843,8 @@ public class ServiceLocation extends Service {
                                 if (!finalColumnId.isEmpty())
                                     sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             }
+                            if (showToast)
+                                MyApp.showMassage(getApplicationContext(), "Location sent successfully!!!");
                         } catch (Exception e) {
                         }
                     }
@@ -917,8 +991,9 @@ public class ServiceLocation extends Service {
             }
         });
 
-        try{
+        try {
             startService(new Intent(getApplicationContext(), ServiceLocation.class));
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
     }
 }

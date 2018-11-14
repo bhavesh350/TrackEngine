@@ -16,9 +16,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
@@ -26,32 +26,30 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
 
-import com.daprlabs.cardstack.SwipeDeck;
-import com.daprlabs.cardstack.SwipeFrameLayout;
 import com.firebase.client.Firebase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
+import com.yuyakaido.android.cardstackview.CardStackLayoutManager;
+import com.yuyakaido.android.cardstackview.CardStackListener;
+import com.yuyakaido.android.cardstackview.CardStackView;
+import com.yuyakaido.android.cardstackview.Direction;
+import com.yuyakaido.android.cardstackview.StackFrom;
+import com.yuyakaido.android.cardstackview.SwipeAnimationSetting;
 
 import net.mzi.trackengine.model.FirebaseTicketData;
 import net.mzi.trackengine.model.PostUrl;
 import net.mzi.trackengine.model.TicketInfoClass;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -60,34 +58,31 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static net.mzi.trackengine.MainActivity.locationAlarmManager;
-import static net.mzi.trackengine.MainActivity.parseDateToddMMyyyy;
 
 /**
  * Created by Poonam on 2/2/2017.
  */
-
-public class Firstfrag extends Fragment {
+public class Firstfrag extends Fragment implements CardStackListener {
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
     SharedPreferences.Editor editor;
     String nh_userid;
     boolean sIsAssetVerification;
-    static SwipeDeck cardStack;
     String sTicketIds = "";
     FirebaseTicketData Pi = new FirebaseTicketData();
-    SwipeFrameLayout sfl;
     SQLiteDatabase sql;
     public Map<String, String> mTicketIdList = new HashMap<>();
     int MULTIPLE_NOTIFICATION = 0;
     Context ctx;
     SharedPreferences pref;
-
     static List<TicketInfoClass> newTickets = new ArrayList<TicketInfoClass>();
     final static ArrayList<String> testData = new ArrayList<>();
     Firebase ref = null;
-
     FirebaseDatabase databaseFirebase = FirebaseDatabase.getInstance();
     DatabaseReference drRef;
+    private CardStackView cardStackView;
+    private SwipeDeckAdapter adapter;
+    private CardStackLayoutManager manager;
 
     public Firstfrag() {
     }
@@ -113,9 +108,7 @@ public class Firstfrag extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ctx = getActivity();
-
         receiver = new NetworkChangeReceiver();
-
         ctx.registerReceiver(receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
@@ -128,8 +121,7 @@ public class Firstfrag extends Fragment {
                 getActivity().getApplicationContext().MODE_PRIVATE, null);
         Firebase.setAndroidContext(getActivity().getApplicationContext());
         databaseFirebase.getInstance();
-        cardStack = view.findViewById(R.id.swipe_deck);
-        sfl = view.findViewById(R.id.ma);
+        cardStackView = view.findViewById(R.id.new_card);
         pref = getActivity().getSharedPreferences("login", 0);
         editor = pref.edit();
         //editor = pref.edit();
@@ -198,33 +190,33 @@ public class Firstfrag extends Fragment {
             });
 
 
-            cardStack.setEventCallback(new SwipeDeck.SwipeEventCallback() {
-                @Override
-                public void cardSwipedLeft(int position) {
-                    Log.i("MainActivity", "card was swiped left, position in adapter: " + position);
-                }
-
-                @Override
-                public void cardSwipedRight(int position) {
-                    Log.i("MainActivity", "card was swiped right, position in adapter: " + position);
-                }
-
-                @Override
-                public void cardsDepleted() {
-                    Log.i("MainActivity", "no more cards");
-                    MainActivity.removeTkt();
-                }
-
-                @Override
-                public void cardActionDown() {
-                    Log.i("MainActivity", "card was swiped down, position in adapter: ");
-                }
-
-                @Override
-                public void cardActionUp() {
-                    Log.i("MainActivity", "card was swiped up, position in adapter: ");
-                }
-            });
+//            cardStack.setEventCallback(new SwipeDeck.SwipeEventCallback() {
+//                @Override
+//                public void cardSwipedLeft(int position) {
+//                    Log.i("MainActivity", "card was swiped left, position in adapter: " + position);
+//                }
+//
+//                @Override
+//                public void cardSwipedRight(int position) {
+//                    Log.i("MainActivity", "card was swiped right, position in adapter: " + position);
+//                }
+//
+//                @Override
+//                public void cardsDepleted() {
+//                    Log.i("MainActivity", "no more cards");
+//                    MainActivity.removeTkt();
+//                }
+//
+//                @Override
+//                public void cardActionDown() {
+//                    Log.i("MainActivity", "card was swiped down, position in adapter: ");
+//                }
+//
+//                @Override
+//                public void cardActionUp() {
+//                    Log.i("MainActivity", "card was swiped up, position in adapter: ");
+//                }
+//            });
         } catch (Exception e) {
         }
 
@@ -275,6 +267,7 @@ public class Firstfrag extends Fragment {
     }
 
     private void fetchDataFromLocal() {
+        captureAllNow();
         newTickets.clear();
         testData.clear();
         Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
@@ -302,8 +295,16 @@ public class Firstfrag extends Fragment {
             MainActivity.showTkt();
             MainActivity m = new MainActivity();
             m.updateCounter(ctx);
-            final SwipeDeckAdapter adapter = new SwipeDeckAdapter(newTickets, getActivity());
-            cardStack.setAdapter(adapter);
+            manager = new CardStackLayoutManager(getActivity(), this);
+            cardStackView.setLayoutManager(manager);
+            manager.setDirections(Direction.HORIZONTAL);
+            manager.setVisibleCount(3);
+            manager.setTranslationInterval(8f);
+            manager.setStackFrom(StackFrom.Top);
+            manager.setCanScrollHorizontal(false);
+            manager.setCanScrollVertical(false);
+            adapter = new SwipeDeckAdapter(newTickets, getActivity(), Firstfrag.this);
+            cardStackView.setAdapter(adapter);
 
             HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
             for (int i = 0; i < newTickets.size(); i++) {
@@ -317,15 +318,29 @@ public class Firstfrag extends Fragment {
             MyApp.getApplication().writeTicketCapture(map);
             captureAllNow();
         }
+
     }
 
     private void captureAllNow() {
         HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+
+//        Iterator<String> it = map.keySet().iterator();
+//        while (it.hasNext()) {
+////            Map.Entry keyEntery = (Map.Entry) it.next();
+//            String key = it.next();
+//            if (!map.get(key).isCaptured()) {
+//                callApiToMakeCapture(key);
+//            } else {
+//                map.remove(key);
+//            }
+////            it.remove();
+//        }
+
         for (String key : map.keySet()) {
             if (!map.get(key).isCaptured()) {
                 callApiToMakeCapture(key);
             } else {
-                map.remove(key);
+                map.get(key).setCaptured(true);
             }
         }
         MyApp.getApplication().writeTicketCapture(map);
@@ -370,19 +385,50 @@ public class Firstfrag extends Fragment {
     }
 
 
-    public void swipeLeft(String issueId, Context context) {
-        Date cDate = new Date();
+    public void swipeLeft(int position) {
+        position = manager.getTopPosition();
         MainActivity m = new MainActivity();
-        cardStack.swipeTopCardLeft(1000);
-        m.updateCounter(context);
+        SwipeAnimationSetting setting = new SwipeAnimationSetting.Builder()
+                .setDirection(Direction.Right)
+                .setDuration(200)
+                .setInterpolator(new AccelerateInterpolator())
+                .build();
+        manager.setSwipeAnimationSetting(setting);
+
+        try {
+            manager.removeViewAt(position);
+            cardStackView.swipe();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        m.updateCounter(getActivity());
+        if (position == (newTickets.size() - 1)) {
+            m.removeTkt();
+        }
     }
 
-    public void swipeRight(String issueId, Context context) {
-        Date cDate = new Date();
+    public void swipeRight(int position) {
+        position = manager.getTopPosition();
         MainActivity m = new MainActivity();
-        cardStack.swipeTopCardRight(1000);
-        m.updateCounter(context);
+        SwipeAnimationSetting setting = new SwipeAnimationSetting.Builder()
+                .setDirection(Direction.Left)
+                .setDuration(200)
+                .setInterpolator(new AccelerateInterpolator())
+                .build();
+        manager.setSwipeAnimationSetting(setting);
+        cardStackView.swipe();
+        try {
+            manager.removeViewAt(position);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+//        adapter.data.remove(position);
+//        adapter.notifyDataSetChanged();
+        m.updateCounter(getActivity());
+        if (position == (newTickets.size() - 1)) {
+            m.removeTkt();
+        }
     }
 
 
@@ -575,9 +621,10 @@ public class Firstfrag extends Fragment {
                                     m.updateCounter(getActivity());
                                 }
                             }
+                            obj.setHideAlert();
+
                             MyApp.getApplication().writeTicketCaptureSchedule(scheduleMap);
                             fetchDataFromLocal();
-                            obj.setHideAlert();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -595,6 +642,30 @@ public class Firstfrag extends Fragment {
     }
 
     private boolean firstTimeDone = false;
+
+    @Override
+    public void onCardDragging(Direction direction, float ratio) {
+
+    }
+
+    @Override
+    public void onCardSwiped(Direction direction) {
+        Log.d("CardStackView", "onCardSwiped: p = " + manager.getTopPosition() + ", d = " + direction);
+//        if (manager.getTopPosition() == adapter.getItemCount() - 5) {
+//        adapter.data.remove(manager.getTopPosition());
+//        adapter.notifyDataSetChanged();
+//        }
+    }
+
+    @Override
+    public void onCardRewound() {
+
+    }
+
+    @Override
+    public void onCardCanceled() {
+
+    }
 
     public class NetworkChangeReceiver extends BroadcastReceiver {
         @Override

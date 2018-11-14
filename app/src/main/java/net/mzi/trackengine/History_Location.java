@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import net.mzi.trackengine.adapter.UserLocationBatteryHistoryAdapter;
 import net.mzi.trackengine.model.PostUrl;
@@ -41,6 +42,7 @@ public class History_Location extends Fragment {
     List<String> mUpdatedDate = new ArrayList<String>();
     List<Integer> mDatasetTypes = new ArrayList<Integer>();
     ProgressDialog progress;
+    private RelativeLayout rl_progress;
 
     public History_Location() {
     }
@@ -54,8 +56,10 @@ public class History_Location extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.historylocation, container, false);
+        rl_progress = view.findViewById(R.id.rl_progress);
         API_URL = PostUrl.sUrl + "GetLocationHistory?iUserId=" + MainActivity.LOGINID;
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
+        rl_progress.setVisibility(View.VISIBLE);
         new History_Location.UserLocation().execute();
         return view;
     }
@@ -65,7 +69,7 @@ public class History_Location extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                MyApp.showMassage(getContext(),"Loading data!!!");
+//                MyApp.showMassage(getContext(),"Loading data!!!");
 //                Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
             }
             mDatasetTypes.clear();
@@ -104,7 +108,7 @@ public class History_Location extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
+            rl_progress.setVisibility(View.GONE);
             /*if (progress!=null) {
                 progress.dismiss();
             }*/

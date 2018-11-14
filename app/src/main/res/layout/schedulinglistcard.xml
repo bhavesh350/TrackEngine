@@ -4,126 +4,124 @@
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="250dp"
-    card_view:cardElevation="@dimen/_10sdp"
+    android:layout_marginBottom="@dimen/_10sdp"
+    android:clipToPadding="true"
     android:paddingBottom="@dimen/_10sdp"
     card_view:cardCornerRadius="@dimen/_10sdp"
-    android:layout_marginBottom="@dimen/_10sdp">
+    card_view:cardElevation="@dimen/_10sdp"
+    card_view:cardPreventCornerOverlap="false">
 
     <RelativeLayout
+        android:id="@+id/pendinglayout"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/pendinglayout"
-        android:paddingBottom="@dimen/_1sdp"
-        android:background="#ffffff">
+        android:background="#ffffff"
+        android:paddingBottom="@dimen/_1sdp">
 
         <RelativeLayout
+            android:id="@+id/topLayout2"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_40sdp"
-            android:background="#D6D7D7"
-            android:id="@+id/topLayout2"
-            android:layout_marginBottom="@dimen/_10sdp">
+            android:layout_marginBottom="@dimen/_10sdp"
+            android:background="#D6D7D7">
 
             <TextView
+                android:id="@+id/cntctprsnmob"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_alignTop="@+id/contactpersonname"
+                android:layout_alignBottom="@+id/contactpersonname"
+                android:layout_toStartOf="@+id/mb"
+                android:layout_toLeftOf="@+id/mb"
                 android:text="9718729555"
+                android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#667171"
                 android:textSize="@dimen/_10ssp"
-                android:id="@+id/cntctprsnmob"
-                android:typeface="serif"
-                android:layout_alignBottom="@+id/contactpersonname"
-                android:layout_toLeftOf="@+id/mb"
-                android:layout_toStartOf="@+id/mb"
-                android:layout_alignTop="@+id/contactpersonname" />
+                android:typeface="serif" />
 
             <TextView
+                android:id="@+id/contactpersonname"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="11dp"
+                android:layout_marginLeft="11dp"
                 android:text="Vaishali"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="#0d0d0d"
                 android:textSize="@dimen/_10ssp"
                 android:textStyle="bold|italic"
-                android:typeface="serif"
-                android:textColor="#0d0d0d"
-                android:id="@+id/contactpersonname"
-                android:layout_marginLeft="11dp"
-                android:layout_marginStart="11dp"
-                android:layout_centerVertical="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true" />
+                android:typeface="serif" />
 
             <ImageView
+                android:id="@+id/mb"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:typeface="serif"
-                android:id="@+id/mb"
-                android:src="@drawable/overflowmenu"
                 android:layout_alignTop="@+id/cntctprsnmob"
+                android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true" />
+                android:src="@drawable/overflowmenu"
+                android:typeface="serif" />
 
         </RelativeLayout>
 
         <LinearLayout
+            android:id="@+id/bottomLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/bottomLayout"
-            android:orientation="horizontal"
-            android:padding="@dimen/_5sdp"
-            android:gravity="center"
-            android:background="#D6D7D7"
-            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true">
+            android:layout_alignParentBottom="true"
+            android:background="#D6D7D7"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="@dimen/_5sdp">
 
             <TextView
-                android:text="Status: "
-                android:layout_width="@dimen/_10sdp"
-                android:layout_weight="1.5"
-                android:layout_height="wrap_content"
                 android:id="@+id/textView5"
-                android:layout_marginLeft="@dimen/_18sdp"
-                android:layout_marginStart="@dimen/_18sdp" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.6"
+                android:text=" Status: " />
 
             <TextView
+                android:id="@+id/status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.7"
                 android:text="New"
-                android:layout_width="@dimen/_10sdp"
-                android:layout_weight="2"
-                android:layout_height="wrap_content"
-                android:typeface="serif"
-                android:id="@+id/status" />
+                android:typeface="serif" />
 
             <TextView
-                android:layout_width="@dimen/_10sdp"
-                android:layout_weight="2"
-                android:layout_height="wrap_content"
-                android:typeface="serif"
-                android:text="SLA Time:"
                 android:id="@+id/textView4"
-                android:layout_marginRight="@dimen/_17sdp"
-                android:layout_marginEnd="@dimen/_17sdp" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="SLA Time:"
+                android:typeface="serif" />
 
             <TextView
-                android:layout_width="@dimen/_10sdp"
-                android:layout_weight="3"
+                android:id="@+id/beontime"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="3"
                 android:text="11:30 AM"
                 android:textColor="#667171"
-                android:id="@+id/beontime"
                 android:typeface="serif" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="@dimen/_10sdp"
-            android:paddingLeft="@dimen/_25sdp"
-            android:layout_marginBottom="@dimen/_5sdp"
             android:layout_below="@+id/topLayout2"
+            android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true">
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/_25sdp"
+            android:paddingTop="@dimen/_10sdp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -133,33 +131,33 @@
                 <TextView
                     android:layout_width="@dimen/_10sdp"
                     android:layout_height="wrap_content"
-                    android:text="IssueId"
                     android:layout_weight="3"
-                    android:textSize="@dimen/_8ssp"
+                    android:text="IssueId"
                     android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:typeface="serif" />
 
                 <TextView
-                    android:text=":"
                     android:layout_width="@dimen/_10sdp"
-                    android:layout_weight=".5"
-                    android:textColor="#000"
-                    android:layout_gravity="center"
-                    android:gravity="center"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight=".5"
+                    android:gravity="center"
+                    android:text=":"
+                    android:textColor="#000"
                     android:textSize="@dimen/_8ssp"
                     android:typeface="serif" />
 
                 <TextView
+                    android:id="@+id/issueId_Id"
                     android:layout_width="@dimen/_10sdp"
                     android:layout_height="wrap_content"
-                    android:typeface="serif"
-                    android:text="New Text"
-                    android:id="@+id/issueId_Id"
                     android:layout_weight="4"
-                    android:textSize="@dimen/_8ssp"
+                    android:text="New Text"
                     android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
+                    android:typeface="serif"
 
                     />
             </LinearLayout>
@@ -172,33 +170,33 @@
                 <TextView
                     android:layout_width="@dimen/_10sdp"
                     android:layout_height="wrap_content"
-                    android:text="Alotted Task"
                     android:layout_weight="3"
-                    android:textSize="@dimen/_8ssp"
+                    android:text="Alotted Task"
                     android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
                     android:textStyle="bold"
                     android:typeface="serif" />
 
                 <TextView
-                    android:text=":"
                     android:layout_width="@dimen/_10sdp"
-                    android:layout_weight=".5"
-                    android:textColor="#000"
-                    android:layout_gravity="center"
-                    android:gravity="center"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight=".5"
+                    android:gravity="center"
+                    android:text=":"
+                    android:textColor="#000"
                     android:textSize="@dimen/_8ssp"
                     android:typeface="serif" />
 
                 <TextView
+                    android:id="@+id/subject"
                     android:layout_width="@dimen/_10sdp"
                     android:layout_height="wrap_content"
-                    android:typeface="serif"
-                    android:text="New Text"
-                    android:id="@+id/subject"
                     android:layout_weight="4"
-                    android:textSize="@dimen/_8ssp"
+                    android:text="New Text"
                     android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
+                    android:typeface="serif"
 
                     />
             </LinearLayout>
@@ -208,39 +206,40 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:layout_width="@dimen/_10sdp"
-                    android:layout_height="wrap_content"
-                    android:text="Location:"
                     android:id="@+id/adress"
-                    android:typeface="serif"
-                    android:layout_weight="3"
-                    android:textSize="@dimen/_8ssp"
-                    android:textColor="#000"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:text=":"
                     android:layout_width="@dimen/_10sdp"
-                    android:layout_weight=".5"
-                    android:textColor="#000"
-                    android:layout_gravity="center"
-                    android:gravity="center"
                     android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:text="Location:"
+                    android:textColor="#000"
                     android:textSize="@dimen/_8ssp"
+                    android:textStyle="bold"
                     android:typeface="serif" />
 
                 <TextView
                     android:layout_width="@dimen/_10sdp"
                     android:layout_height="wrap_content"
-                    android:text="New Text"
-                    android:id="@+id/adrs"
-                    android:typeface="serif"
-                    android:layout_weight="4"
-                    android:textSize="@dimen/_8ssp"
+                    android:layout_gravity="center"
+                    android:layout_weight=".5"
+                    android:gravity="center"
+                    android:text=":"
                     android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
+                    android:typeface="serif" />
+
+                <TextView
+                    android:id="@+id/adrs"
+                    android:layout_width="@dimen/_10sdp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:text="New Text"
+                    android:textColor="#000"
+                    android:textSize="@dimen/_8ssp"
+                    android:typeface="serif"
 
                     />
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -280,21 +279,22 @@
 
                     />
             </LinearLayout>
+
             <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                card_view:fabSize="mini"
-                card_view:srcCompat="@android:drawable/ic_menu_upload"
-                card_view:rippleColor="#e96412"
-                card_view:backgroundTint="#fff"
-                android:layout_weight="1"
-                android:tint="#2b2929"
                 android:layout_gravity="left"
-                android:visibility="gone"
+                android:layout_marginBottom="@dimen/_11sdp"
+                android:layout_weight="1"
+                android:clickable="true"
                 android:padding="@dimen/_5sdp"
-                android:id="@+id/floatingActionButton"
-                android:layout_marginBottom="@dimen/_11sdp" />
+                android:tint="#2b2929"
+                android:visibility="gone"
+                card_view:backgroundTint="#fff"
+                card_view:fabSize="mini"
+                card_view:rippleColor="#e96412"
+                card_view:srcCompat="@android:drawable/ic_menu_upload" />
         </LinearLayout>
 
 

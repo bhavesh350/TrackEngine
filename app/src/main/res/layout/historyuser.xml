@@ -1,15 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
+    <RelativeLayout
+        android:id="@+id/rl_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"></ProgressBar>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/progress"
+            android:padding="10dp"
+            android:text="Loading tickets history..." />
+    </RelativeLayout>
 
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/history_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/history_view"
-        android:scrollbars="vertical"
+        android:padding="10dp"
+        android:clipToPadding="false"
         android:orientation="vertical"
-        android:layout_marginTop="@dimen/_11sdp">
-    </android.support.v7.widget.RecyclerView>
+        android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
 </LinearLayout>

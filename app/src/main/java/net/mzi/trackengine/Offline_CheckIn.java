@@ -17,7 +17,9 @@ import android.widget.Button;
 import net.mzi.trackengine.adapter.CheckInSynAdpater;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Poonam on 1/19/2018.
@@ -27,7 +29,7 @@ public class Offline_CheckIn extends Fragment {
     CheckInSynAdpater mAdapter;
     RecyclerView mRecyclerView;
     Button bClearData, bForceSync;
-    SQLiteDatabase sql = null;
+//    SQLiteDatabase sql = null;
     SharedPreferences pref;
     List<String> lCheckInTime = new ArrayList<String>();
     List<String> lCheckInStatus = new ArrayList<String>();
@@ -49,14 +51,12 @@ public class Offline_CheckIn extends Fragment {
         View view = inflater.inflate(R.layout.offline_sync, container, false);
         pref = getContext().getSharedPreferences("login", 0);
         sUserId = pref.getString("userid", "userid");
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.sync_view);
-        bClearData = (Button) view.findViewById(R.id.idClearData);
-        bForceSync = (Button) view.findViewById(R.id.IdForcedSync);
+        mRecyclerView = view.findViewById(R.id.sync_view);
+        bClearData = view.findViewById(R.id.idClearData);
+        bForceSync = view.findViewById(R.id.IdForcedSync);
         bClearData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Toast.makeText(getContext().getApplicationContext(),"hii",Toast.LENGTH_LONG).show();
-                Log.e("TAG:", "onClick: hii");
                 removeData();
             }
         });
@@ -69,7 +69,7 @@ public class Offline_CheckIn extends Fragment {
                 getData();
             }
         });
-        sql = getContext().openOrCreateDatabase("MZI.sqlite", getContext().MODE_PRIVATE, null);
+//        sql = getContext().openOrCreateDatabase("MZI.sqlite", getContext().MODE_PRIVATE, null);
         getData();
 
         return view;
@@ -80,23 +80,34 @@ public class Offline_CheckIn extends Fragment {
         lCheckInStatus.clear();
         lCheckInTime.clear();
 
-        final Cursor cquery = sql.rawQuery("select * from User_AppCheckIn'" + sUserId + "'", null);
-        if (cquery.getCount() > 0) {
+        final Map<String, Map<String, String>> mapData = MyApp.getApplication().readCheckInOutData();
+//        final Cursor cquery = sql.rawQuery("select * from User_AppCheckIn'" + sUserId + "'", null);
+        if (mapData.keySet().size() > 0) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        if (cquery.getString(4).toString().equals("true"))
-                            lColors.add(R.drawable.cardbk_green);
-                        else
+                    for(String key : mapData.keySet()){
+                        if(mapData.get(key).get("IsCheckedIn").equals("false")){
                             lColors.add(R.drawable.cardbk_red);
-
-                        if (cquery.getString(2).toString().equals("true"))
-                            lCheckInStatus.add("Checked In");
-                        else
                             lCheckInStatus.add("Checked Out");
-                        lCheckInTime.add(cquery.getString(3).toString());
+                        }else{
+                            lColors.add(R.drawable.cardbk_green);
+                            lCheckInStatus.add("Checked In");
+                        }
+                        lCheckInTime.add(mapData.get(key).get("ActivityDate"));
                     }
+//                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+//                        if (cquery.getString(4).toString().equals("true"))
+//                            lColors.add(R.drawable.cardbk_green);
+//                        else
+//                            lColors.add(R.drawable.cardbk_red);
+//
+//                        if (cquery.getString(2).toString().equals("true"))
+//                            lCheckInStatus.add("Checked In");
+//                        else
+//                            lCheckInStatus.add("Checked Out");
+//                        lCheckInTime.add(cquery.getString(3).toString());
+//                    }
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -106,12 +117,12 @@ public class Offline_CheckIn extends Fragment {
                             mRecyclerView.setAdapter(mAdapter);
                         }
                     });
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            cquery.close();
-                        }
-                    });
+//                    getActivity().runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            cquery.close();
+//                        }
+//                    });
                 }
 
 
@@ -124,7 +135,8 @@ public class Offline_CheckIn extends Fragment {
     }
 
     public void removeData() {
-        sql.delete("User_AppCheckIn", null, null);
+        MyApp.getApplication().writeCheckInOutData(new HashMap<String, Map<String, String>>());
+//        sql.delete("User_AppCheckIn", null, null);
         lCheckInTime.clear();
         lCheckInStatus.clear();
         mAdapter = new CheckInSynAdpater(lCheckInTime, lCheckInStatus, lColors);

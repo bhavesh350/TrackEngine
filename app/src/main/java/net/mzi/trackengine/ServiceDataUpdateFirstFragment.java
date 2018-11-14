@@ -422,9 +422,66 @@ public class ServiceDataUpdateFirstFragment extends Service {
                 MainActivity.showTkt();
                 MainActivity m = new MainActivity();
                 m.updateCounter(ctx);
+
+                HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+                for (int i = 0; i < newTickets.size(); i++) {
+                    sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
+                    if (!map.containsKey(newTickets.get(i).IssueID)) {
+                        map.put(newTickets.get(i).IssueID, newTickets.get(i));
+                    }
+                }
+                MyApp.getApplication().writeTicketCapture(map);
             }
         } catch (Exception e) {
         }
+
+        captureAllNow();
+    }
+
+    private void captureAllNow() {
+        HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+        for (String key : map.keySet()) {
+            if (!map.get(key).isCaptured()) {
+                callApiToMakeCapture(key);
+            } else {
+                map.get(key).setCaptured(true);
+            }
+        }
+        MyApp.getApplication().writeTicketCapture(map);
+    }
+
+    public void callApiToMakeCapture(final String key) {
+        Date cDate = new Date();
+        String date = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(cDate);
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        Log.e("Capture Operation key: ", key);
+        Call<ApiResult.CaptureTicket> call1 = apiInterface.captureTicket(key, nh_userid, date);
+        call1.enqueue(new Callback<ApiResult.CaptureTicket>() {
+            @Override
+            public void onResponse(Call<ApiResult.CaptureTicket> call, Response<ApiResult.CaptureTicket> response) {
+                try {
+                    ApiResult.CaptureTicket iData = response.body();
+                    if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                        // not uploaded
+                    } else {
+                        // uploaded
+                        Map<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+                        if (map.containsKey(key)) {
+                            map.get(key).setCaptured(true);
+                            MyApp.getApplication().writeTicketCapture(map);
+                        }
+                    }
+                } catch (Exception e) {
+//                   MyApp.showMassage();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult.CaptureTicket> call, Throwable t) {
+                call.cancel();
+
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)

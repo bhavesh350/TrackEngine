@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<net.mzi.trackengine.utils.SquareRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="@dimen/_5sdp"
-    android:layout_marginTop="@dimen/_5sdp"
-    android:elevation="@dimen/_100sdp"
-    android:clipToPadding="true"
-    card_view:cardPreventCornerOverlap="false"
-    card_view:cardBackgroundColor="#00ffffff"
-    card_view:cardCornerRadius="@dimen/_10sdp">
+    android:clipToPadding="false"
+    android:elevation="5dp"
+    card_view:cardBackgroundColor="@color/orange"
+    card_view:cardPreventCornerOverlap="false">
 
     <RelativeLayout
         android:id="@+id/r1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/_8sdp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/task"
@@ -25,24 +21,25 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="@dimen/_20sdp"
-            android:text="5"
             android:gravity="center"
             android:maxLines="1"
-            android:textColor="#000"
+            android:paddingBottom="15dp"
+            android:text="5"
+            android:textColor="#fff"
             android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
             android:typeface="serif" />
 
         <TextView
             android:id="@+id/taskCounter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_above="@+id/task"
             android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_marginBottom="@dimen/_20sdp"
+            android:layout_marginBottom="5dp"
             android:text="5"
-            android:textColor="#000"
+            android:textColor="#fff"
             android:textSize="@dimen/_25ssp"
             android:typeface="serif" />
     </RelativeLayout>
-</android.support.v7.widget.CardView>
+</net.mzi.trackengine.utils.SquareRelativeLayout>

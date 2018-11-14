@@ -3,54 +3,85 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/_5sdp"
+    android:layout_marginTop="5dp"
+    android:minHeight="@dimen/_280sdp"
     card_view:cardCornerRadius="@dimen/_10sdp"
     card_view:cardElevation="@dimen/_20sdp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_gravity="center"
+        android:layout_margin="5dp"
         android:background="@drawable/cardbk_purple"
-        android:orientation="vertical">
+        android:minHeight="@dimen/_270sdp"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_marginTop="15dp"
+            android:gravity="center">
 
-            <TextView
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btn_accept"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:gravity="center"
-                android:text="Ticket Id:"
-                android:textSize="@dimen/_15ssp" />
+                android:layout_alignParentRight="true"
+                android:clickable="true"
+                android:visibility="visible"
+                card_view:elevation="@dimen/_6sdp"
+                card_view:fabSize="mini"
+                card_view:srcCompat="@drawable/tickwhite" />
 
-            <TextView
-                android:id="@+id/textView2"
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btn_reject"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:text=""
-                android:textSize="@dimen/_15ssp" />
-        </LinearLayout>
+                android:layout_marginRight="@dimen/_25sdp"
+                android:layout_weight="2"
+                android:clickable="true"
+                android:elevation="@dimen/_6sdp"
+                android:visibility="visible"
+                card_view:backgroundTint="#f20b0b"
+                card_view:fabSize="mini"
+                card_view:srcCompat="@drawable/cross" />
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true">
+
+                <TextView
+                    android:id="@+id/txt_lable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center"
+                    android:text="Ticket Id:"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_toRightOf="@+id/txt_lable"
+                    android:textSize="16sp" />
+            </RelativeLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/_10sdp"
-
-            android:layout_marginLeft="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -58,9 +89,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Alotted Task: "
-
-                />
+                android:lineSpacingExtra="-2dp"
+                android:text="Alotted Task: " />
 
             <TextView
                 android:id="@+id/subject"
@@ -68,6 +98,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:ellipsize="none"
+                android:lineSpacingExtra="-2dp"
                 android:scrollHorizontally="false"
                 android:text="Alotted Task" />
         </LinearLayout>
@@ -76,8 +107,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:layout_marginLeft="@dimen/_10sdp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -94,6 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:ellipsize="none"
+                android:lineSpacingExtra="-2dp"
                 android:maxLines="100"
                 android:scrollHorizontally="false"
                 android:text="Address: " />
@@ -102,8 +133,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:layout_marginLeft="@dimen/_10sdp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
             <TextView
@@ -112,6 +142,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
+                android:lineSpacingExtra="-2dp"
                 android:text="Scheduled For :" />
 
             <TextView
@@ -129,7 +160,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/_10sdp"
-            android:layout_marginLeft="@dimen/_10sdp"
             android:orientation="horizontal">
 
             <TextView
@@ -172,7 +202,8 @@
             android:layout_marginBottom="@dimen/_12sdp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:padding="1dp">
+            android:padding="1dp"
+            android:visibility="gone">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/reject"

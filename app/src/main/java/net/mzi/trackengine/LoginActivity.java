@@ -183,7 +183,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         //new LongOperation(jsonString, view).execute();
                         final ApiResult apiResult = new ApiResult();
-                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ") Version(" + versionName + ")", currentDateTimeString);
+                        final ApiResult.User loginDetail = apiResult.new User(uname, pwd, sDeviceId, manufacturer + "(" + model + ")", currentDateTimeString, androidOsName, versionCode, versionName);
 
                         Call<ApiResult.User> call1 = apiInterface.isLogin(loginDetail);
                         call1.enqueue(new Callback<ApiResult.User>() {
@@ -282,18 +282,21 @@ public class LoginActivity extends AppCompatActivity {
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             versionName = pInfo.versionName;
+            versionCode = pInfo.versionCode + "";
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
         androidOsName = "OS: " + builder.toString();
         Log.d("alphanumericString", "OS: " + builder.toString() + "\n" + versionName);
 
-        String sample = "St. Mary's and St. John's".replace("'", "''");
-        Log.d("alphanumericString", sample);
+//        String sample = "St. Mary's and St. John's".replace("'", "''");
+//        Log.d("alphanumericString", sample);
 
     }
 
     private void deleteDataFromTables() {
+        MyApp.getApplication().writeCheckInOutData(new HashMap<String, Map<String, String>>());
+        MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());
         try {
             sql.execSQL("delete from User_BatteryLevel");
             sql.execSQL("delete from Issue_StatusHiererchy");
@@ -301,12 +304,12 @@ public class LoginActivity extends AppCompatActivity {
             sql.execSQL("delete from User_Gps");
             sql.execSQL("delete from User_Location");
             sql.execSQL("delete from User_Login");
-            sql.execSQL("delete from User_AppCheckIn");
+//            sql.execSQL("delete from User_AppCheckIn");
             sql.execSQL("delete from ModeOfTrasportList");
             sql.execSQL("delete from Issue_Status");
             sql.execSQL("delete from Issue_Detail");
             sql.execSQL("delete from Issue_Attachment");
-            sql.execSQL("delete from Issue_History");
+//            sql.execSQL("delete from Issue_History");
             sql.execSQL("delete from FirebaseIssueData");
             sql.execSQL("delete from MobileManualLog");
         } catch (Exception e) {
@@ -316,6 +319,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private String androidOsName = "";
     private String versionName = "";
+    private String versionCode = "";
 
     @Override
     public void onBackPressed() {

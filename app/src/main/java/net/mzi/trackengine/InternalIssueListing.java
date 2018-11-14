@@ -21,6 +21,7 @@ import net.mzi.trackengine.model.PostUrl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -30,12 +31,12 @@ import java.util.List;
 
 public class InternalIssueListing extends AppCompatActivity {
     SharedPreferences pref;
-    String sUserId,companyID;
+    String sUserId, companyID;
     String API_URL;
     private RecyclerView.LayoutManager mLayoutManager;
     ComplainAdapter oComplainAdapter;
     RecyclerView mRecyclerView;
-    List<InternalIssueClass> lComplainData=new ArrayList<InternalIssueClass>();
+    List<InternalIssueClass> lComplainData = new ArrayList<InternalIssueClass>();
 
 
     @Override
@@ -48,21 +49,22 @@ public class InternalIssueListing extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         pref = getSharedPreferences("login", 0);
-        sUserId=pref.getString("userid","userid");//CreatedBy
-        companyID=pref.getString("CompanyId","CompanyId");//locationId
-        API_URL= PostUrl.sUrl+"GetComplainDetail?iId=0&iUserId="+sUserId+"&iCompanyId="+companyID;
+        sUserId = pref.getString("userid", "userid");//CreatedBy
+        companyID = pref.getString("CompanyId", "CompanyId");//locationId
+        API_URL = PostUrl.sUrl + "GetComplainDetail?iId=0&iUserId=" + sUserId + "&iCompanyId=" + companyID;
         new FetchIssues().execute();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(InternalIssueListing.this,RaiseTicket.class);
+                Intent i = new Intent(InternalIssueListing.this, RaiseTicket.class);
                 startActivity(i);
                 /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();*/
             }
         });
     }
+
     private class FetchIssues extends AsyncTask<String, Void, String> {
 
         @Override
@@ -70,6 +72,7 @@ public class InternalIssueListing extends AppCompatActivity {
             super.onPreExecute();
 
         }
+
         @Override
         protected String doInBackground(String... params) {
             try {
@@ -101,8 +104,11 @@ public class InternalIssueListing extends AppCompatActivity {
             /*if (progress!=null) {
                 progress.dismiss();
             }*/
-            if (s == null ) {
-                try{Toast.makeText(getApplicationContext(),R.string.internet_error,Toast.LENGTH_LONG).show();}catch (Exception e){}
+            if (s == null) {
+                try {
+                    Toast.makeText(getApplicationContext(), R.string.internet_error, Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
 
                 //s = "THERE WAS AN ERROR";
             } else {
@@ -111,23 +117,22 @@ public class InternalIssueListing extends AppCompatActivity {
                 try {
                     JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
                     JSONArray jdata = jsonObject.getJSONArray("lstComplainDetail");
-                    for(int i=0;i<jdata.length();i++)
-                    {
-                        InternalIssueClass oInternalIssueClass= new InternalIssueClass();
-                        JSONObject object=jdata.getJSONObject(i);
-                        oInternalIssueClass.IssueID=object.getString("Id");
-                        oInternalIssueClass.IssueText=object.getString("ComplainText");
-                        oInternalIssueClass.CreatedDate=object.getString("CreatedOn");
-                        oInternalIssueClass.UpdatedDate=object.getString("LastUpdateOn");
-                        oInternalIssueClass.StatusName=object.getString("StatusName");
+                    for (int i = 0; i < jdata.length(); i++) {
+                        InternalIssueClass oInternalIssueClass = new InternalIssueClass();
+                        JSONObject object = jdata.getJSONObject(i);
+                        oInternalIssueClass.IssueID = object.getString("Id");
+                        oInternalIssueClass.IssueText = object.getString("ComplainText");
+                        oInternalIssueClass.CreatedDate = object.getString("CreatedOn");
+                        oInternalIssueClass.UpdatedDate = object.getString("LastUpdateOn");
+                        oInternalIssueClass.StatusName = object.getString("StatusName");
                         lComplainData.add(oInternalIssueClass);
                     }
                     mRecyclerView = (RecyclerView) findViewById(R.id.internal_issue_task_view);
-                    mLayoutManager = new LinearLayoutManager(InternalIssueListing.this,LinearLayoutManager.VERTICAL,false);
+                    mLayoutManager = new LinearLayoutManager(InternalIssueListing.this, LinearLayoutManager.VERTICAL, false);
                     mRecyclerView.setLayoutManager(mLayoutManager);
-                    oComplainAdapter=new ComplainAdapter(lComplainData,getApplicationContext());
+                    oComplainAdapter = new ComplainAdapter(lComplainData, getApplicationContext());
                     mRecyclerView.setAdapter(oComplainAdapter);
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

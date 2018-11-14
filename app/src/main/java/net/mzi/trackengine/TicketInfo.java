@@ -464,11 +464,24 @@ public class TicketInfo extends AppCompatActivity {
             try {
                 jsonObject = new JSONObject(jsonString);
                 if (s == null || s.equals("0\n") || s.equals("")) {
-                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                            "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
+
+                    Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+                    Map<String, String> map = new HashMap<>();
+                    map.put("TicketId", jsonObject.getString("TicketId"));
+                    map.put("UserId", jsonObject.getString("UserId"));
+                    map.put("StatusId",  jsonObject.getString("StatusId"));
+                    map.put("ParentCompanyId", sParentComapnyId);
+                    map.put("Comment", jsonObject.getString("Comment"));
+                    map.put("ActivityDate", jsonObject.getString("ActivityDate"));
+                    map.put("SyncStatus", "0");
+                    ticketsMap.put(jsonObject.getString("TicketId"), map);
+                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+
+//                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                            "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
                 } else {
                     try {
-                        Toast.makeText(getApplicationContext(), " Comment Updated!!!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), " Comment Updated successfully!!!", Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
                     }
                     comment.setText("");

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import net.mzi.trackengine.adapter.CheckInHistoryAdapter;
 import net.mzi.trackengine.model.PostUrl;
@@ -42,6 +43,7 @@ public class History_CheckIn extends Fragment {
     List<String> lCheckOutLocation = new ArrayList<String>();
     List<String> lDuration = new ArrayList<String>();
     List<Integer> mDatasetTypes = new ArrayList<Integer>();
+    private RelativeLayout rl_progress;
 
     //ProgressDialog progress;
     public History_CheckIn() {
@@ -59,12 +61,12 @@ public class History_CheckIn extends Fragment {
         View view = inflater.inflate(R.layout.historycheckin, container, false);
         Date cDate = new Date();
         String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd").format(cDate);
-
+        rl_progress = view.findViewById(R.id.rl_progress);
         //API_URL = "http://192.168.1.20/TrackEngine/api/Post/GetCheckInCheckoutReport?iUserId="+MainActivity.LOGINID+"&dtFromDate="+"2017-04-13"+"&dtToDate="+"2017-04-13";
         API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + MainActivity.LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
         Log.e("onCreateView: ", API_URL);
-
+        rl_progress.setVisibility(View.VISIBLE);
         new History_CheckIn.CheckInInfo().execute();
         return view;
     }
@@ -74,7 +76,7 @@ public class History_CheckIn extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             if (getContext() != null) {
-                MyApp.showMassage(getContext(),"Loading data!!!");
+//                MyApp.showMassage(getContext(), "Loading data!!!");
             }
 
             mDatasetTypes.clear();
@@ -113,6 +115,7 @@ public class History_CheckIn extends Fragment {
 
         @Override
         protected void onPostExecute(String s) {
+            rl_progress.setVisibility(View.GONE);
             super.onPostExecute(s);
             if (s == null) {
                 MyApp.showMassage(getActivity(), "Internet is not working properly, may not synced with server!!!");

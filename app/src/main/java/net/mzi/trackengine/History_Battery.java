@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import net.mzi.trackengine.adapter.UserLocationBatteryHistoryAdapter;
@@ -40,7 +41,7 @@ public class History_Battery extends Fragment {
     List<String> mAutocaptured = new ArrayList<String>();
     List<String> mUpdatedDate = new ArrayList<String>();
     List<Integer> mDatasetTypes = new ArrayList<Integer>();
-
+    private RelativeLayout rl_progress;
     //ProgressDialog progress;
     public History_Battery() {
 
@@ -55,6 +56,8 @@ public class History_Battery extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.historybattery, container, false);
+        rl_progress = view.findViewById(R.id.rl_progress);
+        rl_progress.setVisibility(View.VISIBLE);
         API_URL = PostUrl.sUrl + "GetBetteryLevelHistory?iUserId=" + MainActivity.LOGINID;
         mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
         new UserBattery().execute();
@@ -71,7 +74,7 @@ public class History_Battery extends Fragment {
             } */
             if (getContext() != null) {
                 try {
-                    Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
+//                    Toast.makeText(getContext(), "Loading data!!!", Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                 }
             }
@@ -110,7 +113,7 @@ public class History_Battery extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-
+            rl_progress.setVisibility(View.GONE);
             if (s == null) {
                 try {
                     MyApp.showMassage(getActivity(), getActivity().getString(R.string.internet_error));

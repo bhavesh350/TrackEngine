@@ -676,10 +676,10 @@ public class MyService extends JobService {
                             sColumnId = cquery.getString(0).toString();
                         }
                         ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId);
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId,false);
                     } catch (Exception e) {
                         ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "");
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "",false);
                     }
                 }
             } else {

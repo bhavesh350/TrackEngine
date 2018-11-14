@@ -9,8 +9,9 @@
     <color name="blue">#34b3de</color>
     <color name="red">#f74444</color>
     <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
     <color name="colorBackgroundEnd">#f5d1ad</color>
     <color name="colorBackgroundStart">#ffffff</color>
-<color name="themeColor">#fcebbf</color>
+    <color name="themeColor">#fcebbf</color>
     <color name="black_overlay">#66000000</color>
 </resources>

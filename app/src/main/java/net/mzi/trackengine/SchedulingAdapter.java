@@ -105,7 +105,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     String currentTime;
     String sDeviceId, sPreviousId;
     String API_URL = null;
-    Map<String, String> postTktStatus = new HashMap<String, String>();
+    Map<String, String> postTktStatus = new HashMap<>();
     public static final int New = 0;
     public static final int Pending = 1;
     public static final int Complete = 3;
@@ -270,14 +270,26 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Date cDate = new Date();
                     String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                     NewTaskAdapter s = new NewTaskAdapter();
-                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                            "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + sParentComapnyId + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
-                    Cursor cque = sql.rawQuery("select * from Issue_History ", null);
-                    String sColumnId = null;
-                    if (cque.getCount() > 0) {
-                        cque.moveToLast();
-                        sColumnId = cquery.getString(0).toString();
-                    }
+                    Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+                    Map<String, String> map = new HashMap<>();
+                    map.put("TicketId", mIssueID.get(position));
+                    map.put("UserId", nh_userid);
+                    map.put("StatusId", sAcceptStatus);
+                    map.put("ParentCompanyId", sParentComapnyId);
+                    map.put("Comment", "Accepted By Engineer");
+                    map.put("ActivityDate", currentDateTimeString);
+                    map.put("SyncStatus", "-1");
+                    ticketsMap.put(mIssueID.get(position), map);
+                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+
+//                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                            "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + sParentComapnyId + "','Accepted By Engineer','" + currentDateTimeString + "','-1')");
+//                    Cursor cque = sql.rawQuery("select * from Issue_History ", null);
+//                    String sColumnId = null;
+//                    if (cque.getCount() > 0) {
+//                        cque.moveToLast();
+//                        sColumnId = cquery.getString(0).toString();
+//                    }
                     // s.new UpdateTask(ctx, tktStatus, "0",sColumnId).execute();
                     cquery = sql.rawQuery("select IssueId,TicketHolder,SLADate,Address,PhoneNo,Subject,StatusId,TicketNumber from Issue_Detail where IssueId ='" + mIssueID.get(position) + "'", null);
                     cquery.moveToFirst();
@@ -291,10 +303,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                     final ApiResult apiResult = new ApiResult();
                     final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
-                            mIssueID.get(position), sAcceptStatus, "Accept by Engineer", currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "true", "", "", "");
+                            mIssueID.get(position), sAcceptStatus, "Accepted by Engineer", currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "true", "", "", "");
                     Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
-                    final String finalColumnId = sColumnId;
+//                    final String finalColumnId = sColumnId;
 
                     call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                         @Override
@@ -308,13 +320,28 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 } catch (Exception e) {
                                     e.getMessage();
                                 }
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
-                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                                Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                try {
+                                    Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                    map.put("SyncStatus", "false");
+                                    MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                } catch (Exception e) {
+                                }
+//                                ContentValues newValues = new ContentValues();
+//                                newValues.put("SyncStatus", "false");
+//                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+//                                ContentValues newValues = new ContentValues();
+//                                newValues.put("SyncStatus", "true");
+                                Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                try {
+                                    Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                    map.put("SyncStatus", "true");
+                                    issueMap.remove(mIssueID.get(position));
+                                    MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                } catch (Exception e) {
+                                }
+//                                sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                 Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
                                 ref = new Firebase(PostUrl.sFirebaseUrlTickets);
                                 if (cqueryTemp.getCount() > 0) {
@@ -391,22 +418,36 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("RealtimeUpdate", "true");
                                 String tktStatus = new Gson().toJson(postTktStatus);*/
                                 NewTaskAdapter s = new NewTaskAdapter();
-                                sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                        "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + sParentComapnyId + "','" + commemt.getText().toString() + "','" + currentDateTimeString + "','-1')");
-                                Cursor cque = sql.rawQuery("select * from Issue_History ", null);
-                                String sColumnId = null;
-                                if (cque.getCount() > 0) {
-                                    cque.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
+
+                                Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+                                Map<String, String> map = new HashMap<>();
+                                map.put("TicketId", mIssueID.get(position));
+                                map.put("UserId", nh_userid);
+                                map.put("StatusId", sAcceptStatus);
+                                map.put("ParentCompanyId", sParentComapnyId);
+                                map.put("Comment", commemt.getText().toString());
+                                map.put("ActivityDate", currentDateTimeString);
+                                map.put("SyncStatus", "-1");
+                                ticketsMap.put(mIssueID.get(position), map);
+                                MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+
+
+//                                sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                                        "('" + mIssueID.get(position) + "','" + nh_userid + "','" + sAcceptStatus + "','" + sParentComapnyId + "','" + commemt.getText().toString() + "','" + currentDateTimeString + "','-1')");
+//                                Cursor cque = sql.rawQuery("select * from Issue_History ", null);
+//                                String sColumnId = null;
+//                                if (cque.getCount() > 0) {
+//                                    cque.moveToLast();
+//                                    sColumnId = cquery.getString(0).toString();
+//                                }
 //                                cquery.close();
                                 final ApiResult apiResult = new ApiResult();
                                 final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position), sAcceptStatus, commemt.getText().toString(), currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "-1", "", "", "");
                                 Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
-                                final String finalColumnId = sColumnId;
-
-                                final String finalSColumnId = sColumnId;
+//                                final String finalColumnId = sColumnId;
+//
+//                                final String finalSColumnId = sColumnId;
                                 call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                                     @Override
                                     public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
@@ -418,15 +459,30 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                             } catch (Exception e) {
                                                 e.getMessage();
                                             }
-                                            ContentValues newValues = new ContentValues();
-                                            newValues.put("SyncStatus", "false");
-                                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+//                                            ContentValues newValues = new ContentValues();
+//                                            newValues.put("SyncStatus", "false");
+                                            Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                            try {
+                                                Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                                map.put("SyncStatus", "false");
+                                                MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                            } catch (Exception e) {
+                                            }
+//                                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                         } else {
                                             MainActivity m = new MainActivity();
                                             m.updateCounter(context);
-                                            ContentValues newValues = new ContentValues();
-                                            newValues.put("SyncStatus", "true");
-                                            sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
+//                                            ContentValues newValues = new ContentValues();
+//                                            newValues.put("SyncStatus", "true");
+//                                            sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
+                                            Map<String, Map<String, String>> issueMap = MyApp.getApplication().readTicketsIssueHistory();
+                                            try {
+                                                Map<String, String> map = issueMap.get(mIssueID.get(position));
+                                                map.put("SyncStatus", "true");
+                                                issueMap.remove(mIssueID.get(position));
+                                                MyApp.getApplication().writeTicketsIssueHistory(issueMap);
+                                            } catch (Exception e) {
+                                            }
                                             Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
                                             ref = new Firebase(PostUrl.sFirebaseUrlTickets);
                                             if (cqueryTemp.getCount() > 0) {
@@ -602,9 +658,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + mLoc.get(position)));
                             ctx.startActivity(searchAddress);
                             return true;
-                        case R.id.atkt:
-                            MyApp.showMassage(ctx, "Coming Soon!!!");
-                            return true;
+//                        case R.id.atkt:
+//                            MyApp.showMassage(ctx, "Coming Soon!!!");
+//                            return true;
                         case R.id.ctc:
                             Intent in = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mMob.get(position)));
                             ctx.startActivity(in);
@@ -1027,33 +1083,38 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
                                 postTktStatus.put("Longitude", String.valueOf(longitude));
-                                postTktStatus.put("AssetVerificationText", sAssetVerificationText);
+                                postTktStatus.put("AssetSerialNo", sAssetVerificationText);
                                 postTktStatus.put("Expense", eTransport.getText().toString());
-                                String tktStatus = new Gson().toJson(postTktStatus);
-                                try {
-                                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                            "('" + postTktStatus.get("TicketId")
-                                            + "','" + postTktStatus.get("UserId")
-                                            + "','" + postTktStatus.get("StatusId")
-                                            + "','" + postTktStatus.get("Comment")
-                                            + "','" + postTktStatus.get("ActivityDate") + "','-1')");
-                                } catch (Exception e) {
-                                }
+                                postTktStatus.put("SyncStatus", "-1");
+                                Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+                                issuesMap.put(id, postTktStatus);
+                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+//                                String tktStatus = new Gson().toJson(postTktStatus);
+//                                try {
+//                                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                                            "('" + postTktStatus.get("TicketId")
+//                                            + "','" + postTktStatus.get("UserId")
+//                                            + "','" + postTktStatus.get("StatusId")
+//                                            + "','" + postTktStatus.get("Comment")
+//                                            + "','" + postTktStatus.get("ActivityDate") + "','-1')");
+//                                } catch (Exception e) {
+//                                }
 
                                 try {
-                                    Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
-                                    String sColumnId = null;
-                                    if (cquery.getCount() > 0) {
-                                        cquery.moveToLast();
-                                        sColumnId = cquery.getString(0).toString();
-                                    }
+//                                    Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
+//                                    String sColumnId = null;
+//                                    if (cquery.getCount() > 0) {
+//                                        cquery.moveToLast();
+//                                        sColumnId = cquery.getString(0).toString();
+//                                    }
                                     Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                                     if (cqueryTemp.getCount() > 0) {
                                         cqueryTemp.moveToFirst();
                                         if (!nh_userid.equals("0"))
                                             ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
                                     }
-                                    UpdateTask(context, postTktStatus, sColumnId);
+                                    UpdateTask(context, postTktStatus,"true");
                                 } catch (Exception e) {
                                 }
 
@@ -1154,21 +1215,28 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("AssetSerialNo", sAssetVerificationText);
                                 postTktStatus.put("DeviceId", sDeviceId);
                                 postTktStatus.put("Expense", eTransport.getText().toString());
+                                postTktStatus.put("SyncStatus", "-1");
+
                                 String issueStatus = postTktStatus.get("Comment").replace("'", "''");
-                                sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
-                                        "('" + postTktStatus.get("TicketId") + "','" + postTktStatus.get("UserId") + "','" + postTktStatus.get("StatusId") + "','" + issueStatus + "','" + postTktStatus.get("ActivityDate") + "','-1')");
-                                Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
+
+                                Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+                                issuesMap.put(id, postTktStatus);
+                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+//                                sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
+//                                        "('" + postTktStatus.get("TicketId") + "','" + postTktStatus.get("UserId") + "','" + postTktStatus.get("StatusId") + "','" + issueStatus + "','" + postTktStatus.get("ActivityDate") + "','-1')");
+//                                Cursor cquery = sql.rawQuery("select * from Issue_History ", null);
+//                                String sColumnId = null;
+//                                if (cquery.getCount() > 0) {
+//                                    cquery.moveToLast();
+//                                    sColumnId = cquery.getString(0).toString();
+//                                }
                                 LastTransportMode = postTktStatus.get("ModeOfTransport");
                                 editor.putString("LastTransport", postTktStatus.get("ModeOfTransport"));
                                 editor.apply();
                                 editor.commit();
 
-                                UpdateTask(ctx, postTktStatus, sColumnId);
+                                UpdateTask(ctx, postTktStatus,"true");
 
                                 Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                                 if (cqueryTemp.getCount() > 0) {
@@ -1354,7 +1422,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         }
     }
 
-    public void UpdateTask(final Context ctx, Map postTktStatus, String sColumnId) {
+    public void UpdateTask(final Context ctx, final Map<String, String> postTktStatus,String realTimeUpdate) {
+
         Log.e("TicketStatusTable", "status value " + postTktStatus.get("StatusId"));
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
@@ -1362,24 +1431,24 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         //final ApiResult.IssueDetail issueDetail=apiResult.new IssueDetail(postTktStatus.get("UserId"),sParentComapnyId,id, sSelectedStatus ,commemt.getText().toString(),currentTime,DepartmentId,String.valueOf(latitude),String.valueOf(longitude),sAssetVerificationText,sDeviceId,"-1");
         try {
             final ApiResult.IssueDetail issueDetail =
-                    apiResult.new IssueDetail(postTktStatus.get("UserId").toString(),
-                            postTktStatus.get("ParentCompanyId").toString(),
-                            postTktStatus.get("TicketId").toString(),
-                            postTktStatus.get("StatusId").toString(),
-                            postTktStatus.get("Comment").toString(),
-                            postTktStatus.get("ActivityDate").toString(),
-                            postTktStatus.get("DepartmentId").toString(),
-                            postTktStatus.get("Latitude").toString(),
-                            postTktStatus.get("Longitude").toString(),
-                            postTktStatus.get("AssetSerialNo").toString(),
-                            postTktStatus.get("DeviceId").toString(),
-                            postTktStatus.get("RealtimeUpdate").toString(),
-                            postTktStatus.get("ModeOfTransport").toString(),
-                            postTktStatus.get("Expense").toString(),
-                            postTktStatus.get("AssignedUserId").toString());
+                    apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TicketId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"));
 
-            final String finalColumnId = sColumnId;
-            if (postTktStatus.get("ModeOfTransport").toString().equals("0")) ;
+//            final String finalColumnId = sColumnId;
+            if (postTktStatus.get("ModeOfTransport").equals("0")) ;
             else {
                 LastTransportMode = postTktStatus.get("ModeOfTransport").toString();
                 editor.putString("LastTransport", LastTransportMode);
@@ -1400,19 +1469,30 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 e.getMessage();
                             }
                             Log.e("TicketStatusTable", "Success but not true");
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("SyncStatus", "false");
-                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                            Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                            map.put("SyncStatus", "false");
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+//                            ContentValues newValues = new ContentValues();
+//                            newValues.put("SyncStatus", "false");
+//                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                         } else {
                             Log.e("TicketStatusTable", "Success" + " response " + iData.toString());
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("SyncStatus", "true");
-                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                            savedMap.remove(postTktStatus.get("TicketId"));
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+//                            ContentValues newValues = new ContentValues();
+//                            newValues.put("SyncStatus", "true");
+//                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                         }
                     } catch (Exception e) {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "false");
-                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                        Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                        Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                        map.put("SyncStatus", "false");
+                        MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+//                        ContentValues newValues = new ContentValues();
+//                        newValues.put("SyncStatus", "false");
+//                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                     }
                 }
 
@@ -1420,17 +1500,25 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
                     Log.e("TicketStatusTable", "On failure");
                     call.cancel();
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "false");
-                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
+                    Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                    Map<String,String> map = savedMap.get(postTktStatus.get("TicketId"));
+                    map.put("SyncStatus","false");
+                    MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+//                    ContentValues newValues = new ContentValues();
+//                    newValues.put("SyncStatus", "false");
+//                    sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
 
                 }
             });
         } catch (Exception e) {
             Log.e("TicketStatusTable", "came to exception " + e.toString());
-            ContentValues newValues = new ContentValues();
-            newValues.put("SyncStatus", "false");
-            sql.update("Issue_History", newValues, "Id=" + sColumnId, null);
+            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+            Map<String,String> map = savedMap.get(postTktStatus.get("TicketId"));
+            map.put("SyncStatus","false");
+            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+//            ContentValues newValues = new ContentValues();
+//            newValues.put("SyncStatus", "false");
+//            sql.update("Issue_History", newValues, "Id=" + sColumnId, null);
             return;
         }
 

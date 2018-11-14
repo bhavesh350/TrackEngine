@@ -9,39 +9,43 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/activity_main_swipe_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true">
+        android:layout_height="wrap_content">
 
         <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/scrollView"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true">
+            android:layout_height="fill_parent">
 
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/content_main"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingBottom="@dimen/activity_vertical_margin"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="10dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 tools:context="net.mzi.trackengine.MainActivity"
                 tools:showIn="@layout/app_bar_main">
+
+                <Button
+                    android:id="@+id/btn_check_in_out"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:background="@color/red"
+                    android:text="Checked In\n"
+                    android:textColor="@color/white" />
 
                 <LinearLayout
                     android:id="@+id/timerL"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="#fcebbf"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/checkInStatus"
@@ -71,51 +75,20 @@
 
                 </LinearLayout>
 
-                <RelativeLayout
-                    android:id="@+id/newtkt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/_5sdp"
-                    android:layout_marginTop="50dp"
-                    android:visibility="gone">
-
-                    <fragment
-                        android:id="@+id/fragment"
-                        android:name="net.mzi.trackengine.Firstfrag"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/_340sdp"
-                        android:tag="firstFragment"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_below="@+id/textView17" />
-
-                    <TextView
-                        android:id="@+id/textView17"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_centerHorizontal="true"
-                        android:text="My Tickets "
-                        android:textColor="#000"
-                        android:textSize="@dimen/_12ssp"
-                        android:typeface="serif" />
-                </RelativeLayout>
 
                 <RelativeLayout
-
                     android:id="@+id/remaininglayout"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.27">
+                    android:layout_height="wrap_content">
 
                     <RelativeLayout
                         android:id="@+id/line"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
                         android:layout_below="@+id/task_view"
-                        android:layout_marginTop="@dimen/_10sdp"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:layout_marginTop="10dp"
                         android:background="#cfe9f5"
                         android:padding="@dimen/_2sdp"></RelativeLayout>
 
@@ -137,9 +110,9 @@
                         android:id="@+id/task_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
                         android:layout_below="@+id/viewAll"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
                         android:orientation="horizontal"
                         android:scrollbars="horizontal"></android.support.v7.widget.RecyclerView>
 
@@ -152,29 +125,9 @@
                         android:text="Task Manager "
                         android:textColor="#000"
                         android:textSize="15sp"
+                        android:textStyle="bold"
                         android:typeface="serif" />
 
-                    <TextView
-                        android:id="@+id/textView24"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/line"
-                        android:layout_centerHorizontal="true"
-                        android:layout_marginTop="@dimen/_31sdp"
-                        android:text="My Location"
-                        android:textColor="#000"
-                        android:textSize="15sp"
-                        android:typeface="serif" />
-
-                    <fragment
-                        android:id="@+id/map"
-                        class="com.google.android.gms.maps.SupportMapFragment"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/_200sdp"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_below="@+id/textView24"
-                        tools:context=".AgentDetail" />
 
                     <TextView
                         android:id="@+id/viewAlert"
@@ -191,13 +144,14 @@
                         android:typeface="serif"
                         android:visibility="gone" />
 
+
                     <RelativeLayout
                         android:id="@+id/timerLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
                         android:layout_below="@+id/textView21"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
                         android:background="#fcebbf"
                         android:visibility="gone">
 
@@ -223,10 +177,10 @@
                             android:id="@+id/textView4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
                             android:layout_below="@+id/textView12"
-                            android:layout_marginTop="@dimen/_13sdp"
+                            android:layout_alignParentStart="true"
+                            android:layout_alignParentLeft="true"
+                            android:layout_marginTop="10dp"
                             android:text="" />
 
                         <Chronometer
@@ -241,19 +195,77 @@
                         android:id="@+id/viewAll"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_below="@+id/textView23"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
-                        android:layout_below="@+id/textView23"
+                        android:padding="10dp"
                         android:text="VIEW ALL  >>" />
 
                 </RelativeLayout>
 
+                <include layout="@layout/activity_sync_data"></include>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/black"></View>
+
                 <TextView
+                    android:id="@+id/textView24"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/_10sdp"
-                    android:layout_marginLeft="@dimen/_20sdp"
+                    android:layout_below="@+id/line"
+                    android:layout_centerHorizontal="true"
+                    android:text="My Location"
+                    android:textColor="#000"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:typeface="serif" />
+
+                <!--<fragment-->
+                <!--android:id="@+id/map"-->
+                <!--class="com.google.android.gms.maps.SupportMapFragment"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="@dimen/_200sdp"-->
+                <!--android:layout_alignParentLeft="true"-->
+                <!--android:layout_alignParentStart="true"-->
+                <!--android:layout_below="@+id/textView24"-->
+                <!--tools:context=".AgentDetail" />-->
+
+                <RelativeLayout
+                    android:id="@+id/rl_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView24">
+
+                    <TextView
+                        android:id="@+id/tv_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toLeftOf="@+id/img_map"
+                        android:minLines="3"
+                        android:padding="5dp"
+                        android:text="Loading location..."
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/img_map"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:drawableTop="@drawable/ic_map_view"
+                        android:text="Map View"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
+                    android:padding="5dp"
                     android:text="Copyright © 2017 by MZS LLP.\nAll Right Reserved." />
 
                 <View
@@ -261,7 +273,39 @@
                     android:layout_height="@dimen/_2sdp"
                     android:layout_marginBottom="@dimen/_20sdp"
                     android:background="@color/colorPrimary" />
+
+
             </LinearLayout>
         </ScrollView>
     </android.support.v4.widget.SwipeRefreshLayout>
+
+    <RelativeLayout
+        android:id="@+id/newtkt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:background="#99222222"
+        android:visibility="gone">
+
+        <fragment
+            android:id="@+id/fragment"
+            android:name="net.mzi.trackengine.Firstfrag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:tag="firstFragment" />
+
+        <TextView
+            android:id="@+id/textView17"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/fragment"
+            android:layout_centerHorizontal="true"
+            android:padding="10dp"
+            android:text="My Tickets "
+            android:textColor="#fff"
+            android:textSize="@dimen/_12ssp"
+            android:typeface="serif" />
+    </RelativeLayout>
+
 </RelativeLayout>
