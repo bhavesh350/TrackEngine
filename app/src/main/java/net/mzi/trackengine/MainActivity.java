@@ -208,9 +208,9 @@ public class MainActivity extends AppCompatActivity
     private TextView tv_location;
 
     // Sync related views
-    private TextView txt_sync_all, txt_check_in_out_count, txt_locations_count, txt_issues_count, txt_battery_count;
-    private RelativeLayout rl_sync_check_in_out, rl_sync_locations, rl_sync_issue_status, rl_sync_battery;
-    private ProgressBar progress_sync_progress_in_out, progress_sync_locations, progress_sync_status, progress_sync_battery;
+    public TextView txt_sync_all, txt_check_in_out_count, txt_locations_count, txt_issues_count, txt_battery_count;
+    public RelativeLayout rl_sync_check_in_out, rl_sync_locations, rl_sync_issue_status, rl_sync_battery;
+    public ProgressBar progress_sync_progress_in_out, progress_sync_locations, progress_sync_status, progress_sync_battery;
 
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -351,6 +351,18 @@ public class MainActivity extends AppCompatActivity
                                     }
                                     cquery.close();
                                     PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
+                                    int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
+                                    int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+                                    int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+                                    int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
+                                    txt_battery_count.setText(batteryCount + "");
+                                    txt_issues_count.setText(issuesCount + "");
+                                    txt_locations_count.setText(locationsCount + "");
+                                    txt_check_in_out_count.setText(checkInOutCount + "");
+                                    syncLocations();
+                                    syncCheckInOut();
+                                    syncBattery();
+                                    syncIssues();
                                 } catch (Exception e) {
                                 }
 
@@ -395,8 +407,11 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
-            if (mCurrentLocation != null)
-                tv_location.setText(getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+            if (mCurrentLocation != null) {
+                String add = getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+                if (!add.isEmpty())
+                    tv_location.setText(add);
+            }
         }
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -487,10 +502,20 @@ public class MainActivity extends AppCompatActivity
         txt_sync_all.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                syncCheckInOut();
-                syncLocations();
-                syncIssues();
-                syncBattery();
+                if (callable) {
+                    callable = false;
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            callable = true;
+                        }
+                    }, 10000);
+                    syncCheckInOut();
+                    syncLocations();
+                    syncIssues();
+                    syncBattery();
+                }
+
             }
         });
         rl_sync_check_in_out.setOnClickListener(new View.OnClickListener() {
@@ -523,27 +548,27 @@ public class MainActivity extends AppCompatActivity
 
     private void sendBatteryCheckinLevel(int batLevel) {
         Map<String, String> batteryInfo = new HashMap<>();
-
         batteryInfo.put("UserId", LOGINID);
         batteryInfo.put("DeviceId", sDeviceId);
         batteryInfo.put("Battery", String.valueOf(batLevel));
         batteryInfo.put("ActivityDate", currentDateTimeString);
         batteryInfo.put("AutoCaptured", "false");
         batteryInfo.put("RealTimeUpdate", "true");
-        String jsonBatteryString = new Gson().toJson(batteryInfo);
+        batteryInfo.put("syncStatus", "false");
         ServiceBattery serviceBattery = new ServiceBattery();
-//              serviceBattery.registerReceiver(serviceBattery.mBatInfoReceiver)
-        sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + batLevel + "','true','" + currentDateTimeString + "','-1')");
-        Cursor cquery = sql.rawQuery("select * from User_Login ", null);
-        String sColumnId = null;
-        if (cquery.getCount() > 0) {
-            cquery.moveToLast();
-            sColumnId = cquery.getString(0).toString();
-        }
-        cquery.close();
+        Map<String, Map<String, String>> batteryMap = MyApp.getApplication().readBatteryHistory();
+        batteryMap.put(currentDateTimeString, batteryInfo);
+        MyApp.getApplication().writeBatteryHistory(batteryMap);
+//        sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + batLevel + "','true','" + currentDateTimeString + "','-1')");
+//        Cursor cquery = sql.rawQuery("select * from User_Login ", null);
+//        String sColumnId = null;
+//        if (cquery.getCount() > 0) {
+//            cquery.moveToLast();
+//            sColumnId = cquery.getString(0).toString();
+//        }
+//        cquery.close();
         MyApp.setSharedPrefLong("BAT", 0);
-        Log.d(">>>>>>>>>>", "send battery method called");
-        serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
+        serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), true);
     }
 
     public static void removeTkt() {
@@ -967,7 +992,9 @@ public class MainActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
 //        updateMarkers();
-        tv_location.setText(getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        String add = getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        if (!add.isEmpty())
+            tv_location.setText(add);
     }
 
     private String getCompleteAddressString(double LATITUDE, double LONGITUDE) {
@@ -1111,8 +1138,11 @@ public class MainActivity extends AppCompatActivity
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                     mLocationRequest, this);
         }
-        if (mCurrentLocation != null)
-            tv_location.setText(getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+        if (mCurrentLocation != null) {
+            String add = getCompleteAddressString(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            if (!add.isEmpty())
+                tv_location.setText(add);
+        }
 
     }
 
@@ -1401,6 +1431,7 @@ public class MainActivity extends AppCompatActivity
                     Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
                     map.remove(appCheckInInfo.get("ActivityDate"));
                     MyApp.getApplication().writeCheckInOutData(map);
+                    txt_check_in_out_count.setText(map.keySet().size() + "");
 //                    sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
                 }
             }
@@ -1822,8 +1853,6 @@ public class MainActivity extends AppCompatActivity
                     Cursor cquery = sql.rawQuery("select * from User_Location", null);
                     if (cquery.getCount() > 0) {
 
-                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-
                         for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                             String id = cquery.getString(0).toString();
                             sql.delete("User_Location", "Id" + "=" + id, null);
@@ -1882,7 +1911,6 @@ public class MainActivity extends AppCompatActivity
                                     try {
                                         Cursor cquery = sql.rawQuery("select * from User_Location", null);
                                         if (cquery.getCount() > 0) {
-                                            Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
                                             for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                                                 String id = cquery.getString(0).toString();
                                                 sql.delete("User_Location", "Id" + "=" + id, null);
@@ -1912,9 +1940,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.colorPrimaryDark);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-
-        {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mSwipeRefreshLayout.setProgressViewOffset(false, 0, 200);
         }
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
@@ -2403,184 +2429,240 @@ public class MainActivity extends AppCompatActivity
         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
         int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
         int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
-        int batteryCount = sql.rawQuery("select * from User_BatteryLevel", null).getCount();
+        int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
 
         txt_battery_count.setText(batteryCount + "");
         txt_issues_count.setText(issuesCount + "");
         txt_locations_count.setText(locationsCount + "");
         txt_check_in_out_count.setText(checkInOutCount + "");
+
+        progress_sync_locations.setVisibility(View.GONE);
+        progress_sync_status.setVisibility(View.GONE);
+        progress_sync_battery.setVisibility(View.GONE);
+        progress_sync_progress_in_out.setVisibility(View.GONE);
+
+        try {
+            txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_check_in_out_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
+        } catch (Exception e) {
+        }
+
+        if (callable) {
+
+            syncLocations();
+            syncCheckInOut();
+            syncBattery();
+            syncIssues();
+            callable = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callable = true;
+                }
+            }, 10000);
+        }
+
     }
 
+    private boolean callable = true;
+    private boolean callableLocation = true;
+    private boolean callableIssues = true;
+    private boolean callableBattery = true;
+    private boolean callableCheckInOut = true;
+
     private void syncCheckInOut() {
-        progress_sync_progress_in_out.setVisibility(View.VISIBLE);
-        txt_check_in_out_count.setBackground(null);
-        Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
-        for (String key : map.keySet()) {
-            MainActivity mm = new MainActivity();
-            map.get(key).put("RealTimeUpdate", "false");
-            try {
-                mm.appCheckINOperation(map.get(key), "false");
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (MyApp.isConnectingToInternet(MainActivity.this) && callableCheckInOut) {
+            callableCheckInOut = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callableCheckInOut = true;
+                }
+            }, 5000);
+            Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
+            if (map.keySet().size() == 0) return;
+            progress_sync_progress_in_out.setVisibility(View.VISIBLE);
+            txt_check_in_out_count.setBackground(null);
+            for (String key : map.keySet()) {
+                map.get(key).put("RealTimeUpdate", "false");
+                try {
+                    appCheckINOperation(map.get(key), "false");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                progress_sync_progress_in_out.setVisibility(View.GONE);
-                txt_check_in_out_count.setBackground(getDrawable(R.drawable.sync_orange));
-            }
-        }, 2000);
     }
 
     private void syncLocations() {
-        progress_sync_locations.setVisibility(View.VISIBLE);
-        txt_locations_count.setBackground(null);
-        cquery = sql.rawQuery("select * from User_Location", null);
-        if (cquery.getCount() > 0) {
-            String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-            if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        if (MyApp.isConnectingToInternet(MainActivity.this) && callableLocation) {
+            callableLocation = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callableLocation = true;
+                }
+            }, 5000);
+            cquery = sql.rawQuery("select * from User_Location", null);
+            int count = cquery.getCount();
+            if (count <= 0) {
+                txt_locations_count.setText("0");
+                return;
+            }
+            progress_sync_locations.setVisibility(View.VISIBLE);
+            txt_locations_count.setBackground(null);
+            if (cquery.getCount() > 0) {
+                String sCheckInStatus = pref.getString("CheckedInStatus", "0");
+                if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
 
-            } else {
+                } else {
+                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
+                    if (cquery.getCount() > 0) {
+
+                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                            String id = cquery.getString(0).toString();
+                            sql.delete("User_Location", "Id" + "=" + id, null);
+                        }
+                    }
+                    return;
+                }
+
+                int counter = 0;
+                for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                    ++counter;
+                    if (counter >= 50) {
+                        cquery.moveToLast();
+                        break;
+                    }
+                    if (cquery.getString(15).toString().equals("true")) {
+                        String id = cquery.getString(0).toString();
+                        sql.delete("User_Location", "Id" + "=" + id, null);
+                    } else {
+                        HashMap<String, String> locationInfo = new HashMap<>();
+                        if (cquery.getString(15).toString().equals("-1")
+                                || cquery.getString(15).toString().equals("false")) {
+                            locationInfo.put("RealTimeUpdate", "false");
+                        }
+                        locationInfo.put("UserId", cquery.getString(1).toString());
+                        locationInfo.put("DeviceId", sDeviceId);
+                        locationInfo.put("Latitude", cquery.getString(2).toString());
+                        locationInfo.put("Longitude", cquery.getString(3).toString());
+                        locationInfo.put("AutoCaptured", cquery.getString(4).toString());
+                        locationInfo.put("ActivityDate", cquery.getString(5).toString());
+                        locationInfo.put("AddressLine", "NA");
+                        locationInfo.put("Premises", "NA");
+                        locationInfo.put("SubLocality", "NA");
+                        locationInfo.put("SubAdminArea", "NA");
+                        locationInfo.put("PostalCode", "NA");
+                        locationInfo.put("City", "NA");
+                        locationInfo.put("State", "NA");
+                        locationInfo.put("Country", "NA");
+                        locationInfo.put("KnownName", "NA");
+                        locationInfo.put("Provider", "NA");
+                        ServiceLocation m = new ServiceLocation(MainActivity.this);
+
+                        m.LocationOperationOffline(locationInfo, MainActivity.this, cquery.getString(0).toString(), true);
+                        String id = cquery.getString(0).toString();
+                        Log.d("postcoordinat", "offline syncing with id = " + id);
+                        sql.delete("User_Location", "Id" + "=" + id, null);
+                    }
+                    if (counter >= 50) {
+                        break;
+                    }
+                }
+
                 Cursor cquery = sql.rawQuery("select * from User_Location", null);
                 if (cquery.getCount() > 0) {
-
-                    Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
                         String id = cquery.getString(0).toString();
                         sql.delete("User_Location", "Id" + "=" + id, null);
                     }
                 }
-                cquery.close();
-                return;
+
             }
-
-            int counter = 0;
-            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                ++counter;
-                if (counter >= 50) {
-                    cquery.moveToLast();
-                    break;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    progress_sync_locations.setVisibility(View.GONE);
+                    txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
                 }
-                if (cquery.getString(15).toString().equals("true")) {
-                    String id = cquery.getString(0).toString();
-                    sql.delete("User_Location", "Id" + "=" + id, null);
-                } else {
-                    HashMap<String, String> locationInfo = new HashMap<>();
-                    if (cquery.getString(15).toString().equals("-1")
-                            || cquery.getString(15).toString().equals("false")) {
-                        locationInfo.put("RealTimeUpdate", "false");
-                    }
-                    locationInfo.put("UserId", cquery.getString(1).toString());
-                    locationInfo.put("DeviceId", sDeviceId);
-                    locationInfo.put("Latitude", cquery.getString(2).toString());
-                    locationInfo.put("Longitude", cquery.getString(3).toString());
-                    locationInfo.put("AutoCaptured", cquery.getString(4).toString());
-                    locationInfo.put("ActivityDate", cquery.getString(5).toString());
-                    locationInfo.put("AddressLine", "NA");
-                    locationInfo.put("Premises", "NA");
-                    locationInfo.put("SubLocality", "NA");
-                    locationInfo.put("SubAdminArea", "NA");
-                    locationInfo.put("PostalCode", "NA");
-                    locationInfo.put("City", "NA");
-                    locationInfo.put("State", "NA");
-                    locationInfo.put("Country", "NA");
-                    locationInfo.put("KnownName", "NA");
-                    locationInfo.put("Provider", "NA");
-                    ServiceLocation m = new ServiceLocation(MainActivity.this);
-
-                    m.LocationOperation(locationInfo, MainActivity.this, cquery.getString(0).toString(), true);
-                    String id = cquery.getString(0).toString();
-                    Log.d("postcoordinat", "offline syncing with id = " + id);
-                    sql.delete("User_Location", "Id" + "=" + id, null);
-                }
-                if (counter >= 50) {
-                    break;
-                }
-            }
-
-            Cursor cquery = sql.rawQuery("select * from User_Location", null);
-            if (cquery.getCount() > 0) {
-                for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                    String id = cquery.getString(0).toString();
-                    sql.delete("User_Location", "Id" + "=" + id, null);
-                }
-            }
-            cquery.close();
-
+            }, 4000);
         }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                progress_sync_locations.setVisibility(View.GONE);
-                txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
-            }
-        }, 2000);
     }
 
     private void syncIssues() {
-        progress_sync_status.setVisibility(View.VISIBLE);
-        txt_issues_count.setBackground(null);
-        Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-        if (savedMap.keySet().size() > 0) {
-            Log.e("TicketStatusTable", "offline syncing with data");
-            Log.e("InternetConnector: ", "I am in Issue_History");
 
-            for (String key : savedMap.keySet()) {
-                if (savedMap.get(key).get("SyncStatus").equals("true")) {
-                    savedMap.remove("TicketId");
-                } else {
-                    SchedulingAdapter m = new SchedulingAdapter();
-                    m.UpdateTask(MainActivity.this, savedMap.get(key), "false");
+        if (MyApp.isConnectingToInternet(MainActivity.this) && callableIssues) {
+            callableIssues = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callableIssues = true;
                 }
+            }, 5000);
+            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+            if (savedMap.keySet().size() == 0) return;
+            progress_sync_status.setVisibility(View.VISIBLE);
+            txt_issues_count.setBackground(null);
+            if (savedMap.keySet().size() > 0) {
 
+                for (String key : savedMap.keySet()) {
+                    if (savedMap.get(key).get("SyncStatus").equals("true")) {
+                        savedMap.remove("TicketId");
+                    } else {
+                        SchedulingAdapter m = new SchedulingAdapter();
+                        m.UpdateTask(MainActivity.this, savedMap.get(key), "false");
+                    }
+                }
+            } else {
+                Log.e("TicketStatusTable", "offline sync count is 0");
             }
-        } else {
-            Log.e("TicketStatusTable", "offline sync count is 0");
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    progress_sync_status.setVisibility(View.GONE);
+                    txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
+                }
+            }, 3000);
         }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                progress_sync_status.setVisibility(View.GONE);
-                txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
-            }
-        }, 2000);
     }
 
     private void syncBattery() {
-        progress_sync_battery.setVisibility(View.VISIBLE);
-        txt_battery_count.setBackground(null);
-        cquery = sql.rawQuery("select * from User_BatteryLevel", null);
-        if (cquery.getCount() > 0) {
-
-            Log.e("InternetConnector: ", "I am in User_BatteryLevel");
-            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                if (cquery.getString(5).equals("true")) {
-                    String id = cquery.getString(0).toString();
-                    sql.delete("User_BatteryLevel", "Id" + "=" + id, null);
-                } else {
-                    HashMap<String, String> batteryInfo = new HashMap<>();
-                    if (cquery.getString(5).toString().equals("-1") || cquery.getString(5).toString().equals("false")) {
-                        batteryInfo.put("RealTimeUpdate", "false");
-                    }
-                    batteryInfo.put("UserId", cquery.getString(1).toString());
-                    batteryInfo.put("DeviceId", sDeviceId);
-                    batteryInfo.put("Battery", cquery.getString(2).toString());
-                    batteryInfo.put("ActivityDate", cquery.getString(4).toString());
-                    batteryInfo.put("AutoCaptured", cquery.getString(3).toString());
-                    ServiceBattery m = new ServiceBattery();
-                    m.BatteryOperation(batteryInfo, MainActivity.this, cquery.getString(0).toString());
+        if (MyApp.isConnectingToInternet(MainActivity.this) && callableBattery) {
+            callableBattery = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callableBattery = true;
                 }
+            }, 5000);
+            final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
+            if (batMap.keySet().size() == 0) return;
+            progress_sync_battery.setVisibility(View.VISIBLE);
+            txt_battery_count.setBackground(null);
+            if (batMap.keySet().size() > 0) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (String key : batMap.keySet()) {
+                            if (batMap.get(key).get("syncStatus").equals("false")) {
+                                ServiceBattery m = new ServiceBattery();
+                                m.BatteryOffline(batMap.get(key), MainActivity.this, false);
+                            }
+                        }
+                    }
+                }).start();
             }
-        }
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                progress_sync_battery.setVisibility(View.GONE);
-                txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
-            }
-        }, 2000);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    progress_sync_battery.setVisibility(View.GONE);
+                    txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
+                }
+            }, 4000);
+        }
     }
 }

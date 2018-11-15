@@ -282,19 +282,26 @@ public class ServiceLocation extends Service {
         sDuration = pref.getString("CheckedInDuration", currentDateTimeString);
         gps = new Gps(getApplicationContext());
         initializeLocationManager();
-        SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date localDate = null;
-        Date liveDate = cDate;
+//        SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        Date localDate = null;
+//        Date liveDate = cDate;
         String strUpdatedDate = sDuration;
         //SimpleDateFormat liveUpdatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
-            long secondsInMilli = 1000;
-            long minutesInMilli = secondsInMilli * 60;
-            localDate = Updatedate.parse(strUpdatedDate);
-            long different = liveDate.getTime() - localDate.getTime();
-            long m = different;
-            long elapsedMinutes = different / minutesInMilli;
-            if (elapsedMinutes >= 2) {
+//            long secondsInMilli = 1000;
+//            long minutesInMilli = secondsInMilli * 60;
+//            localDate = Updatedate.parse(strUpdatedDate);
+//            long different = liveDate.getTime() - localDate.getTime();
+//            long m = different;
+//            long elapsedMinutes = different / minutesInMilli;
+            long lastLocTimee = MyApp.getSharedPrefLong("LOC");
+            if (lastLocTimee == 0) {
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
+            }
+            long differLocc = System.currentTimeMillis() - lastLocTimee;
+
+            if (differLocc >= (2 * 60 * 1000)) {
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
 //                try {
 //                    mLocationManager.requestLocationUpdates(
 //                            LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -436,7 +443,6 @@ public class ServiceLocation extends Service {
                             geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                         }
 
-
                         try {
                             sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
                             addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
@@ -530,7 +536,7 @@ public class ServiceLocation extends Service {
                 t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
                 t.StatusId = resData.IssueDetail[i].StatusId;
             }*/
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -687,7 +693,10 @@ public class ServiceLocation extends Service {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 if (!finalColumnId.isEmpty())
-                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+
+
                             }
                         } catch (Exception e) {
                         }
@@ -757,7 +766,7 @@ public class ServiceLocation extends Service {
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
                     } else {
-                        MyApp.showMassage(getApplication(), "Location sent successfully!!!");
+//                        MyApp.showMassage(getApplication(), "Location sent successfully!!!");
                     }
                 } catch (Exception e) {
                 }
@@ -836,12 +845,17 @@ public class ServiceLocation extends Service {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 if (!finalColumnId.isEmpty())
-                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
                             } else {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 if (!finalColumnId.isEmpty())
-                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+                                ((MainActivity) ctx).txt_locations_count.setText(locationsCount + "");
+
                             }
                             if (showToast)
                                 MyApp.showMassage(getApplicationContext(), "Location sent successfully!!!");
@@ -899,15 +913,19 @@ public class ServiceLocation extends Service {
             batteryInfo.put("ActivityDate", currentDateTimeString);
             batteryInfo.put("AutoCaptured", "true");
             batteryInfo.put("RealTimeUpdate", "true");
-            sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + nh_userid + "','" + BatteryLevel + "','true','" + currentDateTimeString + "','-1')");
-            Cursor cquery = sql.rawQuery("select * from User_BatteryLevel ", null);
-            String sColumnId = null;
-            if (cquery.getCount() > 0) {
-                cquery.moveToLast();
-                sColumnId = cquery.getString(0).toString();
-            }
-            cquery.close();
-            BatteryOperation(batteryInfo, getApplicationContext(), sColumnId);
+            batteryInfo.put("syncStatus", "false");
+            Map<String, Map<String, String>> bMap = MyApp.getApplication().readBatteryHistory();
+            bMap.put(currentDateTimeString, batteryInfo);
+            MyApp.getApplication().writeBatteryHistory(bMap);
+//            sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + nh_userid + "','" + BatteryLevel + "','true','" + currentDateTimeString + "','-1')");
+//            Cursor cquery = sql.rawQuery("select * from User_BatteryLevel ", null);
+//            String sColumnId = null;
+//            if (cquery.getCount() > 0) {
+//                cquery.moveToLast();
+//                sColumnId = cquery.getString(0).toString();
+//            }
+//            cquery.close();
+            BatteryOperation(batteryInfo, getApplicationContext());
             cDate = new Date();
             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
             editor.putString("CheckedInDuration", currentDateTimeString);
@@ -955,29 +973,34 @@ public class ServiceLocation extends Service {
         notificationManager.notify(0, noti);
     }
 
-    public void BatteryOperation(Map batteryInfo, final Context ctx, final String sColumnId) {
+    public void BatteryOperation(final Map<String, String> batteryInfo, final Context ctx) {
+        final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
         sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         Log.e("BatteryOperation: ", batteryInfo.toString());
         final ApiResult apiResult = new ApiResult();
 
-        final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("true", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
+        final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
         Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
-        final String finalColumnId = sColumnId;
         call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
             @Override
             public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
                 try {
                     ApiResult.User_BatteryLevel iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "false");
-                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                        Map<String, String> bMap = batMap.get(batteryInfo.get("ActivityDate"));
+                        bMap.put("syncStatus", "false");
+                        batMap.put(batteryInfo.get("ActivityDate"), bMap);
+                        MyApp.getApplication().writeBatteryHistory(batMap);
+//                        ContentValues newValues = new ContentValues();
+//                        newValues.put("SyncStatus", "false");
+//                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
                     } else {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "true");
-                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                        batMap.remove(batteryInfo.get("ActivityDate"));
+                        MyApp.getApplication().writeBatteryHistory(batMap);
+//                        ContentValues newValues = new ContentValues();
+//                        newValues.put("SyncStatus", "true");
+//                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
                     }
                 } catch (Exception e) {
 //                   MyApp.showMassage();

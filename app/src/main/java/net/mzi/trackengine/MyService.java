@@ -512,10 +512,12 @@ public class MyService extends JobService {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
                             } else {
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("SyncStatus", "true");
                                 sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
                             }
                         } catch (Exception e) {
                         }

@@ -1481,6 +1481,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
                             savedMap.remove(postTktStatus.get("TicketId"));
                             MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+
+                            int issuesCount = savedMap.keySet().size();
+
+                            ((MainActivity)context).txt_issues_count.setText(issuesCount + "");
+
 //                            ContentValues newValues = new ContentValues();
 //                            newValues.put("SyncStatus", "true");
 //                            sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
@@ -1488,8 +1493,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     } catch (Exception e) {
                         Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
                         Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
-                        map.put("SyncStatus", "false");
-                        MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                        try{
+                            map.put("SyncStatus", "false");
+                            savedMap.put(postTktStatus.get("TicketId"),map);
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                        }catch (Exception ee){
+
+                        }
 //                        ContentValues newValues = new ContentValues();
 //                        newValues.put("SyncStatus", "false");
 //                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);

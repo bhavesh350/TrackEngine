@@ -298,7 +298,8 @@ public class LoginActivity extends AppCompatActivity {
         MyApp.getApplication().writeCheckInOutData(new HashMap<String, Map<String, String>>());
         MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());
         try {
-            sql.execSQL("delete from User_BatteryLevel");
+            MyApp.getApplication().writeBatteryHistory(new HashMap<String, Map<String, String>>());
+//            sql.execSQL("delete from User_BatteryLevel");
             sql.execSQL("delete from Issue_StatusHiererchy");
             sql.execSQL("delete from User_MobileData");
             sql.execSQL("delete from User_Gps");
