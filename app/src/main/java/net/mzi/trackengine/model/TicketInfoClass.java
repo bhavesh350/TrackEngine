@@ -77,6 +77,182 @@ public class TicketInfoClass implements Serializable {
         this.LastTransportMode = LastTransportMode;
     }
 
+    public void setIssueID(String issueID) {
+        IssueID = issueID;
+    }
+
+    public String getAddress() {
+        return Address;
+    }
+
+    public void setAddress(String address) {
+        Address = address;
+    }
+
+    public String getServiceItemNumber() {
+        return ServiceItemNumber;
+    }
+
+    public void setServiceItemNumber(String serviceItemNumber) {
+        ServiceItemNumber = serviceItemNumber;
+    }
+
+    public String getLatitude() {
+        return Latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        Latitude = latitude;
+    }
+
+    public String getLongitude() {
+        return Longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        Longitude = longitude;
+    }
+
+    public void setAssetSerialNumber(String assetSerialNumber) {
+        AssetSerialNumber = assetSerialNumber;
+    }
+
+    public void setAssetSubType(String assetSubType) {
+        AssetSubType = assetSubType;
+    }
+
+    public void setAssetType(String assetType) {
+        AssetType = assetType;
+    }
+
+    public void setCategoryName(String categoryName) {
+        CategoryName = categoryName;
+    }
+
+    public void setCorporateName(String corporateName) {
+        CorporateName = corporateName;
+    }
+
+    public void setCreatedDate(String createdDate) {
+        CreatedDate = createdDate;
+    }
+
+    public void setIssueText(String issueText) {
+        IssueText = issueText;
+    }
+
+    public void setPhoneNo(String phoneNo) {
+        PhoneNo = phoneNo;
+    }
+
+    public void setSLADate(String SLADate) {
+        this.SLADate = SLADate;
+    }
+
+    public void setStatusId(String statusId) {
+        StatusId = statusId;
+    }
+
+    public void setSubject(String subject) {
+        Subject = subject;
+    }
+
+    public void setTicketHolder(String ticketHolder) {
+        TicketHolder = ticketHolder;
+    }
+
+    public void setUpdatedDate(String updatedDate) {
+        UpdatedDate = updatedDate;
+    }
+
+    public String getTicketNumber() {
+        return TicketNumber;
+    }
+
+    public void setTicketNumber(String ticketNumber) {
+        TicketNumber = ticketNumber;
+    }
+
+    public String getOEMNumber() {
+        return OEMNumber;
+    }
+
+    public void setOEMNumber(String OEMNumber) {
+        this.OEMNumber = OEMNumber;
+    }
+
+    public String getAssetDetail() {
+        return AssetDetail;
+    }
+
+    public void setAssetDetail(String assetDetail) {
+        AssetDetail = assetDetail;
+    }
+
+    public String getContractSubTypeName() {
+        return ContractSubTypeName;
+    }
+
+    public void setContractSubTypeName(String contractSubTypeName) {
+        ContractSubTypeName = contractSubTypeName;
+    }
+
+    public String getContractName() {
+        return ContractName;
+    }
+
+    public void setContractName(String contractName) {
+        ContractName = contractName;
+    }
+
+    public boolean isVerified() {
+        return IsVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        IsVerified = verified;
+    }
+
+    public String getPreviousStatus() {
+        return PreviousStatus;
+    }
+
+    public void setPreviousStatus(String previousStatus) {
+        PreviousStatus = previousStatus;
+    }
+
+    public String getLastTransportMode() {
+        return LastTransportMode;
+    }
+
+    public void setLastTransportMode(String lastTransportMode) {
+        LastTransportMode = lastTransportMode;
+    }
+
+    public String getAlterNateNumber() {
+        return alterNateNumber;
+    }
+
+    public void setAlterNateNumber(String alterNateNumber) {
+        this.alterNateNumber = alterNateNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getScheduleDate() {
+        return ScheduleDate;
+    }
+
+    public void setScheduleDate(String scheduleDate) {
+        ScheduleDate = scheduleDate;
+    }
+
     public String getIssueID() {
         return IssueID;
     }

@@ -187,6 +187,8 @@ public class TicketInfoAdapter extends RecyclerView.Adapter<TicketInfoAdapter.Vi
                 postTktStatus.put("Expense", "0");
                 postTktStatus.put("AssignedUserId", "0");
                 postTktStatus.put("SyncStatus", "-1");
+                postTktStatus.put("StartingForSite", "");
+                postTktStatus.put("CustomDestination", "");
                 Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
                 issuesMap.put(ID, postTktStatus);
                 MyApp.getApplication().writeTicketsIssueHistory(issuesMap);

@@ -1,30 +1,56 @@
 package net.mzi.trackengine;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.firebase.client.Firebase;
 
 import net.mzi.trackengine.fragment.FilterListFragment;
+import net.mzi.trackengine.model.PostUrl;
 
+import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class TaskActivity extends AppCompatActivity implements FilterListFragment.OnDataPass {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static net.mzi.trackengine.SchedulingAdapter.latitude;
+import static net.mzi.trackengine.SchedulingAdapter.longitude;
+
+public class TaskActivity extends AppCompatActivity implements FilterListFragment.OnDataPass, View.OnClickListener {
     private RecyclerView.LayoutManager mLayoutManager;
     SchedulingAdapter scehduleAdapter;
     public static final int New = 0;
@@ -54,6 +80,11 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     Cursor cqueryForStatus;
     Double lat, lon, curLat, curLon;
     Gps gps;
+    private boolean isShowExtra;
+    private String address;
+    private CardView cardview_misl, cardview_office;
+    private ImageButton btn_office_start, btn_office_reached, btn_misl_start, btn_misl_reached;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +94,26 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         gps = new Gps(getApplicationContext());
-
-        bSorting = (Button) findViewById(R.id.SortingId);
-        bFilterList = (Button) findViewById(R.id.FilterStatusId);
+        isShowExtra = getIntent().getBooleanExtra("isShowExtra", false);
+        address = getIntent().getStringExtra("address");
+        bSorting = findViewById(R.id.SortingId);
+        bFilterList = findViewById(R.id.FilterStatusId);
+        cardview_office = findViewById(R.id.cardview_office);
+        cardview_misl = findViewById(R.id.cardview_misl);
+        btn_office_start = findViewById(R.id.btn_office_start);
+        btn_office_reached = findViewById(R.id.btn_office_reached);
+        btn_misl_start = findViewById(R.id.btn_misl_start);
+        btn_misl_reached = findViewById(R.id.btn_misl_reached);
+        btn_misl_reached.setOnClickListener(this);
+        btn_misl_start.setOnClickListener(this);
+        btn_office_reached.setOnClickListener(this);
+        btn_office_start.setOnClickListener(this);
+        if (isShowExtra) {
+            cardview_misl.setVisibility(View.VISIBLE);
+            cardview_office.setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.txt_mis_address)).setText(address);
+            ((TextView) findViewById(R.id.txt_office_address)).setText(address);
+        }
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         bSorting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,7 +204,9 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub,
                         mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
+                mRecyclerView.setNestedScrollingEnabled(false);
                 mRecyclerView.setAdapter(scehduleAdapter);
+
             }
 
         });
@@ -297,6 +347,20 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes,
                 mCardColor, mcardType, mTicketNumber, TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
+        mRecyclerView.setNestedScrollingEnabled(false);
+
+
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        pref = getSharedPreferences("login", 0);
+        nh_userid = pref.getString("userid", "userid");
+        sParentComapnyId = pref.getString("ParentCompanyId", "ParentCompanyId");
+        DepartmentId = pref.getString("DepartmentId", "DepartmentId");
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.READ_PHONE_STATE)
+                == PackageManager.PERMISSION_GRANTED) {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            sDeviceId = telephonyManager.getDeviceId().toString();
+        }
     }
 
     @Override
@@ -397,14 +461,13 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         }
 
         cqueryForStatus.close();
-        mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
+        mRecyclerView = findViewById(R.id.task_view);
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setVisibility(View.VISIBLE);
-        /*FilterListFragment m = new FilterListFragment();
-        m.removeFragment(TaskActivity.this);*/
+        mRecyclerView.setNestedScrollingEnabled(false);
     }
 
     private Double showDistance(Double curlat, Double curlon, Double desLat, Double desLon) {
@@ -426,4 +489,124 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     private double deg2rad(double deg) {
         return (deg * Math.PI / 180.0);
     }
+
+    @Override
+    public void onClick(View v) {
+        if (v == btn_office_start) {
+            MyApp.setStatus("OFFICE", true);
+            btn_office_start.setEnabled(false);
+            btn_office_reached.setEnabled(true);
+
+            callStartReachApi(true, true);
+        } else if (v == btn_office_reached) {
+            btn_office_start.setEnabled(true);
+            btn_office_reached.setEnabled(false);
+            MyApp.setStatus("OFFICE", false);
+
+            callStartReachApi(false, true);
+        } else if (v == btn_misl_start) {
+            btn_misl_start.setEnabled(false);
+            btn_misl_reached.setEnabled(true);
+            MyApp.setStatus("MSLVISIT", true);
+
+            callStartReachApi(true, false);
+        } else if (v == btn_misl_reached) {
+            btn_misl_start.setEnabled(true);
+            btn_misl_reached.setEnabled(false);
+            MyApp.setStatus("MSLVISIT", false);
+            callStartReachApi(false, false);
+        }
+        updateButtons();
+    }
+
+    private void updateButtons() {
+        boolean officeVisit = MyApp.getStatus("OFFICE");
+        boolean mslVisit = MyApp.getStatus("MSLVISIT");
+
+        if (mslVisit) {
+            btn_misl_start.setImageResource(R.drawable.btn_d_start);
+            btn_misl_reached.setImageResource(R.drawable.btn_reach);
+        } else {
+            btn_misl_start.setImageResource(R.drawable.btn_start);
+            btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
+        }
+
+        if (officeVisit) {
+            btn_office_start.setImageResource(R.drawable.btn_d_start);
+            btn_office_reached.setImageResource(R.drawable.btn_reach);
+        } else {
+            btn_office_start.setImageResource(R.drawable.btn_start);
+            btn_office_reached.setImageResource(R.drawable.btn_d_reach);
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        boolean officeVisit = MyApp.getStatus("OFFICE");
+        boolean mslVisit = MyApp.getStatus("MSLVISIT");
+
+        if (mslVisit) {
+            btn_misl_start.setEnabled(false);
+            btn_misl_reached.setEnabled(true);
+        } else {
+            btn_misl_start.setEnabled(true);
+            btn_misl_reached.setEnabled(false);
+        }
+
+        if (officeVisit) {
+            btn_office_start.setEnabled(false);
+            btn_office_reached.setEnabled(true);
+        } else {
+            btn_office_start.setEnabled(true);
+            btn_office_reached.setEnabled(false);
+        }
+
+        updateButtons();
+    }
+
+    private void callStartReachApi(boolean isStart, boolean isOffice) {
+        HashMap<String, String> postTktStatus = new HashMap<>();
+        scehduleAdapter.getLocation();
+        Date cDate1 = new Date();
+        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
+        postTktStatus.put("UserId", nh_userid);
+        postTktStatus.put("ParentCompanyId", sParentComapnyId);
+        postTktStatus.put("TicketId", currentTime);
+        postTktStatus.put("StatusId", "");
+        postTktStatus.put("StartingForSite", isStart ? 1 + "" : 0 + "");
+        postTktStatus.put("CustomDestination", isOffice ? "Office" : "Miscellaneous");
+        postTktStatus.put("Comment", "");
+        postTktStatus.put("ActivityDate", currentTime);
+        postTktStatus.put("DepartmentId", DepartmentId);
+        postTktStatus.put("RealtimeUpdate", "true");
+        postTktStatus.put("Latitude", String.valueOf(latitude));
+        postTktStatus.put("Longitude", String.valueOf(longitude));
+        postTktStatus.put("AssetSerialNo", "");
+        postTktStatus.put("DeviceId", sDeviceId);
+        postTktStatus.put("Expense", "");
+        postTktStatus.put("SyncStatus", "-1");
+        postTktStatus.put("ModeOfTransport", "");
+        postTktStatus.put("Expense", "0");
+        postTktStatus.put("AssignedUserId", "0");
+
+
+
+        if (isStart) {
+            scehduleAdapter.populateStatusStartReachTaskActivity("",0,"",true,isOffice ? "Office" : "Miscellaneous");
+        } else {
+            Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+            issuesMap.put(currentTime, postTktStatus);
+            MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+            scehduleAdapter.UpdateTask(scehduleAdapter.context, postTktStatus, "true");
+        }
+    }
+
+    String nh_userid;
+    ApiInterface apiInterface;
+    SharedPreferences pref;
+    String sParentComapnyId;
+    String DepartmentId;
+    String sDeviceId;
 }

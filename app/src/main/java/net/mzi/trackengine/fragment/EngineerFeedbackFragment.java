@@ -117,7 +117,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (isChecked) {
                             rNewNumber.setChecked(false);
-                            MyApp.showMassage(getContext(),"Coming Soon!!!");
+                            MyApp.showMassage(getContext(), "Coming Soon!!!");
                             dialog.dismiss();
                         }
                     }
@@ -146,7 +146,7 @@ public class EngineerFeedbackFragment extends Fragment {
                                 if (rNewNumber.getText().toString().equals("")) {
                                     rNewNumber.setError("Enter Mobile Number");
                                 } else if (eNewNumber.getText().length() == 10) {
-                                    MyApp.showMassage(getContext(),"Coming Soon!!!");
+                                    MyApp.showMassage(getContext(), "Coming Soon!!!");
                                     dialog.dismiss();
 
                                 } else {
@@ -265,7 +265,7 @@ public class EngineerFeedbackFragment extends Fragment {
                     //}
                     if (sStatus != null) {
                         if (sStatus.equals("true")) {
-                            MyApp.showMassage(getContext(),"Updated Successfully");
+                            MyApp.showMassage(getContext(), "Updated Successfully");
                             sql = getContext().openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
                             ContentValues newValues = new ContentValues();
                             newValues.put("StatusId", sStatusId);
@@ -273,15 +273,15 @@ public class EngineerFeedbackFragment extends Fragment {
                             newValues.put("UpdatedDate", sCurrentTime);
                             sql.update("Issue_Detail", newValues, "IssueId=" + sIssueId, null);
                             MainActivity m = new MainActivity();
-                            m.updateCounter(getContext());
-                            MyApp.showMassage(getActivity(),"Status Changed Successfully");
+                            m.updateCounter(getContext(), false);
+                            MyApp.showMassage(getActivity(), "Status Changed Successfully");
                             SchedulingAdapter so = new SchedulingAdapter();
                             Intent i = getActivity().getIntent();
                             getActivity().finish();
                             i.putExtra("cardpos", sCardType);
                             startActivity(i);
                         } else {
-                            MyApp.showMassage(getContext(),msg);
+                            MyApp.showMassage(getContext(), msg);
                         }
                     }
                     /*final Snackbar snackBar = Snackbar.make(v, msg, Snackbar.LENGTH_INDEFINITE);
@@ -352,7 +352,7 @@ public class EngineerFeedbackFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            MyApp.showMassage(getContext(),"Link Sent on registered mail id!!!");
+            MyApp.showMassage(getContext(), "Link Sent on registered mail id!!!");
             Log.e("sendlink", "onPostExecute: " + s);
         }
     }

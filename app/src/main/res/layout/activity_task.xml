@@ -7,41 +7,232 @@
     android:orientation="vertical"
     tools:context="net.mzi.trackengine.TaskActivity">
 
-    <LinearLayout
-        android:id="@+id/a"
+    <ScrollView
+        android:id="@+id/scrollview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:scrollbars="none">
 
-        <Button
-            android:id="@+id/SortingId"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginRight="@dimen/_10sdp"
-            android:layout_weight="2"
-            android:background="?selectableItemBackground"
-            android:text="Sort By" />
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/FilterStatusId"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:background="?selectableItemBackground"
-            android:text="Filter" />
+            <LinearLayout
+                android:id="@+id/a"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/SortingId"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/_10sdp"
+                    android:layout_weight="2"
+                    android:background="?selectableItemBackground"
+                    android:text="Sort By" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/task_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/a"
-        android:padding="10dp"
-        android:clipToPadding="false"
-        android:orientation="vertical"></android.support.v7.widget.RecyclerView>
+                <Button
+                    android:id="@+id/FilterStatusId"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:background="?selectableItemBackground"
+                    android:text="Filter" />
+
+            </LinearLayout>
+
+            <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/cardview_office"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:clipToPadding="true"
+                android:paddingBottom="10dp"
+                android:visibility="gone"
+                card_view:cardCornerRadius="@dimen/_10sdp"
+                card_view:cardElevation="@dimen/_10sdp"
+                card_view:cardPreventCornerOverlap="false">
+
+                <LinearLayout
+                    android:id="@+id/pendinglayout"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#ffffff"
+                    android:orientation="vertical"
+                    android:paddingBottom="@dimen/_1sdp">
+
+
+                    <!--<View-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="1dp"-->
+                    <!--android:background="@color/colorPrimary"></View>-->
+
+                    <TextView
+                        android:id="@+id/txt_office_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minLines="2"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:text="Address"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:typeface="serif"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageButton
+                            android:id="@+id/btn_office_start"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginLeft="@dimen/_25sdp"
+                            android:background="@null"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/btn_start" />
+
+                        <TextView
+                            android:id="@+id/cntctprsnmob"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignTop="@+id/contactpersonname"
+                            android:layout_alignBottom="@+id/contactpersonname"
+                            android:layout_centerInParent="true"
+                            android:layout_toStartOf="@+id/mb"
+                            android:layout_toLeftOf="@+id/mb"
+                            android:gravity="center"
+                            android:padding="10dp"
+                            android:text="Office Visit"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:typeface="serif" />
+
+                        <ImageButton
+                            android:id="@+id/btn_office_reached"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginRight="@dimen/_25sdp"
+                            android:background="@null"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/btn_reach" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/cardview_misl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:clipToPadding="true"
+                android:paddingBottom="@dimen/_10sdp"
+                android:visibility="gone"
+                card_view:cardCornerRadius="@dimen/_10sdp"
+                card_view:cardElevation="@dimen/_10sdp"
+                card_view:cardPreventCornerOverlap="false">
+
+                <LinearLayout
+                    android:id="@+id/ll_mislns_visit"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#ffffff"
+                    android:orientation="vertical"
+                    android:paddingBottom="@dimen/_1sdp">
+
+
+                    <!--<View-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="1dp"-->
+                    <!--android:background="@color/colorPrimary"></View>-->
+
+                    <TextView
+                        android:id="@+id/txt_mis_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minLines="2"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:text="Address"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"
+                        android:typeface="serif"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp">
+
+                        <ImageButton
+                            android:id="@+id/btn_misl_start"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginLeft="@dimen/_25sdp"
+                            android:background="@null"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/btn_start" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:gravity="center"
+                            android:padding="10dp"
+                            android:text="Miscellaneous Visit"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:typeface="serif" />
+
+                        <ImageButton
+                            android:id="@+id/btn_misl_reached"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginRight="@dimen/_25sdp"
+                            android:background="@null"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/btn_reach" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+
+            </android.support.v7.widget.CardView>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/a"
+                android:descendantFocusability="blocksDescendants">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/task_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:padding="10dp"></android.support.v7.widget.RecyclerView>
+
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
 
 
 </RelativeLayout>

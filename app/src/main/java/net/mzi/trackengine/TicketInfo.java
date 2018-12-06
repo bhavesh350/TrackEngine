@@ -186,6 +186,9 @@ public class TicketInfo extends AppCompatActivity {
 
         cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '" + bundle.getString("IssueId") + "'", null);
         cquery.moveToFirst();
+        if(cquery.getCount()==0){
+
+        }
         toolbar.setTitle("Id: " + cquery.getString(20).toString());
         if (cquery.getString(21).toString().equals("1")) {
             lyServiceItem.setVisibility(View.VISIBLE);

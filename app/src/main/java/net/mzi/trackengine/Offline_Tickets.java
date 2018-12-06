@@ -70,7 +70,21 @@ public class Offline_Tickets extends Fragment {
             public void onClick(View v) {
                 InternetConnector icDataSyncing = new InternetConnector();
                 icDataSyncing.offlineSyncing(getContext().getApplicationContext(), 1);
-                getData();
+//                getData();
+                if (MyApp.isConnectingToInternet(getActivity())) {
+                    lTicketNumber.clear();
+                    lTicketStatus.clear();
+                    lTicketTime.clear();
+                    lTicketComment.clear();
+                    lColors.clear();
+
+                    mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+                    mRecyclerView.setLayoutManager(mLayoutManager);
+                    mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
+                    mRecyclerView.setAdapter(mAdapter);
+                } else {
+                    MyApp.popMessage("Alert!", "Please connect to a working internet connection.", getActivity());
+                }
             }
         });
         getData();
@@ -105,7 +119,11 @@ public class Offline_Tickets extends Fragment {
                         cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + savedMap.get(key).get("StatusId"), null);
                         cqueryTemp.moveToFirst();
                         lTicketComment.add(savedMap.get(key).get("Comment"));
-                        lTicketStatus.add(cqueryTemp.getString(0));
+                        try {
+                            lTicketStatus.add(cqueryTemp.getString(0));
+                        } catch (Exception e) {
+                            lTicketStatus.add("Start/Reach");
+                        }
                         lTicketTime.add(savedMap.get(key).get("ActivityDate"));
                     }
 //                }
@@ -129,27 +147,27 @@ public class Offline_Tickets extends Fragment {
 //                    lTicketTime.add(cquery.getString(5).toString());
 //                }
 
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run () {
-                        mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-                        mRecyclerView.setLayoutManager(mLayoutManager);
-                        mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
-                        mRecyclerView.setAdapter(mAdapter);
-                    }
-                });
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+                            mRecyclerView.setLayoutManager(mLayoutManager);
+                            mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
+                            mRecyclerView.setAdapter(mAdapter);
+                        }
+                    });
+                }
+            }).start();
+        } else
+
+        {
+            try {
+                Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
             }
-        }).start();
-    } else
-
-    {
-        try {
-            Toast.makeText(getContext(), "Data is already synced!!!", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
         }
-    }
 
-}
+    }
 
     public void removeData() {
         MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());

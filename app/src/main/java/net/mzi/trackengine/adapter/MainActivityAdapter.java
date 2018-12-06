@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import net.mzi.trackengine.MainActivity;
 import net.mzi.trackengine.NewTaskActivity;
 import net.mzi.trackengine.R;
 import net.mzi.trackengine.TaskActivity;
@@ -73,20 +74,25 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
 
         TaskViewHolder taskholder = (TaskViewHolder) holder;
 
-        taskholder.task.setText(mDataSet.get(position));
 
 //        taskholder.r1.setBackgroundResource(mCardColor.get(position));
-        if (mCardBg.get(position).equals("Purple")) {
-            taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.purple));
-        } else if (mCardBg.get(position).equals("Orange")) {
-            taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.orange));
-        } else if (mCardBg.get(position).equals("Blue")) {
-            taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.blue));
-        } else {
-            taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.green));
+        try {
+            if (mCardBg.get(position).equals("Purple")) {
+                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.purple));
+            } else if (mCardBg.get(position).equals("Orange")) {
+                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.orange));
+            } else if (mCardBg.get(position).equals("Blue")) {
+                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.blue));
+            } else {
+                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.green));
+            }
+            taskholder.task.setText(mDataSet.get(position));
+            taskholder.taskCount.setText(mDatasetCount.get(position));
+
+
+        } catch (Exception e) {
         }
 
-        taskholder.taskCount.setText(mDatasetCount.get(position));
 
     }
 
@@ -115,6 +121,10 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
                     } else {
                         Intent i = new Intent(view.getContext(), TaskActivity.class);
                         i.putExtra("cardpos", String.valueOf(pos));
+                        if (pos == 1 || pos == 2) {
+                            i.putExtra("isShowExtra", true);
+                        }
+                        i.putExtra("address", ""/*((MainActivity) mContext).tv_location.getText().toString()*/);
                         view.getContext().startActivity(i);
                     }
                 }

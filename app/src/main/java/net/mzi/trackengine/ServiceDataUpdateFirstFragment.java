@@ -194,7 +194,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                     if (resData == null || resData.equals("") || resData.equals("0")) {
                         try {
                             MainActivity m = new MainActivity();
-                            m.updateCounter(ctx);
+                            m.updateCounter(ctx,false);
                             MyApp.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
@@ -366,7 +366,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
 
                                     try {
                                         MainActivity m = new MainActivity();
-                                        m.updateCounter(getApplicationContext());
+                                        m.updateCounter(getApplicationContext(),false);
                                     } catch (Exception e) {
                                     }
                                 }
@@ -421,7 +421,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
             } else {
                 MainActivity.showTkt();
                 MainActivity m = new MainActivity();
-                m.updateCounter(ctx);
+                m.updateCounter(ctx,false);
 
                 HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
                 for (int i = 0; i < newTickets.size(); i++) {

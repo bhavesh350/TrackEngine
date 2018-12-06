@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -16,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,7 +91,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                 android.Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            sDeviceId = telephonyManager.getDeviceId().toString();
+            sDeviceId = telephonyManager.getDeviceId();
         }
         return new TicketHolder(v);
     }
@@ -115,6 +115,13 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         ticketHolder.btn_accetp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MyApp.setStatus("isTicketUpdating", true);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        MyApp.setStatus("isTicketUpdating", false);
+                    }
+                }, 30000);
                 SchedulingAdapter.isAttended = "0";
                 Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + DepartmentId + "' ", null);
                 if (cquery.getCount() > 0) {
@@ -161,7 +168,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                     final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
                             mIssueID.get(position), sAcceptStatus, "Accepted by Engineer", currentDateTimeString,
                             DepartmentId, "", "", "", sDeviceId, "-1",
-                            "", "", "");
+                            "", "", "", "", "");
                     Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
                     call1.enqueue(new Callback<ApiResult.IssueDetail>() {
@@ -179,6 +186,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     try {
                                         Map<String, String> map = issueMap.get(mIssueID.get(position));
                                         map.put("SyncStatus", "false");
+                                        issueMap.put(mIssueID.get(position), map);
                                         MyApp.getApplication().writeTicketsIssueHistory(issueMap);
                                     } catch (Exception e) {
                                     }
@@ -225,6 +233,13 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         ticketHolder.btn_reject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MyApp.setStatus("isTicketUpdating", true);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        MyApp.setStatus("isTicketUpdating", false);
+                    }
+                }, 30000);
                 SchedulingAdapter.isAttended = "0";
                 final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
                 Dialog.setTitle("Rejection Reason: ");
@@ -296,9 +311,19 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     sAcceptStatus, commemt.getText().toString(),
                                     currentDateTimeString, DepartmentId, "",
                                     "", "", sDeviceId, "true",
-                                    "", "", "");
+                                    "", "", "", "", "");
                             Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
 
+                            final Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
+                            ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                            if (cqueryTemp.getCount() > 0) {
+                                cqueryTemp.moveToFirst();
+                                ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Delete");
+                            }
+
+                            sql.delete("Issue_Detail", "IssueId" + "=" + issueDetail.IssueId, null);
+                            MainActivity m = new MainActivity();
+                            m.updateCounter(context,false);
 //                            final String finalColumnId = sColumnId;
 
 //                            final String finalSColumnId = sColumnId;
@@ -316,6 +341,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                         try {
                                             Map<String, String> map = issueMap.get(mIssueID.get(position));
                                             map.put("SyncStatus", "false");
+                                            issueMap.put(mIssueID.get(position), map);
                                             MyApp.getApplication().writeTicketsIssueHistory(issueMap);
                                         } catch (Exception e) {
                                         }
@@ -323,8 +349,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 //                                        newValues.put("SyncStatus", "false");
 //                                        sql.update("Issue_History", newValues, "Id=" + finalColumnId, null);
                                     } else {
-                                        MainActivity m = new MainActivity();
-                                        m.updateCounter(context);
+
 //                                        ContentValues newValues = new ContentValues();
 //                                        newValues.put("SyncStatus", "true");
 //                                        sql.update("Issue_History", newValues, "Id=" + finalSColumnId, null);
@@ -337,16 +362,15 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                         } catch (Exception e) {
                                         }
                                         try {
-                                            Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + mIssueID.get(position) + "'", null);
-                                            ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                            if (cqueryTemp.getCount() > 0) {
-                                                cqueryTemp.moveToFirst();
-                                                ref.child(MainActivity.LOGINID).child(mIssueID.get(position)).child("Action").setValue("Delete");
-                                            }
+
+
                                             cqueryTemp.close();
+
+                                            if (iData.resData.Status.equals("false")) {
+                                                MyApp.showMassage(context, iData.resData.Message);
+                                            }
                                         } catch (Exception e) {
                                         }
-
                                     }
                                 }
 
@@ -388,12 +412,12 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         public TicketHolder(View itemView) {
             super(itemView);
             View v = itemView;
-            IssueID = (TextView) v.findViewById(R.id.textView2);
-            schedule_date = (TextView) v.findViewById(R.id.schedule_date);
-            IssueText = (TextView) v.findViewById(R.id.subject);
-            Adress = (TextView) v.findViewById(R.id.adrs);
-            StatusId = (TextView) v.findViewById(R.id.newtktstatus);
-            time = (TextView) v.findViewById(R.id.beontime);
+            IssueID = v.findViewById(R.id.textView2);
+            schedule_date = v.findViewById(R.id.schedule_date);
+            IssueText = v.findViewById(R.id.subject);
+            Adress = v.findViewById(R.id.adrs);
+            StatusId = v.findViewById(R.id.newtktstatus);
+            time = v.findViewById(R.id.beontime);
             btn_accetp = v.findViewById(R.id.btn_accept);
             btn_reject = v.findViewById(R.id.btn_reject);
         }

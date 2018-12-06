@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -26,6 +28,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -155,8 +158,8 @@ public class MainActivity extends AppCompatActivity
     Cursor cquery;
     String sDeviceId, sDepartment;
     static String LOGINID;
-    private RecyclerView.LayoutManager mLayoutManager;
-    static MainActivityAdapter mAdapter;
+    //    private RecyclerView.LayoutManager mLayoutManager;
+    static MainActivityAdapter mAdapter = null;
     public static final int TASK = 0;
     static RecyclerView mRecyclerView;
     String sCompanyId, nh_uname, sParentCompanyId;
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity
     SharedPreferences.Editor editor;
 
     //SharedPreferences timerSharedPreference;
-    SharedPreferences.Editor editorForTimer;
+//    SharedPreferences.Editor editorForTimer;
     Gps gps;
     // Editor for Shared preferences
     //SharedPreferences.Editor editorSharedPreferences;
@@ -204,9 +207,8 @@ public class MainActivity extends AppCompatActivity
     //static Context mainAtctivityctx;
     private SessionManager session;
     //    private String mySavedStatusTime = "";
-//    private String mySavedStatus = "";
-    private TextView tv_location;
-
+    //    private String mySavedStatus = "";
+    public TextView tv_location;
     // Sync related views
     public TextView txt_sync_all, txt_check_in_out_count, txt_locations_count, txt_issues_count, txt_battery_count;
     public RelativeLayout rl_sync_check_in_out, rl_sync_locations, rl_sync_issue_status, rl_sync_battery;
@@ -266,6 +268,7 @@ public class MainActivity extends AppCompatActivity
                         sql.delete("FirebaseIssueData", null, null);
                         //sql.delete("Issue_Status", null, null);
                         session.logoutUser();
+                        MyApp.getApplication().writeMessage(new ArrayList<TicketInfoClass>());
                         //clearPreferences();
                         MyApp.getApplication().writeUser(null);
 
@@ -542,6 +545,17 @@ public class MainActivity extends AppCompatActivity
                 syncBattery();
             }
         });
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECEIVE_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    Manifest.permission.RECEIVE_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.RECEIVE_SMS}, 1);
+            }
+        }
+
+        startService(new Intent(this, ReadMessageService.class));
     }
 
     private RelativeLayout rl_address;
@@ -734,7 +748,7 @@ public class MainActivity extends AppCompatActivity
             alert.show();
             return true;
         } else if (id == R.id.action_logout) {
-
+            MyApp.getApplication().writeMessage(new ArrayList<TicketInfoClass>());
             if (!MyApp.isConnectingToInternet(MainActivity.this)) {
                 android.support.v7.app.AlertDialog.Builder b = new android.support.v7.app.AlertDialog.Builder(MainActivity.this);
                 b.setMessage("Please connect to a working internet connection");
@@ -849,10 +863,21 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
             return true;
         } else if (id == R.id.action_refresh) {
-            MyApp.showMassage(this, "Refreshing...");
-            refreshData(true);
-            new FetchStatus();
-            onResume();
+
+            int refreshCounter = MyApp.getApplication().readCheckInOutData().keySet().size();
+            refreshCounter += sql.rawQuery("select * from User_Location", null).getCount();
+            refreshCounter += MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+            refreshCounter += MyApp.getApplication().readBatteryHistory().keySet().size();
+
+            if (refreshCounter > 0) {
+                MyApp.popMessage("Alert!", "Please sync your offline data first", MainActivity.this);
+            } else {
+                MyApp.showMassage(this, "Refreshing...");
+                refreshData(true);
+                new FetchStatus();
+                onResume();
+            }
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -1457,16 +1482,34 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    public void updateCounter(Context mContext) {
-        MainActivityAdapter maCounter;
-        int max = mDatasetCount.size();
-        for (int i = 0; i < max; i++) {
-            mDatasetCount.remove(i);
-            mDataset.remove(i);
-            mCardColor.remove(i);
-            mCardBgClr.remove(i);
-            mDatasetCount.remove(i);
-        }
+    public void updateCounter(Context mContext, boolean isSwipe) {
+//        MainActivityAdapter maCounter;
+//        int max = mDatasetCount.size();
+        mDatasetCount.clear();
+        mCardBgClr.clear();
+        mCardColor.clear();
+        mDataset.clear();
+
+//        for (int i = 0; i < max; i++) {
+//            try {
+//                mDatasetCount.remove(i);
+//            } catch (Exception e) {
+//            }
+//            try {
+//                mCardColor.remove(i);
+//
+//            } catch (Exception e) {
+//            }
+//            try {
+//                mCardBgClr.remove(i);
+//            } catch (Exception e) {
+//            }
+//            try {
+//                mDataset.remove(i);
+//            } catch (Exception y) {
+//            }
+//
+//        }
         try {
             Cursor cquery1 = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);//new
             mDatasetCount.add(String.valueOf(cquery1.getCount()));
@@ -1508,8 +1551,13 @@ public class MainActivity extends AppCompatActivity
             mDataset.add("Resolved");
             mDatasetTypes.add(0);
             cquery4.close();
-            maCounter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, mContext, mCardBgClr);
-            mRecyclerView.setAdapter(maCounter);
+            if (isSwipe && mAdapter != null) {
+                mAdapter.notifyDataSetChanged();
+            } else {
+                MainActivityAdapter maCounter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, mContext, mCardBgClr);
+                mRecyclerView.setAdapter(maCounter);
+            }
+
         } catch (Exception e) {
         }
 
@@ -1656,7 +1704,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void refreshData(boolean isRefresh) {
+    public void refreshData(boolean isRefresh) {
         if (isRefresh) {
             setShowAlert();
             Firstfrag fragment = (Firstfrag) getSupportFragmentManager().findFragmentById(R.id.fragment);
@@ -1755,16 +1803,18 @@ public class MainActivity extends AppCompatActivity
         mDatasetCount.add(String.valueOf(cquery.getCount()));
         cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 2", null);
         mDatasetCount.add(String.valueOf(cquery.getCount()));
-
         cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
         mDatasetCount.add(String.valueOf(cquery.getCount()));
         cquery.close();
 
         // mLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false);
 
-
-        mAdapter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, MainActivity.this, mCardBgClr);
-        mRecyclerView.setAdapter(mAdapter);
+        if (mAdapter != null) {
+            mAdapter.notifyDataSetChanged();
+        } else {
+            mAdapter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, MainActivity.this, mCardBgClr);
+            mRecyclerView.setAdapter(mAdapter);
+        }
 
 
         btn_check_in_out.setOnClickListener(new View.OnClickListener() {
@@ -2454,7 +2504,8 @@ public class MainActivity extends AppCompatActivity
             syncLocations();
             syncCheckInOut();
             syncBattery();
-            syncIssues();
+            if (!MyApp.getStatus("isTicketUpdating"))
+                syncIssues();
             callable = false;
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -2503,6 +2554,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     callableLocation = true;
+                    progress_sync_locations.setVisibility(View.GONE);
                 }
             }, 5000);
             cquery = sql.rawQuery("select * from User_Location", null);
@@ -2513,6 +2565,14 @@ public class MainActivity extends AppCompatActivity
             }
             progress_sync_locations.setVisibility(View.VISIBLE);
             txt_locations_count.setBackground(null);
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    progress_sync_locations.setVisibility(View.GONE);
+                    txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
+                }
+            }, 4000);
             if (cquery.getCount() > 0) {
                 String sCheckInStatus = pref.getString("CheckedInStatus", "0");
                 if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
@@ -2582,13 +2642,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
             }
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    progress_sync_locations.setVisibility(View.GONE);
-                    txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
-                }
-            }, 4000);
+
         }
     }
 
@@ -2663,6 +2717,15 @@ public class MainActivity extends AppCompatActivity
                     txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
                 }
             }, 4000);
+        }
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent.getBooleanExtra("refresh", false)) {
+            refreshData(true);
         }
     }
 }

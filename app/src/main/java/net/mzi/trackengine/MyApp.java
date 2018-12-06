@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
+import net.mzi.trackengine.model.Message;
 import net.mzi.trackengine.model.TicketInfoClass;
 
 import io.fabric.sdk.android.Fabric;
@@ -47,8 +48,10 @@ import java.io.OptionalDataException;
 import java.io.StreamCorruptedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -316,7 +319,7 @@ public class MyApp extends MultiDexApplication {
         String pleaseWait = text;
         try {
             dialog = ProgressDialog.show(context, pleaseWait, "", true);
-            dialog.setCancelable(true);
+            dialog.setCancelable(false);
             dialog.setCanceledOnTouchOutside(false);
         } catch (Exception e) {
         }
@@ -813,5 +816,105 @@ public class MyApp extends MultiDexApplication {
         return map;
     }
 
+    public void writeMessage(List<TicketInfoClass> device) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/message.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(device);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SuppressLint("SdCardPath")
+    public List<TicketInfoClass> readMessage() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/message.ser";
+        File f = new File(path);
+        ArrayList<TicketInfoClass> device = new ArrayList<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                device = (ArrayList<TicketInfoClass>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return device;
+    }
+
+    public void writeSavedStatusValues(Map<String,String []> values) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/savedStatusValues.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(values);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SuppressLint("SdCardPath")
+    public Map<String,String []> readSavedStatusValue() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/savedStatusValues.ser";
+        File f = new File(path);
+        Map<String,String []> device = null;
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                device = (Map<String,String []>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return device;
+    }
 
 }

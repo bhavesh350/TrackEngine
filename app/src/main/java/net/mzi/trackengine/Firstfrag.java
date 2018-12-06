@@ -59,9 +59,7 @@ import retrofit2.Response;
 
 import static net.mzi.trackengine.MainActivity.locationAlarmManager;
 
-/**
- * Created by Poonam on 2/2/2017.
- */
+
 public class Firstfrag extends Fragment implements CardStackListener {
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
@@ -178,7 +176,10 @@ public class Firstfrag extends Fragment implements CardStackListener {
                     if (!(nh_userid.equals("0"))) ;
                     {
                         String sTktInJson = new Gson().toJson(mTicketIdList);
-                        NewTicketsInfo(mTicketIdList);
+                        if (!cardStackView.isShown() && cardStackView.getChildCount() < 2) {
+                            NewTicketsInfo(mTicketIdList);
+                        }
+                        Log.e("?????????????????", cardStackView.isShown() + " " + cardStackView.getChildCount());
                     }
 
                 }
@@ -225,6 +226,8 @@ public class Firstfrag extends Fragment implements CardStackListener {
         locationAlarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
         locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 (System.currentTimeMillis() + (60 * 10 * 1000)), 60 * 10 * 1000, locationPendingIntent);
+
+        Log.e("?????????????????", cardStackView.isShown() + " " + cardStackView.getChildCount());
 
         return view;
     }
@@ -294,7 +297,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
         } else {
             MainActivity.showTkt();
             MainActivity m = new MainActivity();
-            m.updateCounter(ctx);
+            m.updateCounter(ctx, false);
             manager = new CardStackLayoutManager(getActivity(), this);
             cardStackView.setLayoutManager(manager);
             manager.setDirections(Direction.HORIZONTAL);
@@ -304,8 +307,9 @@ public class Firstfrag extends Fragment implements CardStackListener {
             manager.setCanScrollHorizontal(false);
             manager.setCanScrollVertical(false);
             adapter = new SwipeDeckAdapter(newTickets, getActivity(), Firstfrag.this);
+            manager.setVisibleCount(newTickets.size());
             cardStackView.setAdapter(adapter);
-
+            Log.e("?????????????????", cardStackView.isShown() + " " + cardStackView.getChildCount());
             HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
             for (int i = 0; i < newTickets.size(); i++) {
                 sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
@@ -324,18 +328,6 @@ public class Firstfrag extends Fragment implements CardStackListener {
     private void captureAllNow() {
         HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
 
-//        Iterator<String> it = map.keySet().iterator();
-//        while (it.hasNext()) {
-////            Map.Entry keyEntery = (Map.Entry) it.next();
-//            String key = it.next();
-//            if (!map.get(key).isCaptured()) {
-//                callApiToMakeCapture(key);
-//            } else {
-//                map.remove(key);
-//            }
-////            it.remove();
-//        }
-
         for (String key : map.keySet()) {
             if (!map.get(key).isCaptured()) {
                 callApiToMakeCapture(key);
@@ -347,10 +339,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
     }
 
     public void callApiToMakeCapture(final String key) {
-//   http://trackengine.mzservices.net/api/Post/PostTicketReceivingDate?
-//   iIssueId=50153&
-//   iUserId=8545&
-//   dtReceivingDate=10/12/2018%2012:00:00%20AM
+
         Date cDate = new Date();
         String date = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(cDate);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
@@ -387,29 +376,29 @@ public class Firstfrag extends Fragment implements CardStackListener {
 
     public void swipeLeft(int position) {
         position = manager.getTopPosition();
-        MainActivity m = new MainActivity();
+//        MainActivity m = new MainActivity();
         SwipeAnimationSetting setting = new SwipeAnimationSetting.Builder()
                 .setDirection(Direction.Right)
                 .setDuration(200)
                 .setInterpolator(new AccelerateInterpolator())
                 .build();
         manager.setSwipeAnimationSetting(setting);
-
+        cardStackView.swipe();
         try {
             manager.removeViewAt(position);
-            cardStackView.swipe();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        m.updateCounter(getActivity());
+//        ((MainActivity) getContext()).refreshData(false);
+        ((MainActivity) getContext()).updateCounter(getActivity(), true);
         if (position == (newTickets.size() - 1)) {
-            m.removeTkt();
+            ((MainActivity) getContext()).removeTkt();
         }
     }
 
     public void swipeRight(int position) {
         position = manager.getTopPosition();
-        MainActivity m = new MainActivity();
+//        MainActivity m = new MainActivity();
         SwipeAnimationSetting setting = new SwipeAnimationSetting.Builder()
                 .setDirection(Direction.Left)
                 .setDuration(200)
@@ -423,11 +412,9 @@ public class Firstfrag extends Fragment implements CardStackListener {
             e.printStackTrace();
         }
 
-//        adapter.data.remove(position);
-//        adapter.notifyDataSetChanged();
-        m.updateCounter(getActivity());
+        ((MainActivity) getContext()).updateCounter(getActivity(), true);
         if (position == (newTickets.size() - 1)) {
-            m.removeTkt();
+            ((MainActivity) getContext()).removeTkt();
         }
     }
 
@@ -445,14 +432,18 @@ public class Firstfrag extends Fragment implements CardStackListener {
                     ApiResult.IssueDetail resData = response.body();
                     if (resData == null || resData.equals("") || resData.equals("0")) {
                         try {
-                            MainActivity m = new MainActivity();
-                            m.updateCounter(getActivity());
+//                            MainActivity m = new MainActivity();
+//                            m.updateCounter(getActivity());
                             MyApp.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
                         } catch (Exception e) {
                             e.getMessage();
                         }
                     } else {
+//                        sql.execSQL("delete from FirebaseIssueData");
+                        sql.execSQL("delete from Issue_Detail");
+//                        sql.execSQL("delete from Issue_Status");
+
                         try {
                             Map<String, String> scheduleMap = MyApp.getApplication().readTicketCaptureSchedule();
                             SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -526,7 +517,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                 Cursor cquery = sql.rawQuery("select Action from FirebaseIssueData where IssueId ='" + t.IssueID + "'", null);
                                 if (cquery.getCount() > 0) {
                                     cquery.moveToFirst();
-                                    if (cquery.getString(0).toString().equals("Delete") || cquery.getString(0).toString().equals("delete")) {
+                                    if (cquery.getString(0).equals("Delete") || cquery.getString(0).equals("delete")) {
                                         ref = new Firebase(PostUrl.sFirebaseUrlTickets);
                                         if (!nh_userid.equals("0")) {
                                             ref.child(nh_userid).child(t.IssueID).removeValue();
@@ -534,11 +525,18 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                         }
 
 
-                                    } else if (cquery.getString(0).toString().equals("New") || cquery.getString(0).toString().equals("new")) {
+                                    } else if (cquery.getString(0).equals("New") || cquery.getString(0).equals("new")) {
                                         Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
                                         if (forMainTable.getCount() > 0) {
+                                            sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                            try {
+                                                sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                        "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+//                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
                                         } else {
-
                                             try {
                                                 sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                         "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
@@ -547,14 +545,10 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                                 e.printStackTrace();
                                             }
                                         }
-                                        try {
-//                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
-                                        } catch (Exception e) {
-                                            Log.e("Notification error ", "at 280");
-                                        }
                                         // comment if upper one is not commented
-                                    } else if (cquery.getString(0).toString().equals("Update") || cquery.getString(0).toString().equals("update")) {
-                                        char str = cquery.getString(0).toString().charAt(0);
+                                    } else if (cquery.getString(0).equals("Update")
+                                            || cquery.getString(0).equals("update")) {
+                                        char str = cquery.getString(0).charAt(0);
                                         if (str == 'W') {
 
                                         }
@@ -563,16 +557,22 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                         if (forMainTable.getCount() > 0) {
                                             ContentValues newValues = new ContentValues();
                                             Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
+//                                            if (!MyApp.getStatus("isTicketUpdating")) {
                                             if (cursorIssuesWhichComplete.getCount() > 0) {
                                                 cursorIssuesWhichComplete.moveToFirst();
-                                                if (cursorIssuesWhichComplete.getString(0).toString().equals("4")) {
+                                                if (cursorIssuesWhichComplete.getString(0).equals("4")) {
                                                     newValues.put("IsAccepted", "3");//resolved
-                                                } else if (cursorIssuesWhichComplete.getString(0).toString().equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
+                                                } else if (cursorIssuesWhichComplete.getString(0).equals("1") ||
+                                                        cursorIssuesWhichComplete.getString(0).equals("5") ||
+                                                        cursorIssuesWhichComplete.getString(0).equals("6")) {
                                                     newValues.put("IsAccepted", "1");//pending
                                                 } else {
                                                     newValues.put("IsAccepted", "2");//Attended
                                                 }
                                             }
+//                                            } else {
+//
+//                                            }
                                             newValues.put("StatusId", t.StatusId);
                                             newValues.put("CategoryName", t.CategoryName);
                                             newValues.put("IssueText", t.IssueText);
@@ -603,10 +603,10 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                             Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
                                             if (cursorIssuesWhichComplete.getCount() > 0) {
                                                 cursorIssuesWhichComplete.moveToFirst();
-                                                if (cursorIssuesWhichComplete.getString(0).toString().equals("4")) {
+                                                if (cursorIssuesWhichComplete.getString(0).equals("4")) {
                                                     sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                             "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','3','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                } else if (cursorIssuesWhichComplete.getString(0).toString().equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
+                                                } else if (cursorIssuesWhichComplete.getString(0).equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
                                                     sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                             "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                 } else {
@@ -618,7 +618,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                         }
                                     }
                                     MainActivity m = new MainActivity();
-                                    m.updateCounter(getActivity());
+                                    m.updateCounter(getActivity(), false);
                                 }
                             }
                             obj.setHideAlert();

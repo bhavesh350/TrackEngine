@@ -275,10 +275,16 @@ public class ApiResult {
         @SerializedName("ScheduleDate")
         public String scheduleDate;
 
+        @SerializedName("StartingForSite")
+        public String StartingForSite;
+
+        @SerializedName("CustomDestination")
+        public String CustomDestination;
+
         @SerializedName("lstDetails")
         public lstDetails IssueDetail[];
 
-        public IssueDetail(String Userid, String ParentCompanyId, String IsuueId, String Status, String Comment, String ActivityDate, String DepartmentId, String Latitude, String Longitude, String AssetSerialNo, String DeviceId, String RealtimeUpdate, String LastTransportMode, String Expense, String AssignedUserId) {
+        public IssueDetail(String Userid, String ParentCompanyId, String IsuueId, String Status, String Comment, String ActivityDate, String DepartmentId, String Latitude, String Longitude, String AssetSerialNo, String DeviceId, String RealtimeUpdate, String LastTransportMode, String Expense, String AssignedUserId, String customeDestination, String startingForSite) {
             this.UserId = Userid;
             this.ParentCompanyId = ParentCompanyId;
             this.IssueId = IsuueId;
@@ -296,6 +302,8 @@ public class ApiResult {
             this.Expense = Expense;
             this.LastTransportMode = LastTransportMode;
             this.ModeOfTransport = LastTransportMode;
+            this.CustomDestination = customeDestination;
+            this.StartingForSite = startingForSite;
         }
 
         public IssueDetail(String IssueIds, String UserId, String IsAssetVerificationEnable, String DepartmentId, String LastAction) {
