@@ -136,7 +136,7 @@ public class TicketInfo extends AppCompatActivity {
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
         app = findViewById(R.id.app_bar);
-        iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
+        iImageIcon = findViewById(R.id.imageuplaodicon);
         tCname = findViewById(R.id.contactpersonname);
         tCAdrs = findViewById(R.id.adrs);
         tMNumber = findViewById(R.id.cntctprsnmob);
@@ -151,20 +151,20 @@ public class TicketInfo extends AppCompatActivity {
         tCAssetType = findViewById(R.id.assetType);
         tCAssetSubtype = findViewById(R.id.assetSubType);
         tCAssetSerialNumber = findViewById(R.id.assetserialNumber);
-        lyAssetSerial = (LinearLayout) findViewById(R.id.idSRnumberLayout);
-        lyServiceItem = (LinearLayout) findViewById(R.id.idSIlayout);
+        lyAssetSerial = findViewById(R.id.idSRnumberLayout);
+        lyServiceItem = findViewById(R.id.idSIlayout);
         tCorporateName = findViewById(R.id.corporateName);
         tidOEMInfo = findViewById(R.id.idOEMInfo);
-        vCamera = (RadioButton) findViewById(R.id.vCam);
-        vGallery = (RadioButton) findViewById(R.id.vGal);
+        vCamera = findViewById(R.id.vCam);
+        vGallery = findViewById(R.id.vGal);
         tAssetDescription = findViewById(R.id.idAssetDescription);
         tServiceType = findViewById(R.id.idServiceType);
         tServiceSubType = findViewById(R.id.idServiceSubType);
         tIssueText = findViewById(R.id.issueText);
 
         //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
-        comment = (EditText) findViewById(R.id.agentComment);
-        Submit = (Button) findViewById(R.id.submit);
+        comment = findViewById(R.id.agentComment);
+        Submit = findViewById(R.id.submit);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         Bundle bundle = getIntent().getExtras();
         mcardType = bundle.getString("CardType");
@@ -178,7 +178,7 @@ public class TicketInfo extends AppCompatActivity {
             app.setBackgroundResource(R.color.green);
         }
         ID = bundle.getString("IssueId");
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("Id: " + ID);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -189,12 +189,12 @@ public class TicketInfo extends AppCompatActivity {
         if(cquery.getCount()==0){
 
         }
-        toolbar.setTitle("Id: " + cquery.getString(20).toString());
-        if (cquery.getString(21).toString().equals("1")) {
+        toolbar.setTitle("Id: " + cquery.getString(20));
+        if (cquery.getString(21).equals("1")) {
             lyServiceItem.setVisibility(View.VISIBLE);
             lyAssetSerial.setVisibility(View.VISIBLE);
         }
-        sStatusId = cquery.getString(15).toString();
+        sStatusId = cquery.getString(15);
         try {
             Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
             if (cqueryForStatus.getCount() > 0) {
@@ -205,23 +205,23 @@ public class TicketInfo extends AppCompatActivity {
         } catch (Exception e) {
             tStatus = "NA";
         }
-        cname = cquery.getString(19).toString();
-        mNumber = cquery.getString(13).toString();
-        tIssue = cquery.getString(3).toString();
-        cAdrs = cquery.getString(10).toString();
+        cname = cquery.getString(19);
+        mNumber = cquery.getString(13);
+        tIssue = cquery.getString(3);
+        cAdrs = cquery.getString(10);
         expectedTime = cquery.getString(8);
-        createdDate = cquery.getString(7).toString();
-        updatedDate = cquery.getString(18).toString();
-        cAssetName = cquery.getString(5).toString();
-        cAssetType = cquery.getString(16).toString();
-        cAssetSubtype = cquery.getString(17).toString();
-        cAssetSerialNumber = cquery.getString(6).toString();
-        corporateName = cquery.getString(9).toString();
-        sidOEMInfo = cquery.getString(22).toString();
-        sAssetDesc = cquery.getString(23).toString();
-        sServiceSubtype = cquery.getString(24).toString();
-        sServiceType = cquery.getString(25).toString();
-        sIssueText = cquery.getString(4).toString();
+        createdDate = cquery.getString(7);
+        updatedDate = cquery.getString(18);
+        cAssetName = cquery.getString(5);
+        cAssetType = cquery.getString(16);
+        cAssetSubtype = cquery.getString(17);
+        cAssetSerialNumber = cquery.getString(6);
+        corporateName = cquery.getString(9);
+        sidOEMInfo = cquery.getString(22);
+        sAssetDesc = cquery.getString(23);
+        sServiceSubtype = cquery.getString(24);
+        sServiceType = cquery.getString(25);
+        sIssueText = cquery.getString(4);
 
         if (!isDeviceSupportCamera()) {
             try {
@@ -233,13 +233,13 @@ public class TicketInfo extends AppCompatActivity {
             // will close the app if the device does't have camera
             finish();
         }
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(TicketInfo.this, FollowUpHistory.class);
                 i.putExtra("ID", ID);
-                i.putExtra("TNumber", cquery.getString(20).toString());
+                i.putExtra("TNumber", cquery.getString(20));
                 startActivity(i);
             }
         });
@@ -265,7 +265,6 @@ public class TicketInfo extends AppCompatActivity {
                 dSLAdate = format.parse(dtStart);
                 System.out.println(dSLAdate);
             } catch (ParseException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             Date cDate = new Date();
@@ -273,7 +272,6 @@ public class TicketInfo extends AppCompatActivity {
             try {
                 dCurrentDate = format.parse(currentDateTimeString);
             } catch (ParseException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             SchedulingAdapter saTemp = new SchedulingAdapter();
@@ -433,7 +431,6 @@ public class TicketInfo extends AppCompatActivity {
                 OutputStream outputStream = urlConnection.getOutputStream();
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
 
-                //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
@@ -569,8 +566,7 @@ public class TicketInfo extends AppCompatActivity {
 
     private static File getOutputMediaFile(int type) {
         // External sdcard location
-        File mediaStorageDir = new File(
-                Environment
+        File mediaStorageDir = new File(Environment
                         .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                 "SOM Track Engine");
 
@@ -1055,5 +1051,16 @@ public class TicketInfo extends AppCompatActivity {
         }
 
     }
+
+
+//    private void setFilePath(String name) {
+//        File sdIconStorageDir = new File(
+//                Environment.getExternalStorageDirectory()
+//                        + "/app/files/");
+//        sdIconStorageDir.mkdirs();
+//        mFileTemp = new File(Environment.getExternalStorageDirectory()
+//                + "/app/files/", name + ".jpg");
+//
+//    }
 
 }

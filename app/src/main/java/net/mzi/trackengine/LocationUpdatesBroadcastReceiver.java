@@ -192,7 +192,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                         sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                                 "('" + nh_userid + "','" + locations.get(0).getLatitude()
                                                 + "','" + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                        Log.e("Location insertion","Inserted by LocationUpdateBoradcastReceiver at 195");
+                                        Log.e("Location insertion", "Inserted by LocationUpdateBoradcastReceiver at 195");
                                         //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                         Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                         String sColumnId = null;
@@ -285,7 +285,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                     sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                             "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
                                             + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                    Log.e("Location insertion","Inserted by LocationUpdateBoradcastReceiver at 288");
+                                    Log.e("Location insertion", "Inserted by LocationUpdateBoradcastReceiver at 288");
                                     //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                     Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                     String sColumnId = null;
@@ -315,8 +315,8 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
     }
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
-        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+        if (sCheckInStatus) {
 
             long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
@@ -471,7 +471,7 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void BatteryOperation(final Map<String,String> batteryInfo, final Context ctx) {
+    public void BatteryOperation(final Map<String, String> batteryInfo, final Context ctx) {
         final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
         sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);

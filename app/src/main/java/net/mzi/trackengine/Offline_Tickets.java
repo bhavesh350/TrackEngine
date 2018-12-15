@@ -53,14 +53,13 @@ public class Offline_Tickets extends Fragment {
         View view = inflater.inflate(R.layout.offline_sync, container, false);
         pref = getContext().getSharedPreferences("login", 0);
         sUserId = pref.getString("userid", "userid");
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.sync_view);
+        mRecyclerView = view.findViewById(R.id.sync_view);
         sql = getContext().openOrCreateDatabase("MZI.sqlite", getContext().MODE_PRIVATE, null);
-        bClearData = (Button) view.findViewById(R.id.idClearData);
-        bForceSync = (Button) view.findViewById(R.id.IdForcedSync);
+        bClearData = view.findViewById(R.id.idClearData);
+        bForceSync = view.findViewById(R.id.IdForcedSync);
         bClearData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Toast.makeText(getContext().getApplicationContext(),"hii",Toast.LENGTH_LONG).show();
                 removeData();
             }
         });
@@ -70,7 +69,6 @@ public class Offline_Tickets extends Fragment {
             public void onClick(View v) {
                 InternetConnector icDataSyncing = new InternetConnector();
                 icDataSyncing.offlineSyncing(getContext().getApplicationContext(), 1);
-//                getData();
                 if (MyApp.isConnectingToInternet(getActivity())) {
                     lTicketNumber.clear();
                     lTicketStatus.clear();
@@ -112,9 +110,19 @@ public class Offline_Tickets extends Fragment {
                         Cursor cqueryTemp = sql.rawQuery("select TicketNumber from Issue_Detail where issueid='" + savedMap.get(key).get("TicketId") + "'", null);
                         if (cqueryTemp.getCount() > 0) {
                             cqueryTemp.moveToFirst();
-                            lTicketNumber.add(cqueryTemp.getString(0).toString());
+                            lTicketNumber.add(cqueryTemp.getString(0));
                         } else {
-                            lTicketNumber.add("NA");
+                            try {
+                                lTicketNumber.add(savedMap.get(key).get("ticketNumber"));
+                            } catch (Exception e) {
+                                try {
+                                    lTicketNumber.add(savedMap.get(key).get("TicketId"));
+                                } catch (Exception ee) {
+                                    lTicketNumber.add("NA");
+                                }
+
+                            }
+
                         }
                         cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + savedMap.get(key).get("StatusId"), null);
                         cqueryTemp.moveToFirst();

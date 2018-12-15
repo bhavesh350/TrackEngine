@@ -109,10 +109,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         btn_office_reached.setOnClickListener(this);
         btn_office_start.setOnClickListener(this);
         if (isShowExtra) {
-            cardview_misl.setVisibility(View.VISIBLE);
-            cardview_office.setVisibility(View.VISIBLE);
-            ((TextView) findViewById(R.id.txt_mis_address)).setText(address);
-            ((TextView) findViewById(R.id.txt_office_address)).setText(address);
+            cardview_misl.setVisibility(View.GONE);
+            cardview_office.setVisibility(View.GONE);
+//            ((TextView) findViewById(R.id.txt_mis_address)).setText(address);
+//            ((TextView) findViewById(R.id.txt_office_address)).setText(address);
         }
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         bSorting.setOnClickListener(new View.OnClickListener() {

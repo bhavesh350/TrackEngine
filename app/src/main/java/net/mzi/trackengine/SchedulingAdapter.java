@@ -291,6 +291,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                     Map<String, String> map = new HashMap<>();
                     map.put("TicketId", mIssueID.get(position));
+                    map.put("ticketNumber",mTicketNumber.get(position));
                     map.put("UserId", nh_userid);
                     map.put("StatusId", sAcceptStatus);
                     map.put("ParentCompanyId", sParentComapnyId);
@@ -411,6 +412,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                                 Map<String, String> map = new HashMap<>();
                                 map.put("TicketId", mIssueID.get(position));
+                                map.put("ticketNumber",mTicketNumber.get(position));
                                 map.put("UserId", nh_userid);
                                 map.put("StatusId", sAcceptStatus);
                                 map.put("ParentCompanyId", sParentComapnyId);
@@ -1593,9 +1595,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 removeCard(position);
                             }
 
-                        } else if (cquery.getString(0).toString().equals("1")
-                                || cquery.getString(0).toString().equals("6") ||
-                                cquery.getString(0).toString().equals("5")) {
+                        } else if (cquery.getString(0).equals("1")
+                                || cquery.getString(0).equals("6") ||
+                                cquery.getString(0).equals("5")) {
                             Cursor cqueryCurrentStatus_MainId = sql.rawQuery("select MainStatusId from Issue_Status where StatusId ='" + sCurrentStatusId + "'", null);
                             cqueryCurrentStatus_MainId.moveToFirst();
 
@@ -2038,14 +2040,15 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                 @Override
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
-                    Log.e("TicketStatusTable", "On failure");
-                    call.cancel();
-                    Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-                    Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
-                    map.put("SyncStatus", "false");
-                    savedMap.put(postTktStatus.get("TicketId"), map);
-                    MyApp.getApplication().writeTicketsIssueHistory(savedMap);
-
+                 try{
+                     Log.e("TicketStatusTable", "On failure");
+                     call.cancel();
+                     Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                     Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                     map.put("SyncStatus", "false");
+                     savedMap.put(postTktStatus.get("TicketId"), map);
+                     MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                 }catch (Exception e){}
                 }
             });
         } catch (Exception e) {

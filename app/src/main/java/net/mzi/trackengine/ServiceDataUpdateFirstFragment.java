@@ -419,7 +419,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
             if (newTickets.size() == 0) {
                 MainActivity.removeTkt();
             } else {
-                MainActivity.showTkt();
+//                MainActivity.showTkt();
                 MainActivity m = new MainActivity();
                 m.updateCounter(ctx,false);
 

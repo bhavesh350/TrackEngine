@@ -166,7 +166,7 @@ public class LoginActivity extends AppCompatActivity {
                                 1);
                     }
                 } else {
-                    deleteDataFromTables();
+
                     progress = ProgressDialog.show(LoginActivity.this,
                             "Connecting to server", "Powering up engine!!!");
                     uname = Ephonelogin.getText().toString();
@@ -192,6 +192,7 @@ public class LoginActivity extends AppCompatActivity {
                                 ApiResult.User user = response.body();
                                 MyApp.getApplication().writeUser(user);
                                 ref.child(user.data.UserId).child("DeviceId").setValue(sDeviceId);
+                                deleteDataFromTables(user.data.UserId);
                                 if (user.data.Status.equals("true")) {
                                     Cursor cqueryTemp = sql.rawQuery("select * from Issue_Status where DepartmentId='" + user.data.DepartmentId + "'", null);
                                     if (cqueryTemp.getCount() > 0) ;
@@ -226,6 +227,7 @@ public class LoginActivity extends AppCompatActivity {
                                     session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
                                     MyApp.setStatus("statusByHierarchy", user.StatusByHierarchy);
                                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                    MyApp.setStatus("forceReLogin", true);
                                     LoginActivity.this.finish();
                                     intent.putExtra("fromLogin", true);
                                     startActivity(intent);
@@ -294,28 +296,28 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void deleteDataFromTables() {
-        MyApp.getApplication().writeCheckInOutData(new HashMap<String, Map<String, String>>());
-        MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());
-        try {
-            MyApp.getApplication().writeBatteryHistory(new HashMap<String, Map<String, String>>());
-            MyApp.getApplication().writeSavedStatusValues(new HashMap<String, String[]>());
-//            sql.execSQL("delete from User_BatteryLevel");
-            sql.execSQL("delete from Issue_StatusHiererchy");
-            sql.execSQL("delete from User_MobileData");
-            sql.execSQL("delete from User_Gps");
-            sql.execSQL("delete from User_Location");
-            sql.execSQL("delete from User_Login");
-//            sql.execSQL("delete from User_AppCheckIn");
-            sql.execSQL("delete from ModeOfTrasportList");
-            sql.execSQL("delete from Issue_Status");
-            sql.execSQL("delete from Issue_Detail");
-            sql.execSQL("delete from Issue_Attachment");
-//            sql.execSQL("delete from Issue_History");
-            sql.execSQL("delete from FirebaseIssueData");
-            sql.execSQL("delete from MobileManualLog");
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void deleteDataFromTables(String userId) {
+        if (!userId.equals(MyApp.getSharedPrefString("lastUserId"))) {
+            MyApp.getApplication().writeCheckInOutData(new HashMap<String, Map<String, String>>());
+            MyApp.getApplication().writeTicketsIssueHistory(new HashMap<String, Map<String, String>>());
+            MyApp.getApplication().writeCheckInOutDataHistory(new HashMap<Long, Boolean>());
+            try {
+                MyApp.getApplication().writeBatteryHistory(new HashMap<String, Map<String, String>>());
+                MyApp.getApplication().writeSavedStatusValues(new HashMap<String, String[]>());
+                sql.execSQL("delete from Issue_StatusHiererchy");
+                sql.execSQL("delete from User_MobileData");
+                sql.execSQL("delete from User_Gps");
+                sql.execSQL("delete from User_Location");
+                sql.execSQL("delete from User_Login");
+                sql.execSQL("delete from ModeOfTrasportList");
+                sql.execSQL("delete from Issue_Status");
+                sql.execSQL("delete from Issue_Detail");
+                sql.execSQL("delete from Issue_Attachment");
+                sql.execSQL("delete from FirebaseIssueData");
+                sql.execSQL("delete from MobileManualLog");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

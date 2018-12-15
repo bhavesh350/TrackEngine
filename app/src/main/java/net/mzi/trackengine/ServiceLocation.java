@@ -605,8 +605,8 @@ public class ServiceLocation extends Service {
         }
 
 
-        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+        if (sCheckInStatus) {
             long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
                 MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
@@ -783,8 +783,8 @@ public class ServiceLocation extends Service {
 
         pref = ctx.getSharedPreferences("login", 0);
         editor = pref.edit();
-        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+        if (sCheckInStatus) {
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
                         || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {

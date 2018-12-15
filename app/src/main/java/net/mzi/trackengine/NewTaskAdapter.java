@@ -103,7 +103,8 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
         if (sDateUI.equals("")) {
             sDateUI = "NA";
         } else {
-            sDateUI = sDateUI.substring(11, 19);
+            if (sDateUI.length() >= 19)
+                sDateUI = sDateUI.substring(11, 19);
         }
         final TicketHolder ticketHolder = (TicketHolder) holder;
         ticketHolder.IssueID.setText(mTicketNumber.get(position));
@@ -151,6 +152,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                     map.put("Comment", "Accepted By Engineer");
                     map.put("ActivityDate", currentDateTimeString);
                     map.put("SyncStatus", "-1");
+                    map.put("ticketNumber",mTicketNumber.get(position));
                     ticketsMap.put(mIssueID.get(position), map);
                     MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
 
@@ -293,6 +295,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                             map.put("Comment", "Accepted By Engineer");
                             map.put("ActivityDate", currentDateTimeString);
                             map.put("SyncStatus", "-1");
+                            map.put("ticketNumber",mTicketNumber.get(position));
                             ticketsMap.put(mIssueID.get(position), map);
                             MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
 
@@ -323,7 +326,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 
                             sql.delete("Issue_Detail", "IssueId" + "=" + issueDetail.IssueId, null);
                             MainActivity m = new MainActivity();
-                            m.updateCounter(context,false);
+                            m.updateCounter(context, false);
 //                            final String finalColumnId = sColumnId;
 
 //                            final String finalSColumnId = sColumnId;

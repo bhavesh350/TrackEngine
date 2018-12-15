@@ -341,8 +341,8 @@ public class LocationUpdatesIntentService extends IntentService {
     }
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
-        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+        if (sCheckInStatus) {
             long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
                 MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
@@ -492,7 +492,7 @@ public class LocationUpdatesIntentService extends IntentService {
         }
     }
 
-    public void BatteryOperation(final Map<String,String> batteryInfo, final Context ctx) {
+    public void BatteryOperation(final Map<String, String> batteryInfo, final Context ctx) {
         final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
         sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);

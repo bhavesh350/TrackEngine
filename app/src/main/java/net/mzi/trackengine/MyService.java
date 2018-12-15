@@ -280,7 +280,7 @@ public class MyService extends JobService {
                                 //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                                 sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                         "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                Log.e("Location insertion","Inserted by MyService at 283");
+                                Log.e("Location insertion", "Inserted by MyService at 283");
                                 //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                                 Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                                 String sColumnId = null;
@@ -368,7 +368,7 @@ public class MyService extends JobService {
                             //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                             sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                     "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                            Log.e("Location insertion","Inserted by MyService at 371");
+                            Log.e("Location insertion", "Inserted by MyService at 371");
                             //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                             Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                             String sColumnId = null;
@@ -453,8 +453,8 @@ public class MyService extends JobService {
 
 
     public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
-        String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+        if (sCheckInStatus) {
             long lastLocTime = MyApp.getSharedPrefLong("LOC");
             if (lastLocTime == 0) {
                 MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
@@ -537,7 +537,7 @@ public class MyService extends JobService {
 
     public void showSettingsAlert() {
         Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        MyApp.showMassage(this,"GPS is off");
+        MyApp.showMassage(this, "GPS is off");
         Intent callGPSSettingIntent = new Intent(
                 android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         //ctx.startActivity(callGPSSettingIntent);
@@ -669,7 +669,7 @@ public class MyService extends JobService {
                         //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
                         sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
                                 "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                        Log.e("Location insertion","Inserted by MyService at 670");
+                        Log.e("Location insertion", "Inserted by MyService at 670");
                         //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
                         Cursor cquery = sql.rawQuery("select * from User_Location ", null);
                         String sColumnId = null;
@@ -678,10 +678,10 @@ public class MyService extends JobService {
                             sColumnId = cquery.getString(0).toString();
                         }
                         ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId,false);
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId, false);
                     } catch (Exception e) {
                         ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "",false);
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "", false);
                     }
                 }
             } else {

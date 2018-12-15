@@ -121,6 +121,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                 Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                 Map<String, String> map = new HashMap<>();
                 map.put("TicketId", data.get(getLayoutPosition()).IssueID);
+                map.put("ticketNumber",data.get(getLayoutPosition()).TicketNumber);
                 map.put("UserId", sUserId);
                 map.put("StatusId", sAcceptStatus);
                 map.put("ParentCompanyId", sParentComapnyId);
@@ -248,6 +249,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                                 Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                                 Map<String, String> map = new HashMap<>();
                                 map.put("TicketId", data.get(getLayoutPosition()).IssueID);
+                                map.put("ticketNumber",data.get(getLayoutPosition()).TicketNumber);
                                 map.put("UserId", sUserId);
                                 map.put("StatusId", sAcceptStatus);
                                 map.put("ParentCompanyId", sParentComapnyId);
@@ -342,7 +344,10 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
         if (sDateUI.equals("")) {
             sDateUI = "NA";
         } else {
-            sDateUI = sDateUI.substring(11, 19);
+            try {
+                sDateUI = sDateUI.substring(11, 19);
+            } catch (Exception e) {
+            }
         }
         Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
         holder.textView2.setText(data.get(position).TicketNumber);

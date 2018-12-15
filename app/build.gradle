@@ -33,8 +33,8 @@ android {
         applicationId "net.mzi.trackengine"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 25
-        versionName "1.6"
+        versionCode 26
+        versionName "1.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
 
@@ -83,6 +83,7 @@ dependencies {
     implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.google.firebase:firebase-core:11.8.0'
+    implementation 'com.google.firebase:firebase-firestore:11.8.0'
 //    implementation 'com.daprlabs.aaron:cardstack:0.3.1-beta0'
     implementation 'com.github.PhilJay:MPAndroidChart:v2.1.6'
     implementation 'com.google.code.gson:gson:2.2.4'

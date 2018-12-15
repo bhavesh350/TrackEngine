@@ -7,8 +7,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationChannel;
+import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -80,6 +79,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.gson.Gson;
 
 import net.mzi.trackengine.adapter.MainActivityAdapter;
@@ -106,6 +109,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -202,23 +206,20 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
     static String isCheckIn = "false";
-    String sCheckInTime, sCheckInStatus;
-
-    //static Context mainAtctivityctx;
+    String checkInOutTime = "";
+    private boolean sCheckInStatus;
     private SessionManager session;
-    //    private String mySavedStatusTime = "";
-    //    private String mySavedStatus = "";
     public TextView tv_location;
-    // Sync related views
     public TextView txt_sync_all, txt_check_in_out_count, txt_locations_count, txt_issues_count, txt_battery_count;
     public RelativeLayout rl_sync_check_in_out, rl_sync_locations, rl_sync_issue_status, rl_sync_battery;
     public ProgressBar progress_sync_progress_in_out, progress_sync_locations, progress_sync_status, progress_sync_battery;
-
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        new FetchStatus().execute();
         setContentView(R.layout.activity_main);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
@@ -245,6 +246,7 @@ public class MainActivity extends AppCompatActivity
                         Date cDate = new Date();
                         currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                         //LOGINID=map.get("userid");
+                        MyApp.setSharedPrefString("lastUserId", LOGINID);
                         postLogin.put("UserId", LOGINID);
                         postLogin.put("IsLogin", "false");
                         postLogin.put("ActionDate", currentDateTimeString);
@@ -442,8 +444,8 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        sCheckInTime = pref.getString("CheckedInTime", "0");
-        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+        checkInOutTime = MyApp.getSharedPrefString("CheckedInTime");
+        sCheckInStatus = MyApp.getStatus("CheckedInStatus");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -556,6 +558,103 @@ public class MainActivity extends AppCompatActivity
         }
 
         startService(new Intent(this, ReadMessageService.class));
+
+        db.collection("SOMapp").document("appInfo").addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(DocumentSnapshot snapshot, FirebaseFirestoreException e) {
+                if (snapshot != null && snapshot.exists()) {
+
+                    if (!snapshot.getBoolean("alternative"))
+                        if (snapshot.getBoolean("forceUpdate")) {
+                            try {
+                                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                                int versionCode = pInfo.versionCode;
+                                int serverVersionCode = snapshot.getLong("appVersionCode").intValue();
+                                if (versionCode >= serverVersionCode) {
+                                    try {
+                                        if (updateDialog != null) {
+                                            updateDialog.dismiss();
+                                        }
+                                    } catch (Exception ee) {
+                                    }
+                                } else {
+                                    try {
+                                        if (updateDialog != null) {
+                                            updateDialog.dismiss();
+                                        }
+                                    } catch (Exception ee) {
+                                    }
+                                    showUpdateAppDialog(true);
+                                }
+                            } catch (PackageManager.NameNotFoundException ee) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            try {
+                                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                                int versionCode = pInfo.versionCode;
+                                int serverVersionCode = snapshot.getLong("appVersionCode").intValue();
+                                if (versionCode >= serverVersionCode) {
+                                    try {
+                                        if (updateDialog != null) {
+                                            updateDialog.dismiss();
+                                        }
+                                    } catch (Exception ee) {
+                                    }
+                                } else {
+                                    try {
+                                        if (updateDialog != null) {
+                                            updateDialog.dismiss();
+                                        }
+                                    } catch (Exception ee) {
+                                    }
+                                    showUpdateAppDialog(false);
+                                }
+                            } catch (PackageManager.NameNotFoundException ee) {
+                                e.printStackTrace();
+                            }
+                        }
+                    else {
+                        try {
+                            if (updateDialog != null) {
+                                updateDialog.dismiss();
+                            }
+                        } catch (Exception ee) {
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private Dialog updateDialog = null;
+
+    private void showUpdateAppDialog(boolean isForce) {
+        AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
+        b.setTitle("Update App").setMessage("New update is available to download on playstore, please updated this app for better " +
+                "experience.\nThank you").setCancelable(isForce).setPositiveButton("Update", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                } catch (android.content.ActivityNotFoundException anfe) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                }
+                clearPreferences();
+                finish();
+            }
+        });
+        if (!isForce) {
+            b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+        }
+        updateDialog = b.create();
+        updateDialog.show();
     }
 
     private RelativeLayout rl_address;
@@ -573,14 +672,7 @@ public class MainActivity extends AppCompatActivity
         Map<String, Map<String, String>> batteryMap = MyApp.getApplication().readBatteryHistory();
         batteryMap.put(currentDateTimeString, batteryInfo);
         MyApp.getApplication().writeBatteryHistory(batteryMap);
-//        sql.execSQL("INSERT INTO User_BatteryLevel(UserId,BatteryLevel,AutoCaptured,ActionDate,SyncStatus)VALUES('" + LOGINID + "','" + batLevel + "','true','" + currentDateTimeString + "','-1')");
-//        Cursor cquery = sql.rawQuery("select * from User_Login ", null);
-//        String sColumnId = null;
-//        if (cquery.getCount() > 0) {
-//            cquery.moveToLast();
-//            sColumnId = cquery.getString(0).toString();
-//        }
-//        cquery.close();
+
         MyApp.setSharedPrefLong("BAT", 0);
         serviceBattery.BatteryOperation(batteryInfo, getApplicationContext(), true);
     }
@@ -595,14 +687,14 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public static void showTkt() {
-        MainActivity.newtkt.setVisibility(View.VISIBLE);
-
+    public void showTkt() {
+//        MainActivity.newtkt.setVisibility(View.VISIBLE);
+        startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -630,9 +722,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+        sCheckInStatus = MyApp.getStatus("CheckedInStatus");
 
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+        if (sCheckInStatus) {
             Date cDate = new Date();
             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
             editor.putString("CheckedInDuration", currentDateTimeString);
@@ -801,7 +893,7 @@ public class MainActivity extends AppCompatActivity
             Date cDate = new Date();
             //LOGINID=map.get("userid");
             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-
+            MyApp.setSharedPrefString("lastUserId", LOGINID);
             postLogin.put("UserId", LOGINID);
             postLogin.put("IsLogin", "false");
             postLogin.put("ActionDate", currentDateTimeString);
@@ -834,8 +926,8 @@ public class MainActivity extends AppCompatActivity
             sql.delete("Issue_Detail", null, null);
             sql.delete("FirebaseIssueData", null, null);
 
-            editor.putString("CheckedInTime", "");
-            editor.putString("CheckedInStatus", "false");
+            MyApp.setSharedPrefString("CheckedInTime", "");
+            MyApp.setStatus("CheckedInStatus", false);
             editor.commit();
 
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
@@ -864,18 +956,24 @@ public class MainActivity extends AppCompatActivity
             return true;
         } else if (id == R.id.action_refresh) {
 
-            int refreshCounter = MyApp.getApplication().readCheckInOutData().keySet().size();
-            refreshCounter += sql.rawQuery("select * from User_Location", null).getCount();
-            refreshCounter += MyApp.getApplication().readTicketsIssueHistory().keySet().size();
-            refreshCounter += MyApp.getApplication().readBatteryHistory().keySet().size();
+//            int refreshCounter = MyApp.getApplication().readCheckInOutData().keySet().size();
+//            refreshCounter += sql.rawQuery("select * from User_Location", null).getCount();
+//            refreshCounter += MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+//            refreshCounter += MyApp.getApplication().readBatteryHistory().keySet().size();
 
-            if (refreshCounter > 0) {
-                MyApp.popMessage("Alert!", "Please sync your offline data first", MainActivity.this);
-            } else {
+
+            if (txt_battery_count.getText().toString().equals("0")
+                    && txt_issues_count.getText().toString().equals("0")
+                    && txt_locations_count.getText().toString().equals("0")
+                    && txt_check_in_out_count.getText().toString().equals("0")) {
+
                 MyApp.showMassage(this, "Refreshing...");
                 refreshData(true);
-                new FetchStatus();
+                new FetchStatus().execute();
                 onResume();
+
+            } else {
+                MyApp.popMessage("Alert!", "Please sync your offline data first", MainActivity.this);
             }
 
         }
@@ -920,7 +1018,7 @@ public class MainActivity extends AppCompatActivity
             android.app.AlertDialog alert = builder.create();
             alert.show();
         } else if (id == R.id.nav_updatedata) {
-            new FetchStatus();
+            new FetchStatus().execute();
             Intent i = getIntent();
             i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             finish();
@@ -1311,8 +1409,8 @@ public class MainActivity extends AppCompatActivity
                 //Toast.makeText(getActivity(),R.string.internet_error, Toast.LENGTH_LONG).show();
             } else {
                 Log.i("INFO", s);
-                sql.delete("Issue_Status", null, null);
-                sql.delete("Issue_StatusHiererchy", null, null);
+//                sql.delete("Issue_Status", null, null);
+//                sql.delete("Issue_StatusHiererchy", null, null);
                 try {
                     Cursor cqueryFetchingStatus = sql.rawQuery("select * from Issue_Status where DepartmentId='" + sDepartment + "'", null);
                     if (cqueryFetchingStatus.getCount() > 0) {
@@ -1324,13 +1422,13 @@ public class MainActivity extends AppCompatActivity
                             JSONObject object = jdata.getJSONObject(i);
                             sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus)VALUES" +
                                     "('" + object.getString("Id") + "','" + object.getString("StatusName") + "','" + object.getString("CommentRequired") + "','" + object.getString("MainStatusId") + "','" + object.getString("IsMobileStatus") + "','" + sCompanyId + "','" + sDepartment + "','" + object.getString("ParentStatuses") + "')");
-                            Log.e("loginActivity", object.getString("StatusName") + ":" + object.getString("Id"));
+                            Log.e("MainActivity", object.getString("StatusName") + ":" + object.getString("Id"));
                             String sAllParentStatuses = object.getString("ParentStatuses");
                             List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
                             for (int j = 0; j < listsAllParentStatuses.size(); j++) {
                                 sql.execSQL("INSERT INTO Issue_StatusHiererchy(StatusId,ParentStatus,WaitForEntry,ActionDate,RedirectToStatus)VALUES" +
                                         "('" + object.getString("Id") + "','" + listsAllParentStatuses.get(j).trim() + "','0','0','0')");
-                                Log.e("loginActivity ", object.getString("StatusName") + ":" + listsAllParentStatuses.get(j).trim());
+                                Log.e("MainActivity ", object.getString("StatusName") + ":" + listsAllParentStatuses.get(j).trim());
                             }
                         }
                     }
@@ -1430,54 +1528,59 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(Call<ApiResult.UserCheckInOut> call, Response<ApiResult.UserCheckInOut> response) {
                 ApiResult.UserCheckInOut iData = response.body();
-                if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                try {
+                    if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
+                        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
+                        builder.setMessage("Data is currently saved offline, will sync once it gets internet connection!!!").setTitle("Response from Server")
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        // do nothing
+
+                                        dialog.dismiss();
+                                    }
+                                });
+                        android.app.AlertDialog alert = builder.create();
+                        alert.show();
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "false");
+//                    MyApp.getApplication().writeCheckInOutData(map);
+//                    sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
+                    } else {
+                        if (realtimeUpdate.equals("true"))
+                            MyApp.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
+                        ContentValues newValues = new ContentValues();
+                        newValues.put("SyncStatus", "true");
+                        Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
+                        map.remove(appCheckInInfo.get("ActivityDate"));
+                        MyApp.getApplication().writeCheckInOutData(map);
+                        txt_check_in_out_count.setText(map.keySet().size() + "");
+//                    sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
+                    }
+                } catch (Exception e) {
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResult.UserCheckInOut> call, Throwable t) {
+                try {
+                    call.cancel();
+                    ContentValues newValues = new ContentValues();
+                    newValues.put("SyncStatus", "false");
                     final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
                     builder.setMessage("Data is currently saved offline, will sync once it gets internet connection!!!").setTitle("Response from Server")
                             .setCancelable(false)
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     // do nothing
-
                                     dialog.dismiss();
                                 }
                             });
                     android.app.AlertDialog alert = builder.create();
                     alert.show();
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "false");
-//                    MyApp.getApplication().writeCheckInOutData(map);
-//                    sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
-                } else {
-                    if (realtimeUpdate.equals("true"))
-                        MyApp.showMassage(MainActivity.this, "CheckIn-Out Info sent successfully!!!");
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "true");
-                    Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
-                    map.remove(appCheckInInfo.get("ActivityDate"));
-                    MyApp.getApplication().writeCheckInOutData(map);
-                    txt_check_in_out_count.setText(map.keySet().size() + "");
-//                    sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
+                } catch (Exception e) {
                 }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResult.UserCheckInOut> call, Throwable t) {
-                call.cancel();
-                ContentValues newValues = new ContentValues();
-                newValues.put("SyncStatus", "false");
-                final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Data is currently saved offline, will sync once it gets internet connection!!!").setTitle("Response from Server")
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // do nothing
-                                dialog.dismiss();
-                            }
-                        });
-                android.app.AlertDialog alert = builder.create();
-                alert.show();
-//                sql.update("User_AppCheckIn", newValues, "Id=" + sColumnId, null);
             }
         });
     }
@@ -1554,11 +1657,13 @@ public class MainActivity extends AppCompatActivity
             if (isSwipe && mAdapter != null) {
                 mAdapter.notifyDataSetChanged();
             } else {
+                mRecyclerView.removeAllViews();
                 MainActivityAdapter maCounter = new MainActivityAdapter(mDataset, mDatasetCount, mCardColor, mDatasetTypes, mContext, mCardBgClr);
                 mRecyclerView.setAdapter(maCounter);
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         //maCounter.updateCounter();
@@ -1711,11 +1816,23 @@ public class MainActivity extends AppCompatActivity
             fragment.NewTicketsInfo(fragment.mTicketIdList);
         }
 
-        sCheckInTime = pref.getString("CheckedInTime", "0");
-        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+        checkInOutTime = MyApp.getSharedPrefString("CheckedInTime");
+        sCheckInStatus = MyApp.getStatus("CheckedInStatus");
 
-        if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-            btn_check_in_out.setText("Checked-IN\n" + sCheckInTime);
+        Map<Long, Boolean> map = MyApp.getApplication().readCheckInOutDataHistory();
+        List<Long> historyData = new ArrayList<>();
+        for (Long l : map.keySet()) {
+            historyData.add(l);
+        }
+
+        if (historyData.size() > 0) {
+            Collections.sort(historyData, Collections.<Long>reverseOrder());
+            sCheckInStatus = map.get(historyData.get(0));
+            checkInOutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(historyData.get(0)));
+        }
+
+        if (sCheckInStatus) {
+            btn_check_in_out.setText("Checked-IN\n" + checkInOutTime);
             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
             tCheckInStatus.setText("Checked-IN");
             lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
@@ -1740,8 +1857,8 @@ public class MainActivity extends AppCompatActivity
             editor.putString("CheckedInDuration", currentDateTimeString);
             editor.commit();
             setData();
-        } else if (sCheckInStatus.equals("False") || sCheckInStatus.equals("false")) {
-            btn_check_in_out.setText("Checked-OUT\n" + sCheckInTime);
+        } else {
+            btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
             tCheckInStatus.setText("Checked-OUT");
             lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
@@ -1750,12 +1867,9 @@ public class MainActivity extends AppCompatActivity
             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nMgr.cancel(12345);
 
-        } else {
-            lTimerLayout.setVisibility(View.GONE);
-            btn_check_in_out.setVisibility(View.GONE);
         }
 
-        tCheckIntTime.setText(sCheckInTime);
+        tCheckIntTime.setText(checkInOutTime);
 
 
         Log.e(TAG, "onCreate:sdsdsd " + tCheckIntTime.getText().toString());
@@ -1863,6 +1977,9 @@ public class MainActivity extends AppCompatActivity
                     return;
                 }
                 if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
+                    Map<Long, Boolean> historyMap = MyApp.getApplication().readCheckInOutDataHistory();
+                    historyMap.put(System.currentTimeMillis(), true);
+                    MyApp.getApplication().writeCheckInOutDataHistory(historyMap);
                     btn_check_in_out.setEnabled(false);
                     btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.black_overlay));
 
@@ -1873,12 +1990,13 @@ public class MainActivity extends AppCompatActivity
                             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
                         }
                     }, 5000);
-                    MyApp.setStatus("isCheckedInClicked", true);
                     Date cDate = new Date();
                     currentDateTimeStringCheckIN = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                    MyApp.setSharedPrefString("CheckedInTime", currentDateTimeStringCheckIN);
+
                     btn_check_in_out.setText("Checked-IN\n" + currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInTime", currentDateTimeStringCheckIN);
-                    editor.putString("CheckedInStatus", "True");
+
+                    MyApp.setStatus("CheckedInStatus", true);
                     editor.putString("CheckedInDuration", currentDateTimeStringCheckIN);
                     editor.commit();
                     Log.e(TAG, "onClick: ");
@@ -1920,6 +2038,9 @@ public class MainActivity extends AppCompatActivity
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     btn_check_in_out.setEnabled(false);
+                                    Map<Long, Boolean> historyMap = MyApp.getApplication().readCheckInOutDataHistory();
+                                    historyMap.put(System.currentTimeMillis(), false);
+                                    MyApp.getApplication().writeCheckInOutDataHistory(historyMap);
                                     new Handler().postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
@@ -1927,14 +2048,14 @@ public class MainActivity extends AppCompatActivity
                                             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
                                         }
                                     }, 5000);
-                                    btn_check_in_out.setText("Checked-IN\n" + currentDateTimeStringCheckIN);
+//                                    btn_check_in_out.setText("Checked-IN\n" + currentDateTimeStringCheckIN);
                                     btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.black_overlay));
 
-                                    MyApp.setStatus("isCheckedInClicked", false);
+
                                     Date cDate = new Date();
                                     currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                                    editor.putString("CheckedInTime", currentDateTimeString);
-                                    editor.putString("CheckedInStatus", "False");
+                                    MyApp.setSharedPrefString("CheckedInTime", currentDateTimeString);
+                                    MyApp.setStatus("CheckedInStatus", false);
                                     editor.commit();
                                     btn_check_in_out.setText("Checked-OUT\n" + currentDateTimeString);
                                     try {
@@ -2338,81 +2459,112 @@ public class MainActivity extends AppCompatActivity
 //        new IsLogin(sPostLogin, 0, "0").execute();
 //    }
 
-    private class CheckInInfo extends AsyncTask<String, Void, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-                String API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
-                URL url = new URL(API_URL);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setConnectTimeout(15000);
-                urlConnection.setReadTimeout(15000);
-                try {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append("\n");
-                    }
-                    bufferedReader.close();
-                    return stringBuilder.toString();
-                } finally {
-                    urlConnection.disconnect();
-                }
-            } catch (Exception e) {
-                Log.e("FollowUp CLASS,", e.getMessage(), e);
-
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            if (s == null || !MyApp.getStatus("isCheckedInClicked")) {
-            } else {
-                Log.i("INFO", s);
-                try {
-
-                    JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
-                    JSONArray jdata = jsonObject.getJSONArray("UserCheckInCheckOutDetails");
-                    for (int i = 0; i < jdata.length(); i++) {
-                        JSONObject object = jdata.getJSONObject(i);
-                        if (object.optString("CheckOutTime").isEmpty()) {
-                            // condition that it is checked in
-                            Log.d(">>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
-                            String one = object.optString("CheckInTime").substring(0, 11);
-                            String two = object.optString("CheckInTime").substring(12, object.optString("CheckInTime").length());
-                            Log.d(">>>>>>>>>>>>>>>", "one " + one + "  two " + two);
-                            editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
-                                    parseDateTime(two));
-                            editor.putString("CheckedInStatus", "True");
-                            editor.commit();
-                            Log.d(">>>>>>>>>>>>>>>", "checked-in time " + object.optString("CheckInTime"));
-
-                            sCheckInTime = pref.getString("CheckedInTime", "0");
-                            sCheckInStatus = pref.getString("CheckedInStatus", "0");
-                            Log.d(">>>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
-                            {
-                                tCheckInStatus.setText("Checked-IN");
-                                lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-                                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
-                                tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
-                                tCheckIntTime.setText(sCheckInTime);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+//    private class CheckInInfo extends AsyncTask<String, Void, String> {
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//            try {
+//                Date cDate = new Date();
+//                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+//                String API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
+//                URL url = new URL(API_URL);
+//                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+//                urlConnection.setConnectTimeout(15000);
+//                urlConnection.setReadTimeout(15000);
+//                try {
+//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    String line;
+//                    while ((line = bufferedReader.readLine()) != null) {
+//                        stringBuilder.append(line).append("\n");
+//                    }
+//                    bufferedReader.close();
+//                    return stringBuilder.toString();
+//                } finally {
+//                    urlConnection.disconnect();
+//                }
+//            } catch (Exception e) {
+//                Log.e("FollowUp CLASS,", e.getMessage(), e);
+//
+//                return null;
+//            }
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String s) {
+//            super.onPostExecute(s);
+//            if (s == null) {
+//            } else {
+//                Log.i("INFO", s);
+//                try {
+//
+//                    JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
+//                    JSONArray jdata = jsonObject.getJSONArray("UserCheckInCheckOutDetails");
+//                    for (int i = 0; i < jdata.length(); i++) {
+//                        JSONObject object = jdata.getJSONObject(i);
+//                        if (object.optString("CheckOutTime").isEmpty()) {
+//                            // condition that it is checked in
+//                            String one = object.optString("CheckInTime").substring(0, 11);
+//                            String two = object.optString("CheckInTime").substring(12, object.optString("CheckInTime").length());
+//                            editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
+//                                    parseDateTime(two));
+//                            editor.putString("CheckedInStatus", "True");
+//                            editor.commit();
+//
+//                            sCheckInTime = pref.getString("CheckedInTime", "0");
+//                            sCheckInStatus = pref.getString("CheckedInStatus", "0");
+//                            Log.d(">>>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
+//                            {
+//                                tCheckInStatus.setText("Checked-IN");
+//                                lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
+//                                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
+//                                tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
+//                                tCheckIntTime.setText(sCheckInTime);
+//                            }
+//                        } else {
+//                            // condition that it is checked in
+//                            String one = object.optString("CheckOutTime").substring(0, 11);
+//                            String two = object.optString("CheckOutTime").substring(12, object.optString("CheckOutTime").length());
+//                            editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
+//                                    parseDateTime(two));
+//                            editor.putString("CheckedInStatus", "False");
+//                            editor.commit();
+//
+//                            sCheckInTime = pref.getString("CheckedInTime", "0");
+//                            sCheckInStatus = pref.getString("CheckedInStatus", "0");
+//                            tCheckInStatus.setText("Checked-OUT");
+//                            lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
+//                            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red);
+//                            tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
+//                            tCheckIntTime.setText(sCheckInTime);
+//                        }
+//                    }
+//
+//                    if (jdata.length() == 0) {
+////                        editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
+////                                parseDateTime(two));
+//                        editor.putString("CheckedInStatus", "False");
+//                        editor.commit();
+//
+//                        sCheckInTime = pref.getString("CheckedInTime", "0");
+//                        sCheckInStatus = pref.getString("CheckedInStatus", "0");
+//                        Log.d(">>>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
+//                        tCheckInStatus.setText("Checked-OUT");
+//                        lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
+//                        tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
+//                        tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
+//                        tCheckIntTime.setText(sCheckInTime);
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
 
 
     public static String parseDateToddMMyyyy(String time) {
@@ -2472,9 +2624,6 @@ public class MainActivity extends AppCompatActivity
         }
         updateMarkers();
         Utils.getLocationUpdatesResult(this);
-        if (MyApp.getStatus("isCheckedInClicked")) {
-            new CheckInInfo().execute();
-        }
 
         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
         int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
@@ -2496,6 +2645,11 @@ public class MainActivity extends AppCompatActivity
             txt_check_in_out_count.setBackground(getDrawable(R.drawable.sync_orange));
             txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
             txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
+        } catch (NoSuchMethodError e) {
+            txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            txt_check_in_out_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            txt_battery_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
         } catch (Exception e) {
         }
 
@@ -2574,8 +2728,8 @@ public class MainActivity extends AppCompatActivity
                 }
             }, 4000);
             if (cquery.getCount() > 0) {
-                String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-                if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
+                boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+                if (sCheckInStatus) {
 
                 } else {
                     Cursor cquery = sql.rawQuery("select * from User_Location", null);

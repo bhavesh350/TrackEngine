@@ -326,12 +326,23 @@ public class MyApp extends MultiDexApplication {
 
     }
 
+    private String getAppNameByPID(int pid) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+
+        for (ActivityManager.RunningAppProcessInfo processInfo : manager.getRunningAppProcesses()) {
+            if (processInfo.pid == pid) {
+                return processInfo.processName;
+            }
+        }
+
+        return "";
+    }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
 
         String nh_userid = "0";
-        ACRA.init(this);
         String sIsDataOn, sIsLocationOn;
         pref = getSharedPreferences("login", 0);
         nh_userid = pref.getString("userid", "userid");
@@ -373,13 +384,16 @@ public class MyApp extends MultiDexApplication {
 
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         String sBatteryLevel = String.valueOf(battery.getIntExtra("level", 0));
-        ACRA.getErrorReporter().putCustomData("UserId", nh_userid);
-        ACRA.getErrorReporter().putCustomData("IsDataOn", sIsDataOn);
-        ACRA.getErrorReporter().putCustomData("IsLocationOn", sIsLocationOn);
-        ACRA.getErrorReporter().putCustomData("DeviceId", sDeviceId);
-        ACRA.getErrorReporter().putCustomData("CreatedOn", currentDateTimeString);
-        ACRA.getErrorReporter().putCustomData("BatteryLevel", sBatteryLevel);
 
+        if (getPackageName().equals(getAppNameByPID(android.os.Process.myPid()))) {
+            ACRA.init(this);
+            ACRA.getErrorReporter().putCustomData("UserId", nh_userid);
+            ACRA.getErrorReporter().putCustomData("IsDataOn", sIsDataOn);
+            ACRA.getErrorReporter().putCustomData("IsLocationOn", sIsLocationOn);
+            ACRA.getErrorReporter().putCustomData("DeviceId", sDeviceId);
+            ACRA.getErrorReporter().putCustomData("CreatedOn", currentDateTimeString);
+            ACRA.getErrorReporter().putCustomData("BatteryLevel", sBatteryLevel);
+        }
     }
 
     public static boolean isLocationEnabled(Context context) {
@@ -406,15 +420,19 @@ public class MyApp extends MultiDexApplication {
     }
 
     public static boolean isConnectingToInternet(Context context) {
-        ConnectivityManager connectivity = (ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivity != null) {
-            NetworkInfo[] info = connectivity.getAllNetworkInfo();
-            if (info != null)
-                for (int i = 0; i < info.length; i++)
-                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-                        return true;
-                    }
+        try {
+            ConnectivityManager connectivity = (ConnectivityManager) context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connectivity != null) {
+                NetworkInfo[] info = connectivity.getAllNetworkInfo();
+                if (info != null)
+                    for (int i = 0; i < info.length; i++)
+                        if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                            return true;
+                        }
+            }
+        } catch (Exception e) {
+            return true;
         }
         return false;
     }
@@ -866,7 +884,7 @@ public class MyApp extends MultiDexApplication {
         return device;
     }
 
-    public void writeSavedStatusValues(Map<String,String []> values) {
+    public void writeSavedStatusValues(Map<String, String[]> values) {
         try {
             String path = "/data/data/" + c.getPackageName()
                     + "/savedStatusValues.ser";
@@ -889,17 +907,121 @@ public class MyApp extends MultiDexApplication {
 
     @SuppressWarnings("unchecked")
     @SuppressLint("SdCardPath")
-    public Map<String,String []> readSavedStatusValue() {
+    public Map<String, String[]> readSavedStatusValue() {
         String path = "/data/data/" + c.getPackageName()
                 + "/savedStatusValues.ser";
         File f = new File(path);
-        Map<String,String []> device = null;
+        Map<String, String[]> device = null;
         if (f.exists()) {
             try {
                 System.gc();
                 FileInputStream fileIn = new FileInputStream(path);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
-                device = (Map<String,String []>) in.readObject();
+                device = (Map<String, String[]>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return device;
+    }
+
+
+    public void writeNotifMap(Map<String, String> values) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/notifMap.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(values);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SuppressLint("SdCardPath")
+    public Map<String, String> readNotifMap() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/notifMap.ser";
+        File f = new File(path);
+        Map<String, String> device = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                device = (Map<String, String>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return device;
+    }
+
+
+    public void writeCheckInOutDataHistory(Map<Long, Boolean> values) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/checkinoutdata.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(values);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SuppressLint("SdCardPath")
+    public Map<Long, Boolean> readCheckInOutDataHistory() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/checkinoutdata.ser";
+        File f = new File(path);
+        Map<Long, Boolean> device = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                device = (Map<Long, Boolean>) in.readObject();
                 in.close();
                 fileIn.close();
             } catch (StreamCorruptedException e) {

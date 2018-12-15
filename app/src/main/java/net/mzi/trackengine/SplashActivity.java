@@ -217,7 +217,7 @@ public class SplashActivity extends AppCompatActivity {
                     sql.execSQL("INSERT INTO IssueStatus_Main(IssueStatus_MainId,StatusName)VALUES('4','Close')");
                     sql.execSQL("INSERT INTO IssueStatus_Main(IssueStatus_MainId,StatusName)VALUES('5','App Specific')");
                 }
-                if (session.isLoggedIn()) {
+                if (session.isLoggedIn() && MyApp.getStatus("forceReLogin")) {
                     Intent intent = new Intent(SplashActivity.this, MainActivity.class);
                     startActivity(intent);
                     SplashActivity.this.finish();

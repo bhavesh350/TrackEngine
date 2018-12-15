@@ -18,6 +18,7 @@ import android.util.Log;
 import net.mzi.trackengine.model.TicketInfoClass;
 
 import java.util.List;
+import java.util.Map;
 
 public class SMSReceiver extends BroadcastReceiver {
     private static SmsListner mListener;
@@ -64,23 +65,23 @@ public class SMSReceiver extends BroadcastReceiver {
                 String prev_status_id = rem4.substring(0, rem4.indexOf("|"));
                 t.setPreviousStatus(prev_status_id);
 
-                String rem5 = rem4.substring(rem4.indexOf("|") + 1);
-                String last_trans_mode = rem5.substring(0, rem5.indexOf("|"));
-                t.setLastTransportMode(last_trans_mode);
+//                String rem5 = rem4.substring(rem4.indexOf("|") + 1);
+//                String last_trans_mode = rem5.substring(0, rem5.indexOf("|"));
+//                t.setLastTransportMode(last_trans_mode);
 
-                String rem6 = rem5.substring(rem5.indexOf("|") + 1);
+                String rem6 = rem4.substring(rem4.indexOf("|") + 1);
                 String assest_type = rem6.substring(0, rem6.indexOf("|"));
                 t.setAssetType(assest_type);
 
-                String rem7 = rem6.substring(rem6.indexOf("|") + 1);
-                String assest_sn = rem7.substring(0, rem7.indexOf("|"));
-                t.setAssetSerialNumber(assest_sn);
+//                String rem7 = rem6.substring(rem6.indexOf("|") + 1);
+//                String assest_sn = rem7.substring(0, rem7.indexOf("|"));
+//                t.setAssetSerialNumber(assest_sn);
 
-                String rem8 = rem7.substring(rem7.indexOf("|") + 1);
-                String cat_name = rem8.substring(0, rem8.indexOf("|"));
-                t.setCategoryName(cat_name);
+//                String rem8 = rem7.substring(rem7.indexOf("|") + 1);
+//                String cat_name = rem8.substring(0, rem8.indexOf("|"));
+//                t.setCategoryName(cat_name);
 
-                String rem9 = rem8.substring(rem8.indexOf("|") + 1);
+                String rem9 = rem6.substring(rem6.indexOf("|") + 1);
                 String corp_name = rem9.substring(0, rem9.indexOf("|"));
                 t.setCorporateName(corp_name);
 
@@ -93,15 +94,20 @@ public class SMSReceiver extends BroadcastReceiver {
                 t.setLongitude(lng);
 
                 String rem12 = rem11.substring(rem11.indexOf("|") + 1);
-                String is_assest_varify = "Is Asset Verified" + " " + rem12.substring(0, rem12.indexOf("|"));
-                t.setVerified(Boolean.parseBoolean(is_assest_varify));
-
-                String impl_csat = "Implement CSAT" + " " + rem12.substring(rem12.indexOf("|") + 1);
+                String subject = rem12.substring(0, rem12.indexOf("|"));
+                t.setSubject(subject);
+                String slaTime = "";
+                try {
+                    slaTime = rem12.substring(rem12.indexOf("|") + 1);
+                    t.setSLADate(slaTime);
+                } catch (Exception e) {
+                }
+//                String impl_csat = "Implement CSAT" + " " + rem12.substring(rem12.indexOf("|") + 1);
 
                 messageBody = ticket_id + "\n" + ticket_num + "\n" + creation_on + "\n" + status_id
-                        + "\n" + prev_status_id + "\n" + last_trans_mode + "\n" + assest_type + "\n" + assest_sn + "\n" + cat_name
+                        + "\n" + prev_status_id + "\n" + assest_type
                         + "\n" + corp_name + "\n" + lat
-                        + "\n" + lng + "\n" + is_assest_varify + "\n" + impl_csat;
+                        + "\n" + lng + "\n" + subject + "\n" + slaTime;
                 Log.e("SMSTRACK", messageBody);
 //                mListener.messageReceived(t);
 
@@ -151,7 +157,7 @@ public class SMSReceiver extends BroadcastReceiver {
                                     "" + "','" +
                                     t.getAssetSerialNumber() + "','" +
                                     t.getCreatedDate() + "','" +
-                                    t.getCreatedDate() + "','" +
+                                    t.getSLADate() + "','" +
                                     "" + "','" +
                                     t.getCorporateName() + "','" +
                                     t.getLatitude() + "','" +
@@ -176,7 +182,7 @@ public class SMSReceiver extends BroadcastReceiver {
                         Log.d("SMSTRACK", "Notification sent");
 //                        Firstfrag f = new Firstfrag();
                         sendNotification("New Ticket: " + t.getTicketNumber(), context,
-                                t.getTicketNumber());
+                                t.getIssueID());
                     }
 
                 }
@@ -186,43 +192,50 @@ public class SMSReceiver extends BroadcastReceiver {
         }
     }
 
-    private void sendNotification(String sNotificationMessage, Context c, String ticketNumber) {
-        String str = ticketNumber;
-        str = str.replaceAll("[^\\d.]", "");
-        int ticket = Integer.parseInt(str);
-        Intent intent = new Intent(c, MainActivity.class);
-        intent.putExtra("refresh", true);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        PendingIntent pIntent = PendingIntent.getActivity(c, (int) System.currentTimeMillis(), intent, 0);
-        Notification noti = new Notification.Builder(c).setContentTitle("MZS Notifier")
-                .setSmallIcon(R.mipmap.som)
-                .setContentText(sNotificationMessage)
-                .setContentIntent(pIntent)
-                .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
-                .addAction(R.drawable.som, "View", pIntent).build();
-        NotificationManager notificationManager = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-        // hide the notification after its selected
-        noti.flags |= Notification.FLAG_AUTO_CANCEL;
-        int importance = NotificationManager.IMPORTANCE_HIGH;
+    private Map<String, String> notifMap;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            noti = new Notification.Builder(c).setContentTitle("MZS Notifier")
-                    //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+    private void sendNotification(String sNotificationMessage, Context c, String ticketNumber) {
+        notifMap = MyApp.getApplication().readNotifMap();
+        if (!notifMap.containsKey(ticketNumber)) {
+            String str = ticketNumber;
+            str = str.replaceAll("[^\\d.]", "");
+            int ticket = Integer.parseInt(str);
+            Intent intent = new Intent(c, MainActivity.class);
+            intent.putExtra("refresh", true);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            PendingIntent pIntent = PendingIntent.getActivity(c, (int) System.currentTimeMillis(), intent, 0);
+            Notification noti = new Notification.Builder(c).setContentTitle("MZS Notifier")
                     .setSmallIcon(R.mipmap.som)
                     .setContentText(sNotificationMessage)
                     .setContentIntent(pIntent)
-                    .setChannelId(ticket + "")
                     .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
                     .addAction(R.drawable.som, "View", pIntent).build();
-            CharSequence name = c.getString(R.string.app_name);
-            NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
-            notificationManager.createNotificationChannel(mChannel);
+            NotificationManager notificationManager = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            // hide the notification after its selected
+            noti.flags |= Notification.FLAG_AUTO_CANCEL;
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                noti = new Notification.Builder(c).setContentTitle("MZS Notifier")
+                        //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+                        .setSmallIcon(R.mipmap.som)
+                        .setContentText(sNotificationMessage)
+                        .setContentIntent(pIntent)
+                        .setChannelId(ticket + "")
+                        .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
+                        .addAction(R.drawable.som, "View", pIntent).build();
+                CharSequence name = c.getString(R.string.app_name);
+                NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
+                notificationManager.createNotificationChannel(mChannel);
+            }
+            notificationManager.notify(ticket, noti);
+            Log.e("Notification", "Notification shown");
+            //
+            notifMap.put(ticketNumber, ticketNumber);
+            MyApp.getApplication().writeNotifMap(notifMap);
+            ++MULTIPLE_NOTIFICATION;
         }
-        notificationManager.notify(ticket, noti);
-        Log.e("Notification", "Notification shown");
-        //
-        ++MULTIPLE_NOTIFICATION;
     }
 
     int MULTIPLE_NOTIFICATION = 0;

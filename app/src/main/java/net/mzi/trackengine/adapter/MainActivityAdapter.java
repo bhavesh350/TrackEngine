@@ -91,6 +91,7 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
 
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
