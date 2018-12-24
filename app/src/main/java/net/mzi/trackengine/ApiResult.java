@@ -2,7 +2,10 @@ package net.mzi.trackengine;
 
 import com.google.gson.annotations.SerializedName;
 
+import net.mzi.trackengine.model.TicketInfoClass;
+
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Created by Poonam on 12/14/2017.
@@ -206,8 +209,14 @@ public class ApiResult {
         @SerializedName("TicketId")
         public String IssueId;
 
+        @SerializedName("TaskId")
+        public String taskId;
+
         @SerializedName("IssueIds")
         public String IssueIds;
+
+        @SerializedName("TaskIds")
+        public String TaskIds;
 
         @SerializedName("ActionedBy")
         public String ActionedBy;
@@ -288,6 +297,18 @@ public class ApiResult {
             this.UserId = Userid;
             this.ParentCompanyId = ParentCompanyId;
             this.IssueId = IsuueId;
+            Map<String,TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
+            if (issueDetailsMap.containsKey(IssueId)) {
+                if(issueDetailsMap.get(IssueId).getType().equals("Ticket")){
+                    this.taskId = "0";
+                }else {
+                    this.taskId = IssueId;
+                    this.IssueId = "0";
+                }
+            } else {
+                this.taskId = "0";
+            }
+
             this.Status = Status;
             this.Comment = Comment;
             this.ActivityDate = ActivityDate;
@@ -306,8 +327,9 @@ public class ApiResult {
             this.StartingForSite = startingForSite;
         }
 
-        public IssueDetail(String IssueIds, String UserId, String IsAssetVerificationEnable, String DepartmentId, String LastAction) {
+        public IssueDetail(String IssueIds, String taskIds, String UserId, String IsAssetVerificationEnable, String DepartmentId, String LastAction) {
             this.IssueIds = IssueIds;
+            this.TaskIds = taskIds;
             this.UserId = UserId;
             this.IsAssetVerificationEnable = IsAssetVerificationEnable;
             this.DepartmentId = DepartmentId;
@@ -416,6 +438,12 @@ public class ApiResult {
 
             @SerializedName("LastTransportMode")
             public String LastTransportMode;
+
+            @SerializedName("Type")
+            public String type;
+
+            @SerializedName("JourneyStatus")
+            public String journeyStatus;
 
         }
     }

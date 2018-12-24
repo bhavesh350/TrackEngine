@@ -58,7 +58,7 @@ public interface ApiInterface {
     Call<ApiResult.VoucherList> GetConveyanceApprover(@Query("iUserId") String iUserId, @Query("dtFromDate") String dtFromDate, @Query("dtToDate") String dtToDate, @Query("iApproverStatus") String iApproverStatus);
 
     @GET("/api/Post/PostTicketReceivingDate?")
-    Call<ApiResult.CaptureTicket> captureTicket(@Query("iIssueId") String issueId, @Query("iUserId") String userId, @Query("dtReceivingDate") String date);
+    Call<ApiResult.CaptureTicket> captureTicket(@Query("iIssueId") String issueId, @Query("iUserId") String userId, @Query("dtReceivingDate") String date, @Query("sType") String type);
 
     @GET("/api/post/GetConveyanceVoucherHistory?")
     Call<ApiResult.VoucherList> GetConveyanceVoucherHistory(@Query("iConveyanceVoucherId") String iConveyanceVoucherId);

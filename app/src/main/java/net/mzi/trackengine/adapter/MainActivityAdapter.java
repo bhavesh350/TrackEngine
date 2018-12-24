@@ -86,8 +86,10 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
             } else {
                 taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.green));
             }
-            taskholder.task.setText(mDataSet.get(position));
-            taskholder.taskCount.setText(mDatasetCount.get(position));
+            if (position < 4) {
+                taskholder.task.setText(mDataSet.get(position));
+                taskholder.taskCount.setText(mDatasetCount.get(position));
+            }
 
 
         } catch (Exception e) {

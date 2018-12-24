@@ -38,7 +38,25 @@ public class TicketInfoClass implements Serializable {
     public String alterNateNumber;
     public String email;
     public String ScheduleDate;
+    public String type;
+    public String journeyStatus;
     public boolean isCaptured = false;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getJourneyStatus() {
+        return journeyStatus;
+    }
+
+    public void setJourneyStatus(String journeyStatus) {
+        this.journeyStatus = journeyStatus;
+    }
 
     public boolean isCaptured() {
         return isCaptured;

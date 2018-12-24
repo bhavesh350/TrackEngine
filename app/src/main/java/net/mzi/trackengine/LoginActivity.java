@@ -32,6 +32,7 @@ import android.widget.TextView;
 import com.firebase.client.Firebase;
 
 import net.mzi.trackengine.model.PostUrl;
+import net.mzi.trackengine.model.TicketInfoClass;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -304,6 +305,7 @@ public class LoginActivity extends AppCompatActivity {
             try {
                 MyApp.getApplication().writeBatteryHistory(new HashMap<String, Map<String, String>>());
                 MyApp.getApplication().writeSavedStatusValues(new HashMap<String, String[]>());
+                MyApp.getApplication().writeIssueDetailsHistory(new HashMap<String, TicketInfoClass>());
                 sql.execSQL("delete from Issue_StatusHiererchy");
                 sql.execSQL("delete from User_MobileData");
                 sql.execSQL("delete from User_Gps");

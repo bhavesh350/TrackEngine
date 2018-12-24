@@ -60,7 +60,7 @@ public class History_User extends Fragment {
         rl_progress = view.findViewById(R.id.rl_progress);
         rl_progress.setVisibility(View.VISIBLE);
         API_URL = PostUrl.sUrl + "GetWorkedUpOnIssue?iUserId=" + MainActivity.LOGINID + "&dtFromDate=1900-01-01&dtToDate=2200-01-01";
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
+        mRecyclerView = view.findViewById(R.id.history_view);
         new UserFollowUp().execute();
         return view;
     }
@@ -146,7 +146,7 @@ public class History_User extends Fragment {
 
             mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
             mRecyclerView.setLayoutManager(mLayoutManager);
-            followUpAdapter = new FollowUpAdapter(getActivity(), mAssignedTo, mComment, mCreadteDate, mStatus, mDatasetTypes, mIssueId,new ArrayList<String>());
+            followUpAdapter = new FollowUpAdapter(getActivity(), mAssignedTo, mComment, mCreadteDate, mStatus, mDatasetTypes, mIssueId, new ArrayList<String>());
             mRecyclerView.setAdapter(followUpAdapter);
         }
     }

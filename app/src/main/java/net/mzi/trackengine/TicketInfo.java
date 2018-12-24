@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,11 +35,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -52,6 +54,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.PostUrl;
+import net.mzi.trackengine.model.TicketInfoClass;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -123,6 +126,7 @@ public class TicketInfo extends AppCompatActivity {
     SharedPreferences pref;
     private String nh_userid, sStatusId;
     String sParentComapnyId, DepartmentId;
+    private CheckBox chk_external;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +139,7 @@ public class TicketInfo extends AppCompatActivity {
         setContentView(R.layout.activity_ticket_info);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
+        chk_external = findViewById(R.id.chk_external);
         app = findViewById(R.id.app_bar);
         iImageIcon = findViewById(R.id.imageuplaodicon);
         tCname = findViewById(R.id.contactpersonname);
@@ -164,6 +169,28 @@ public class TicketInfo extends AppCompatActivity {
 
         //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
         comment = findViewById(R.id.agentComment);
+        chk_external.setVisibility(View.INVISIBLE);
+        comment.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() > 0) {
+                    chk_external.setVisibility(View.VISIBLE);
+                } else {
+                    chk_external.setVisibility(View.INVISIBLE);
+                    chk_external.setChecked(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
         Submit = findViewById(R.id.submit);
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         Bundle bundle = getIntent().getExtras();
@@ -186,7 +213,7 @@ public class TicketInfo extends AppCompatActivity {
 
         cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '" + bundle.getString("IssueId") + "'", null);
         cquery.moveToFirst();
-        if(cquery.getCount()==0){
+        if (cquery.getCount() == 0) {
 
         }
         toolbar.setTitle("Id: " + cquery.getString(20));
@@ -376,11 +403,22 @@ public class TicketInfo extends AppCompatActivity {
                             postTktStatus.put("UserId", nh_userid);
                             postTktStatus.put("ParentCompanyId", sParentComapnyId);
                             postTktStatus.put("TicketId", ID);
-                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
+//                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
                             postTktStatus.put("Comment", comment.getText().toString());
                             postTktStatus.put("ActivityDate", currentTime);
-                            postTktStatus.put("DepartmentId", DepartmentId);
+//                            postTktStatus.put("DepartmentId", DepartmentId);
                             postTktStatus.put("RealtimeUpdate", "true");
+                            postTktStatus.put("SendMail", chk_external.isChecked() + "");
+                            Map<String, TicketInfoClass> ticketsMap = MyApp.getApplication().readIssueDetailsHistory();
+                            if (ticketsMap.containsKey(ID)) {
+                                if (ticketsMap.get(ID).getType().equals("Ticket")) {
+                                    postTktStatus.put("TaskId", "0");
+                                } else {
+                                    postTktStatus.put("TicketId", "0");
+                                    postTktStatus.put("TaskId", ID);
+                                }
+                            }
+
 
                             String tktStatus = new Gson().toJson(postTktStatus);
                             new UpdateTask(TicketInfo.this, tktStatus).execute();
@@ -416,7 +454,7 @@ public class TicketInfo extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            String uri = PostUrl.sUrl + "PostTicketStatus";
+            String uri = PostUrl.sUrl + "PostTicketComment";
             String result = "";
             try {
                 //Connect
@@ -465,17 +503,17 @@ public class TicketInfo extends AppCompatActivity {
                 jsonObject = new JSONObject(jsonString);
                 if (s == null || s.equals("0\n") || s.equals("")) {
 
-                    Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
-                    Map<String, String> map = new HashMap<>();
-                    map.put("TicketId", jsonObject.getString("TicketId"));
-                    map.put("UserId", jsonObject.getString("UserId"));
-                    map.put("StatusId",  jsonObject.getString("StatusId"));
-                    map.put("ParentCompanyId", sParentComapnyId);
-                    map.put("Comment", jsonObject.getString("Comment"));
-                    map.put("ActivityDate", jsonObject.getString("ActivityDate"));
-                    map.put("SyncStatus", "0");
-                    ticketsMap.put(jsonObject.getString("TicketId"), map);
-                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+//                    Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
+//                    Map<String, String> map = new HashMap<>();
+//                    map.put("TicketId", jsonObject.getString("TicketId"));
+//                    map.put("UserId", jsonObject.getString("UserId"));
+//                    map.put("StatusId", jsonObject.getString("StatusId"));
+//                    map.put("ParentCompanyId", sParentComapnyId);
+//                    map.put("Comment", jsonObject.getString("Comment"));
+//                    map.put("ActivityDate", jsonObject.getString("ActivityDate"));
+//                    map.put("SyncStatus", "0");
+//                    ticketsMap.put(jsonObject.getString("TicketId"), map);
+//                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
 
 //                    sql.execSQL("INSERT INTO Issue_History(IssueId,UserId,IssueStatus,Comment,CreatedDate,SyncStatus)VALUES" +
 //                            "('" + jsonObject.getString("TicketId") + "','" + jsonObject.getString("UserId") + "','" + jsonObject.getString("StatusId") + "','" + jsonObject.getString("Comment") + "','" + jsonObject.getString("ActivityDate") + "','0')");
@@ -567,7 +605,7 @@ public class TicketInfo extends AppCompatActivity {
     private static File getOutputMediaFile(int type) {
         // External sdcard location
         File mediaStorageDir = new File(Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                 "SOM Track Engine");
 
         // Create the storage directory if it does not exist
@@ -688,7 +726,7 @@ public class TicketInfo extends AppCompatActivity {
                 };
             }
         }
-        try{
+        try {
             if ("content".equalsIgnoreCase(uri.getScheme())) {
                 String[] projection = {
                         MediaStore.Images.Media.DATA
@@ -706,7 +744,7 @@ public class TicketInfo extends AppCompatActivity {
             } else if ("file".equalsIgnoreCase(uri.getScheme())) {
                 return uri.getPath();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
         return null;
@@ -864,12 +902,16 @@ public class TicketInfo extends AppCompatActivity {
         private String uploadFile() {
             String responseString = null;
 
-
             //HttpPost httppost = new HttpPost("http://192.168.0.20/TrackEngine/api/Post/PostTicketAttachment");
-            HttpPost httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
+            Map<String, TicketInfoClass> issueDetailsHistory = MyApp.getApplication().readIssueDetailsHistory();
+            HttpPost httppost = null;
+            if (issueDetailsHistory.containsKey(ID))
+                if (issueDetailsHistory.get(ID).getType().equals("Ticket"))
+                    httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
+                else
+                    httppost = new HttpPost(PostUrl.sUrl + "PostTaskAttachment");
 
             try {
-
                 AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
                         new AndroidMultiPartEntity.ProgressListener() {
 
@@ -887,7 +929,10 @@ public class TicketInfo extends AppCompatActivity {
                 entity.addPart("Files", new FileBody(sourceFile));
                 // Extra parameters if you want to pass to server
                 entity.addPart("AttachedBy", new StringBody(MainActivity.LOGINID));
-                entity.addPart("TicketId", new StringBody(ID));
+                if (issueDetailsHistory.get(ID).getType().equals("Ticket"))
+                    entity.addPart("TicketId", new StringBody(ID));
+                else
+                    entity.addPart("TaskId", new StringBody(ID));
                 entity.addPart("Comment", new StringBody(comment.getText().toString()));
                 entity.addPart("ActivityDate", new StringBody(currentTime));
 
@@ -918,7 +963,6 @@ public class TicketInfo extends AppCompatActivity {
                     responseString = "Error occurred! Http Status Code: "
                             + statusCode;
                 }
-
             } catch (ClientProtocolException e) {
                 responseString = e.toString();
             } catch (IOException e) {
@@ -998,11 +1042,20 @@ public class TicketInfo extends AppCompatActivity {
                             postTktStatus.put("UserId", nh_userid);
                             postTktStatus.put("ParentCompanyId", sParentComapnyId);
                             postTktStatus.put("TicketId", ID);
-                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
                             postTktStatus.put("Comment", comment.getText().toString());
                             postTktStatus.put("ActivityDate", currentTime);
-                            postTktStatus.put("DepartmentId", DepartmentId);
                             postTktStatus.put("RealtimeUpdate", "true");
+                            postTktStatus.put("SendMail", chk_external.isChecked() + "");
+                            Map<String, TicketInfoClass> ticketsMap = MyApp.getApplication().readIssueDetailsHistory();
+                            if (ticketsMap.containsKey(ID)) {
+                                if (ticketsMap.get(ID).getType().equals("Ticket")) {
+                                    postTktStatus.put("TaskId", "0");
+                                } else {
+                                    postTktStatus.put("TicketId", "0");
+                                    postTktStatus.put("TaskId", ID);
+                                }
+                            }
+
 
                             String tktStatus = new Gson().toJson(postTktStatus);
                             new UpdateTask(TicketInfo.this, tktStatus).execute();

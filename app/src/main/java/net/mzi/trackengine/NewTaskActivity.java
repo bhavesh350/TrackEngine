@@ -48,7 +48,11 @@ public class NewTaskActivity extends AppCompatActivity {
         for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
             mStatus.add("New");
             mIssueID.add(cquery.getString(1).toString());
-            mTime.add(cquery.getString(8).toString());
+            if (cquery.getString(8).length() < 12) {
+                mTime.add(cquery.getString(7).toString());
+            } else {
+                mTime.add(cquery.getString(8).toString());
+            }
             mSub.add(cquery.getString(3).toString());
             mLoc.add(cquery.getString(10).toString());
             mTicketNumber.add(cquery.getString(20).toString());
@@ -60,6 +64,18 @@ public class NewTaskActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         newtaskAdapter = new NewTaskAdapter(mIssueID, mTime, mLoc, mSub, mStatus, mDatasetTypes, mTicketNumber, NewTaskActivity.this);
         mRecyclerView.setAdapter(newtaskAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setStatus("isNewTaskOpen",true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MyApp.setStatus("isNewTaskOpen",false);
     }
 
     @Override

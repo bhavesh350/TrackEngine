@@ -70,16 +70,17 @@ public class Offline_Tickets extends Fragment {
                 InternetConnector icDataSyncing = new InternetConnector();
                 icDataSyncing.offlineSyncing(getContext().getApplicationContext(), 1);
                 if (MyApp.isConnectingToInternet(getActivity())) {
-                    lTicketNumber.clear();
-                    lTicketStatus.clear();
-                    lTicketTime.clear();
-                    lTicketComment.clear();
-                    lColors.clear();
-
-                    mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-                    mRecyclerView.setLayoutManager(mLayoutManager);
-                    mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
-                    mRecyclerView.setAdapter(mAdapter);
+//                    lTicketNumber.clear();
+//                    lTicketStatus.clear();
+//                    lTicketTime.clear();
+//                    lTicketComment.clear();
+//                    lColors.clear();
+                    MyApp.showMassage(getActivity(), "Syncing...");
+                    getActivity().finish();
+//                    mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+//                    mRecyclerView.setLayoutManager(mLayoutManager);
+//                    mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
+//                    mRecyclerView.setAdapter(mAdapter);
                 } else {
                     MyApp.popMessage("Alert!", "Please connect to a working internet connection.", getActivity());
                 }
@@ -99,41 +100,50 @@ public class Offline_Tickets extends Fragment {
         final Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
 //        final Cursor cquery = sql.rawQuery("select * from Issue_History where UserId='" + sUserId + "'", null);
         if (savedMap.keySet().size() > 0) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    for (String key : savedMap.keySet()) {
-                        if (savedMap.get(key).get("SyncStatus").equals("true")) {
-                            lColors.add(R.drawable.cardbk_green);
-                        } else
-                            lColors.add(R.drawable.cardbk_red);
-                        Cursor cqueryTemp = sql.rawQuery("select TicketNumber from Issue_Detail where issueid='" + savedMap.get(key).get("TicketId") + "'", null);
-                        if (cqueryTemp.getCount() > 0) {
-                            cqueryTemp.moveToFirst();
-                            lTicketNumber.add(cqueryTemp.getString(0));
-                        } else {
-                            try {
-                                lTicketNumber.add(savedMap.get(key).get("ticketNumber"));
-                            } catch (Exception e) {
-                                try {
-                                    lTicketNumber.add(savedMap.get(key).get("TicketId"));
-                                } catch (Exception ee) {
-                                    lTicketNumber.add("NA");
-                                }
 
-                            }
+            for (String key : savedMap.keySet()) {
 
-                        }
-                        cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + savedMap.get(key).get("StatusId"), null);
+                try {
+                    Cursor cqueryTemp = sql.rawQuery("select TicketNumber from Issue_Detail where issueid='" + savedMap.get(key.contains("@@") ? key.split("@@")[0] : key).get("TicketId") + "'", null);
+                    if (savedMap.get(key).get("SyncStatus").equals("true")) {
+                        lColors.add(R.drawable.cardbk_green);
+                    } else
+                        lColors.add(R.drawable.cardbk_red);
+                    if (cqueryTemp.getCount() > 0) {
                         cqueryTemp.moveToFirst();
-                        lTicketComment.add(savedMap.get(key).get("Comment"));
+                        lTicketNumber.add(cqueryTemp.getString(0));
+                    } else {
                         try {
-                            lTicketStatus.add(cqueryTemp.getString(0));
+                            lTicketNumber.add(savedMap.get(key).get("ticketNumber"));
                         } catch (Exception e) {
-                            lTicketStatus.add("Start/Reach");
+                            try {
+                                lTicketNumber.add(savedMap.get(key).get("TicketId"));
+                            } catch (Exception ee) {
+                                lTicketNumber.add("NA");
+                            }
                         }
-                        lTicketTime.add(savedMap.get(key).get("ActivityDate"));
                     }
+                    cqueryTemp = sql.rawQuery("select StatusName from Issue_Status where StatusId=" + savedMap.get(key.contains("@@") ? key.split("@@")[0] : key).get("StatusId"), null);
+                    cqueryTemp.moveToFirst();
+                    lTicketComment.add(savedMap.get(key).get("Comment"));
+                    try {
+
+                        if (savedMap.get(key).get("StatusId").equals("2"))
+                            lTicketStatus.add("Start");
+                        else if (savedMap.get(key).get("StatusId").equals("3"))
+                            lTicketStatus.add("Reach");
+                        else
+                            lTicketStatus.add(cqueryTemp.getString(0));
+                    } catch (Exception e) {
+                        if (savedMap.get(key).get("StatusId").equals("2"))
+                            lTicketStatus.add("Start");
+                        else
+                            lTicketStatus.add("Reach");
+                    }
+                    lTicketTime.add(savedMap.get(key).get("ActivityDate"));
+                } catch (Exception e) {
+                }
+            }
 //                }
 //                    for(cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext())
 //
@@ -155,17 +165,16 @@ public class Offline_Tickets extends Fragment {
 //                    lTicketTime.add(cquery.getString(5).toString());
 //                }
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-                            mRecyclerView.setLayoutManager(mLayoutManager);
-                            mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
-                            mRecyclerView.setAdapter(mAdapter);
-                        }
-                    });
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+                    mRecyclerView.setLayoutManager(mLayoutManager);
+                    mAdapter = new TicketSynAdpater(lTicketNumber, lTicketStatus, lTicketTime, lTicketComment, lColors);
+                    mRecyclerView.setAdapter(mAdapter);
                 }
-            }).start();
+            });
+
         } else
 
         {

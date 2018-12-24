@@ -43,6 +43,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.PostUrl;
+import net.mzi.trackengine.model.TicketInfoClass;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -698,7 +699,13 @@ public class RaiseTicket extends AppCompatActivity {
             String responseString = null;
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
+            Map<String, TicketInfoClass> issueDetailsHistory = MyApp.getApplication().readIssueDetailsHistory();
+            HttpPost httppost = null;
+            if (issueDetailsHistory.containsKey(sTicketId))
+                if (issueDetailsHistory.get(sTicketId).getType().equals("Ticket"))
+                    httppost = new HttpPost(PostUrl.sUrl + "PostTicketAttachment");
+                else
+                    httppost = new HttpPost(PostUrl.sUrl + "PostTaskAttachment");
 
             try {
 
@@ -719,7 +726,10 @@ public class RaiseTicket extends AppCompatActivity {
                 entity.addPart("Files", new FileBody(sourceFile));
                 // Extra parameters if you want to pass to server
                 entity.addPart("AttachedBy", new StringBody(sUserId));
-                entity.addPart("TicketId", new StringBody(sTicketId));
+                if (issueDetailsHistory.get(sTicketId).getType().equals("Ticket"))
+                    entity.addPart("TicketId", new StringBody(sTicketId));
+                else
+                    entity.addPart("TaskId", new StringBody(sTicketId));
                 entity.addPart("Comment", new StringBody("New Ticket Created"));
                 entity.addPart("ActivityDate", new StringBody(currentTime));
 

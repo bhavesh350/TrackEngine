@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -23,16 +23,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.firebase.client.Firebase;
 
 import net.mzi.trackengine.fragment.FilterListFragment;
-import net.mzi.trackengine.model.PostUrl;
-
-import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,10 +34,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static net.mzi.trackengine.SchedulingAdapter.latitude;
 import static net.mzi.trackengine.SchedulingAdapter.longitude;
@@ -109,8 +97,8 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         btn_office_reached.setOnClickListener(this);
         btn_office_start.setOnClickListener(this);
         if (isShowExtra) {
-            cardview_misl.setVisibility(View.GONE);
-            cardview_office.setVisibility(View.GONE);
+            cardview_misl.setVisibility(View.VISIBLE);
+            cardview_office.setVisibility(View.VISIBLE);
 //            ((TextView) findViewById(R.id.txt_mis_address)).setText(address);
 //            ((TextView) findViewById(R.id.txt_office_address)).setText(address);
         }
@@ -203,9 +191,14 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub,
-                        mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
+                        mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
                 mRecyclerView.setNestedScrollingEnabled(false);
                 mRecyclerView.setAdapter(scehduleAdapter);
+
+                if (mIssueID.size() == 0) {
+                    cardview_misl.setVisibility(View.GONE);
+                    cardview_office.setVisibility(View.GONE);
+                }
 
             }
 
@@ -345,10 +338,13 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes,
-                mCardColor, mcardType, mTicketNumber, TaskActivity.this);
+                mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setNestedScrollingEnabled(false);
-
+        if (mIssueID.size() == 0) {
+            cardview_misl.setVisibility(View.GONE);
+            cardview_office.setVisibility(View.GONE);
+        }
 
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         pref = getSharedPreferences("login", 0);
@@ -464,10 +460,14 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         mRecyclerView = findViewById(R.id.task_view);
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, TaskActivity.this);
+        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setVisibility(View.VISIBLE);
         mRecyclerView.setNestedScrollingEnabled(false);
+        if (mIssueID.size() == 0) {
+            cardview_misl.setVisibility(View.GONE);
+            cardview_office.setVisibility(View.GONE);
+        }
     }
 
     private Double showDistance(Double curlat, Double curlon, Double desLat, Double desLon) {
@@ -493,72 +493,86 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     @Override
     public void onClick(View v) {
         if (v == btn_office_start) {
-            MyApp.setStatus("OFFICE", true);
+            MyApp.setStatus("savedCardStatus", true);
+            MyApp.setSharedPrefString("savedCardId", "-1");
             btn_office_start.setEnabled(false);
             btn_office_reached.setEnabled(true);
 
             callStartReachApi(true, true);
         } else if (v == btn_office_reached) {
+            MyApp.setSharedPrefString("savedCardId", "");
             btn_office_start.setEnabled(true);
             btn_office_reached.setEnabled(false);
-            MyApp.setStatus("OFFICE", false);
+            MyApp.setStatus("savedCardStatus", false);
 
             callStartReachApi(false, true);
         } else if (v == btn_misl_start) {
+            MyApp.setSharedPrefString("savedCardId", "-2");
             btn_misl_start.setEnabled(false);
             btn_misl_reached.setEnabled(true);
-            MyApp.setStatus("MSLVISIT", true);
+            MyApp.setStatus("savedCardStatus", true);
 
             callStartReachApi(true, false);
         } else if (v == btn_misl_reached) {
+            MyApp.setSharedPrefString("savedCardId", "");
             btn_misl_start.setEnabled(true);
             btn_misl_reached.setEnabled(false);
-            MyApp.setStatus("MSLVISIT", false);
+            MyApp.setStatus("savedCardStatus", false);
             callStartReachApi(false, false);
         }
         updateButtons();
     }
 
-    private void updateButtons() {
-        boolean officeVisit = MyApp.getStatus("OFFICE");
-        boolean mslVisit = MyApp.getStatus("MSLVISIT");
-
-        if (mslVisit) {
+    public void updateButtons() {
+        boolean isEngaged = MyApp.getStatus("savedCardStatus");
+        String idClicked = MyApp.getSharedPrefString("savedCardId");
+        if (isEngaged && idClicked.equals("-2")) {
             btn_misl_start.setImageResource(R.drawable.btn_d_start);
             btn_misl_reached.setImageResource(R.drawable.btn_reach);
-        } else {
-            btn_misl_start.setImageResource(R.drawable.btn_start);
+            btn_office_start.setImageResource(R.drawable.btn_d_start);
+            btn_office_reached.setImageResource(R.drawable.btn_d_reach);
+        } else if (isEngaged && idClicked.equals("-1")) {
+            btn_misl_start.setImageResource(R.drawable.btn_d_start);
             btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
-        }
-
-        if (officeVisit) {
             btn_office_start.setImageResource(R.drawable.btn_d_start);
             btn_office_reached.setImageResource(R.drawable.btn_reach);
-        } else {
+        } else if (idClicked.isEmpty()) {
+            btn_misl_start.setImageResource(R.drawable.btn_start);
+            btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
+
             btn_office_start.setImageResource(R.drawable.btn_start);
             btn_office_reached.setImageResource(R.drawable.btn_d_reach);
+        } else {
+            btn_misl_start.setImageResource(R.drawable.btn_d_start);
+            btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
+
+            btn_office_start.setImageResource(R.drawable.btn_d_start);
+            btn_office_reached.setImageResource(R.drawable.btn_d_reach);
         }
+
+        scehduleAdapter.notifyDataSetChanged();
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        boolean officeVisit = MyApp.getStatus("OFFICE");
-        boolean mslVisit = MyApp.getStatus("MSLVISIT");
+        boolean isEngaged = MyApp.getStatus("savedCardStatus");
 
-        if (mslVisit) {
+        if (isEngaged && MyApp.getSharedPrefString("savedCardId").equals("-2")) {
             btn_misl_start.setEnabled(false);
             btn_misl_reached.setEnabled(true);
+            btn_office_start.setEnabled(false);
+            btn_office_reached.setEnabled(false);
+        } else if (isEngaged && MyApp.getSharedPrefString("savedCardId").equals("-1")) {
+            btn_office_start.setEnabled(false);
+            btn_office_reached.setEnabled(true);
+            btn_misl_start.setEnabled(false);
+            btn_misl_reached.setEnabled(false);
         } else {
             btn_misl_start.setEnabled(true);
             btn_misl_reached.setEnabled(false);
-        }
 
-        if (officeVisit) {
-            btn_office_start.setEnabled(false);
-            btn_office_reached.setEnabled(true);
-        } else {
             btn_office_start.setEnabled(true);
             btn_office_reached.setEnabled(false);
         }
@@ -573,8 +587,9 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
         postTktStatus.put("UserId", nh_userid);
         postTktStatus.put("ParentCompanyId", sParentComapnyId);
-        postTktStatus.put("TicketId", currentTime);
-        postTktStatus.put("StatusId", "");
+        postTktStatus.put("TicketId", "0");
+        postTktStatus.put("TaskId", "0");
+        postTktStatus.put("StatusId", isStart ? "2" : "3");
         postTktStatus.put("StartingForSite", isStart ? 1 + "" : 0 + "");
         postTktStatus.put("CustomDestination", isOffice ? "Office" : "Miscellaneous");
         postTktStatus.put("Comment", "");
@@ -592,10 +607,16 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         postTktStatus.put("AssignedUserId", "0");
 
 
-
         if (isStart) {
-            scehduleAdapter.populateStatusStartReachTaskActivity("",0,"",true,isOffice ? "Office" : "Miscellaneous");
+            scehduleAdapter.populateStatusStartReachTaskActivity("", 0, "", true, isOffice ? "Office" : "Miscellaneous");
         } else {
+            MyApp.spinnerStart(this, "Please wait...");
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    MyApp.spinnerStop();
+                }
+            }, 10000);
             Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
             issuesMap.put(currentTime, postTktStatus);
             MyApp.getApplication().writeTicketsIssueHistory(issuesMap);

@@ -149,6 +149,8 @@ public class SMSReceiver extends BroadcastReceiver {
                         data.add(t);
                         MyApp.getApplication().writeMessage(data);
                         try {
+                            Map<String, String> scheduleMap = MyApp.getApplication().readTicketCaptureSchedule();
+
                             sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                     "('" + t.getIssueID() + "','" +
                                     t.getCategoryName() + "','" +
@@ -175,6 +177,8 @@ public class SMSReceiver extends BroadcastReceiver {
                                     "" + "','" +
                                     "" + "','" +
                                     t.getPreviousStatus() + "')");
+                            scheduleMap.put(t.TicketNumber, t.getCreatedDate());
+                            MyApp.getApplication().writeTicketCaptureSchedule(scheduleMap);
 //                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                         } catch (Exception e) {
                             e.printStackTrace();

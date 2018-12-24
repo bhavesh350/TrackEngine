@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import net.mzi.trackengine.model.PostUrl;
+import net.mzi.trackengine.model.TicketInfoClass;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,7 +20,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FollowUpHistory extends AppCompatActivity {
     static String API_URL = null;
@@ -47,8 +50,15 @@ public class FollowUpHistory extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mRecyclerView = (RecyclerView) findViewById(R.id.folllowUpview);
-
+        Map<String, TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
         API_URL = PostUrl.sUrl + "GetIssueHistory?IssueId=" + id;
+        if (issueDetailsMap.containsKey(id)) {
+            if (issueDetailsMap.get(id).getType().equals("Ticket")) {
+                API_URL = PostUrl.sUrl + "GetIssueHistory?IssueId=" + id;
+            } else {
+                API_URL = PostUrl.sUrl + "GetTaskHistory?TaskId=" + id;
+            }
+        }
         new FollowUp().execute();
     }
 

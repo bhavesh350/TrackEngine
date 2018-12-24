@@ -22,6 +22,7 @@ import com.firebase.client.Firebase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.FirebaseTicketData;
 import net.mzi.trackengine.model.PostUrl;
@@ -56,11 +57,12 @@ public class ServiceDataUpdateFirstFragment extends Service {
     String nh_userid;
     boolean sIsAssetVerification;
     String sTicketIds = "";
+    String sTaskIds = "";
     FirebaseTicketData Pi = new FirebaseTicketData();
     SQLiteDatabase sql = null;
     Map<String, String> mTicketIdList = new HashMap<>();
     int MULTIPLE_NOTIFICATION = 0;
-    Context ctx;
+    //    Context ctx;
     SharedPreferences pref;
 
     static List<TicketInfoClass> newTickets = new ArrayList<TicketInfoClass>();
@@ -116,40 +118,70 @@ public class ServiceDataUpdateFirstFragment extends Service {
                     for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                         Pi = postSnapshot.getValue(FirebaseTicketData.class);
                         //firebaseIssueData.add(P);
-                        if (sql != null) {
-                            Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                            if (cquery.getCount() > 0) {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("Action", Pi.getAction());
-                                newValues.put("IssueId", postSnapshot.getKey());
-                                sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                            } else {
-                                sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                        "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
-                            }
-                            cquery.close();
+                        Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                        if (cquery.getCount() > 0) {
+                            ContentValues newValues = new ContentValues();
+                            newValues.put("Action", Pi.getAction());
+                            newValues.put("IssueId", postSnapshot.getKey());
+                            sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                        } else {
+                            sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                    "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
+
                         }
+                        cquery.close();
                         sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
                         //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
                         //}
                     }
-                    String sAsset;
-                    if (sIsAssetVerification)
-                        sAsset = "true";
-                    else
-                        sAsset = "false";
+                    drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRefTask).child(nh_userid);
+                    drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                        @Override
+                        public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
+                            sTaskIds = "";
+                            for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                Pi = postSnapshot.getValue(FirebaseTicketData.class);
+                                //firebaseIssueData.add(P);
+                                Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                                if (cquery.getCount() > 0) {
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("Action", Pi.getAction());
+                                    newValues.put("IssueId", postSnapshot.getKey());
+                                    sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                                } else {
+                                    sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                            "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
-                    mTicketIdList.put("IssueIds", sTicketIds);
-                    mTicketIdList.put("UserId", nh_userid);
-                    mTicketIdList.put("IsAssetVerificationEnable", sAsset);
-                    mTicketIdList.put("DepartmentId", DepartmentId);
-                    mTicketIdList.put("LastAction", sLastAction);
+                                }
+                                cquery.close();
+                                sTaskIds = sTaskIds + postSnapshot.getKey() + ",";
+                                //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
+                                //}
+                            }
+                            String sAsset;
+                            if (sIsAssetVerification)
+                                sAsset = "true";
+                            else
+                                sAsset = "false";
 
-                    if (!(nh_userid.equals("0"))) ;
-                    {
-//                        String sTktInJson = new Gson().toJson(mTicketIdList);
-                        NewTicketsInfo(mTicketIdList);
-                    }
+                            mTicketIdList.put("IssueIds", sTicketIds);
+                            mTicketIdList.put("TaskIds", sTaskIds);
+                            mTicketIdList.put("UserId", nh_userid);
+                            mTicketIdList.put("IsAssetVerificationEnable", sAsset);
+                            mTicketIdList.put("DepartmentId", DepartmentId);
+                            mTicketIdList.put("LastAction", sLastAction);
+
+                            if (!(nh_userid.equals("0"))) {
+                                NewTicketsInfo(mTicketIdList);
+                            }
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.e("onCancelled: ", "firebase issue");
+                        }
+                    });
 
                 }
 
@@ -180,212 +212,236 @@ public class ServiceDataUpdateFirstFragment extends Service {
     }
 
     public void NewTicketsInfo(Map mTicketIdList) {
-        Log.d(">>>>>>>>>>>>>", "api called in service firstFrag 174");
-        try {
-            final MainActivity obj = new MainActivity();
-            final ApiResult apiResult = new ApiResult();
-            final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(mTicketIdList.get("IssueIds").toString(), mTicketIdList.get("UserId").toString(), mTicketIdList.get("IsAssetVerificationEnable").toString(), mTicketIdList.get("DepartmentId").toString(), mTicketIdList.get("LastAction").toString());
-            Call<ApiResult.IssueDetail> call1 = apiInterface.GetIssuesForFireBase(issueDetail);
-            call1.enqueue(new Callback<ApiResult.IssueDetail>() {
-                @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-                @Override
-                public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
-                    ApiResult.IssueDetail resData = response.body();
-                    if (resData == null || resData.equals("") || resData.equals("0")) {
-                        try {
-                            MainActivity m = new MainActivity();
-                            m.updateCounter(ctx,false);
-                            MyApp.showMassage(ctx, getString(R.string.internet_error));
+        if (MyApp.isConnectingToInternet(getApplicationContext()))
+            try {
+                final MainActivity obj = new MainActivity();
+                final ApiResult apiResult = new ApiResult();
+                final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(mTicketIdList.get("IssueIds").toString(), mTicketIdList.get("TaskIds").toString(), mTicketIdList.get("UserId").toString(), mTicketIdList.get("IsAssetVerificationEnable").toString(), mTicketIdList.get("DepartmentId").toString(), mTicketIdList.get("LastAction").toString());
+                Call<ApiResult.IssueDetail> call1 = apiInterface.GetIssuesForFireBase(issueDetail);
+                call1.enqueue(new Callback<ApiResult.IssueDetail>() {
+                    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+                    @Override
+                    public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
+                        ApiResult.IssueDetail resData = response.body();
+                        if (resData == null || resData.equals("") || resData.equals("0")) {
+                            try {
+//                            MainActivity m = new MainActivity();
+//                            m.updateCounter(getActivity());
+//                                MyApp.showMassage(ctx, getString(R.string.internet_error));
 //                            Toast.makeText(ctx, R.string.internet_error, Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            e.getMessage();
-                        }
-                    } else {
-                        try {
-
-                            SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            for (int i = 0; i < resData.IssueDetail.length; i++) {
-                                TicketInfoClass t = new TicketInfoClass();
-                                Cursor cqueryTempForLatestStatusId = sql.rawQuery("select StatusId,UpdatedDate from Issue_Detail where IssueId ='" + resData.IssueDetail[i].Id + "'", null);
-                                if (cqueryTempForLatestStatusId.getCount() > 0) {
-                                    cqueryTempForLatestStatusId.moveToFirst();
-                                    Date localDate = null;
-                                    Date liveDate = null;
-                                    String strUpdatedDate = "1900-01-01 12:00:00";
-                                    if (cqueryTempForLatestStatusId.getString(1) == null) {
-                                        strUpdatedDate = resData.IssueDetail[i].UpdatedOn;
-                                    } else {
-                                        strUpdatedDate = cqueryTempForLatestStatusId.getString(1).toString();
-                                    }
-
-                                    //SimpleDateFormat liveUpdatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                    try {
-                                        localDate = Updatedate.parse(strUpdatedDate);
-                                        liveDate = Updatedate.parse(resData.IssueDetail[i].UpdatedOn);
-                                        if (localDate.getTime() > liveDate.getTime()) {
-                                            t.UpdatedDate = strUpdatedDate;
-                                            t.StatusId = cqueryTempForLatestStatusId.getString(0).toString();
-                                        } else {
-                                            t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
-                                            t.StatusId = resData.IssueDetail[i].StatusId;
-                                        }
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
-                                    cqueryTempForLatestStatusId.close();
-                                } else {
-                                    t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
-                                    t.StatusId = resData.IssueDetail[i].StatusId;
-
-                                }
-                                t.Address = resData.IssueDetail[i].EnterpriseAddress;
-                                Log.e("FirstFrag", "StatusId:" + t.StatusId + "IssueID:" + resData.IssueDetail[i].Id);
-
-                                t.CreatedDate = resData.IssueDetail[i].CreatedOn;
-                                //t.UpdatedDate = object.getString("UpdatedOn");
-                                t.PhoneNo = resData.IssueDetail[i].MobileNumber;
-                                t.SLADate = resData.IssueDetail[i].SLABreachDate;
-//                        t.StatusId = object.getString("StatusId");
-                                t.IssueID = resData.IssueDetail[i].Id;
-                                //t.Address=object.getString("StatusName");
-                                t.AssetSubType = resData.IssueDetail[i].AssetSubType;
-                                t.AssetType = resData.IssueDetail[i].AssetType;
-                                t.AssetSerialNumber = resData.IssueDetail[i].AssetSerialNo;
-                                t.CategoryName = resData.IssueDetail[i].CategoryName;
-                                t.CorporateName = resData.IssueDetail[i].CorporateName;
-                                t.IssueText = resData.IssueDetail[i].IssueText;
-                                t.Latitude = resData.IssueDetail[i].Latitude;
-                                t.Longitude = resData.IssueDetail[i].Longitude;
-                                t.ServiceItemNumber = resData.IssueDetail[i].ServiceItemNo;
-                                t.Subject = resData.IssueDetail[i].Subject;
-                                t.TicketHolder = resData.IssueDetail[i].TicketHolder;
-                                t.TicketNumber = resData.IssueDetail[i].TicketNumber;
-                                t.OEMNumber = resData.IssueDetail[i].OEMTicketId;
-                                t.AssetDetail = resData.IssueDetail[i].AssetDetail;
-                                t.ContractSubTypeName = resData.IssueDetail[i].ContractSubTypeName;
-                                t.ContractName = resData.IssueDetail[i].ContractName;
-                                t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
-                                t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
-                                t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
-                                editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
-                                editor.apply();
-                                editor.commit();
-                                Cursor cquery = sql.rawQuery("select Action from FirebaseIssueData where IssueId ='" + t.IssueID + "'", null);
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToFirst();
-                                    if (cquery.getString(0).toString().equals("Delete") || cquery.getString(0).toString().equals("delete")) {
-                                        ref = new Firebase(PostUrl.sFirebaseUrlTickets);
-                                        if (!nh_userid.equals("0")) {
-                                            ref.child(nh_userid).child(t.IssueID).removeValue();
-                                            sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
-                                        }
-
-
-                                    } else if (cquery.getString(0).toString().equals("New") || cquery.getString(0).toString().equals("new")) {
-                                        Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
-                                        if (forMainTable.getCount() > 0) {
-                                        } else {
-
-                                            try {
-                                                sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                        "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        try {
-                                            sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
-                                        } catch (Exception e) {
-                                            Log.e("Notification error ", "at 280");
-                                        }
-                                        // comment if upper one is not commented
-                                    } else if (cquery.getString(0).toString().equals("Update") || cquery.getString(0).toString().equals("update")) {
-                                        char str = cquery.getString(0).toString().charAt(0);
-                                        if (str == 'W') {
-
-                                        }
-                                        Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
-                                        if (forMainTable.getCount() > 0) {
-                                            ContentValues newValues = new ContentValues();
-                                            Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
-                                            if (cursorIssuesWhichComplete.getCount() > 0) {
-                                                cursorIssuesWhichComplete.moveToFirst();
-                                                if (cursorIssuesWhichComplete.getString(0).toString().equals("4")) {
-                                                    newValues.put("IsAccepted", "3");//resolved
-                                                } else if (cursorIssuesWhichComplete.getString(0).toString().equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
-                                                    newValues.put("IsAccepted", "1");//pending
-                                                } else {
-                                                    newValues.put("IsAccepted", "2");//Attended
-                                                }
-                                            }
-                                            forMainTable.close();
-                                            newValues.put("StatusId", t.StatusId);
-                                            newValues.put("CategoryName", t.CategoryName);
-                                            newValues.put("IssueText", t.IssueText);
-                                            newValues.put("Subject", t.Subject);
-                                            newValues.put("ServiceItemNumber", t.ServiceItemNumber);
-                                            newValues.put("AssetSerialNumber", t.AssetSerialNumber);
-                                            newValues.put("CreatedDate", t.CreatedDate);
-                                            newValues.put("SLADate", t.SLADate);
-                                            newValues.put("CorporateName", t.CorporateName);
-                                            newValues.put("Address", t.Address);
-                                            newValues.put("Latitude", t.Latitude);
-                                            newValues.put("Longitude", t.Longitude);
-                                            newValues.put("AssetType", t.AssetType);
-                                            newValues.put("AssetSubType", t.AssetSubType);
-                                            newValues.put("UpdatedDate", t.UpdatedDate);
-                                            newValues.put("TicketHolder", t.TicketHolder);
-                                            newValues.put("TicketNumber", t.TicketNumber);
-                                            newValues.put("IsVerified", t.IsVerified);
-                                            newValues.put("OEMNumber", t.OEMNumber);
-                                            newValues.put("AssetDetail", t.AssetDetail);
-                                            newValues.put("ContractName", t.ContractName);
-                                            newValues.put("ContractSubTypeName", t.ContractSubTypeName);
-                                            newValues.put("PreviousStatus", t.PreviousStatus);
-//                                            newValues.put("ScheduleDate", t.ScheduleDate);
-                                            sql.update("Issue_Detail", newValues, "IssueId=" + t.IssueID, null);
-                                        } else {
-                                            Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
-                                            if (cursorIssuesWhichComplete.getCount() > 0) {
-                                                cursorIssuesWhichComplete.moveToFirst();
-                                                if (cursorIssuesWhichComplete.getString(0).toString().equals("4")) {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','3','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                } else if (cursorIssuesWhichComplete.getString(0).toString().equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                } else {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','2','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                }
-                                            }
-                                            cursorIssuesWhichComplete.close();
-                                        }
-                                    }
-
-                                    try {
-                                        MainActivity m = new MainActivity();
-                                        m.updateCounter(getApplicationContext(),false);
-                                    } catch (Exception e) {
-                                    }
-                                }
+                            } catch (Exception e) {
+                                e.getMessage();
                             }
-                            fetchDataFromLocal();
-                            obj.setHideAlert();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } else {
+//                        sql.execSQL("delete from FirebaseIssueData");
+                            if (MyApp.getApplication().readTicketsIssueHistory().keySet().size() == 0)
+                                sql.execSQL("delete from Issue_Detail");
+//                        sql.execSQL("delete from Issue_Status");
+
+                            try {
+                                Map<String, String> scheduleMap = MyApp.getApplication().readTicketCaptureSchedule();
+                                Map<String, TicketInfoClass> issueDetailsHistory = MyApp.getApplication().readIssueDetailsHistory();
+                                SimpleDateFormat Updatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                for (int i = 0; i < resData.IssueDetail.length; i++) {
+                                    TicketInfoClass t = new TicketInfoClass();
+                                    Cursor cqueryTempForLatestStatusId = sql.rawQuery("select StatusId,UpdatedDate from Issue_Detail where IssueId ='" + resData.IssueDetail[i].Id + "'", null);
+                                    if (cqueryTempForLatestStatusId.getCount() > 0) {
+                                        cqueryTempForLatestStatusId.moveToFirst();
+                                        Date localDate = null;
+                                        Date liveDate = null;
+                                        String strUpdatedDate = "1900-01-01 12:00:00";
+                                        if (cqueryTempForLatestStatusId.getString(1) == null) {
+                                            strUpdatedDate = resData.IssueDetail[i].UpdatedOn;
+                                        } else {
+                                            strUpdatedDate = cqueryTempForLatestStatusId.getString(1).toString();
+                                        }
+
+                                        //SimpleDateFormat liveUpdatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                        try {
+                                            localDate = Updatedate.parse(strUpdatedDate);
+                                            liveDate = Updatedate.parse(resData.IssueDetail[i].UpdatedOn);
+                                            if (localDate.getTime() > liveDate.getTime()) {
+                                                t.UpdatedDate = strUpdatedDate;
+                                                t.StatusId = cqueryTempForLatestStatusId.getString(0).toString();
+                                            } else {
+                                                t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
+                                                t.StatusId = resData.IssueDetail[i].StatusId;
+                                            }
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+                                        cqueryTempForLatestStatusId.close();
+                                    } else {
+                                        t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
+                                        t.StatusId = resData.IssueDetail[i].StatusId;
+
+                                    }
+                                    t.Address = resData.IssueDetail[i].EnterpriseAddress;
+                                    Log.e("FirstFrag", "StatusId:" + t.StatusId + "IssueID:" + resData.IssueDetail[i].Id);
+
+                                    t.CreatedDate = resData.IssueDetail[i].CreatedOn;
+                                    //t.UpdatedDate = object.getString("UpdatedOn");
+                                    t.PhoneNo = resData.IssueDetail[i].MobileNumber;
+                                    t.SLADate = resData.IssueDetail[i].SLABreachDate;
+//                        t.StatusId = object.getString("StatusId");
+                                    t.IssueID = resData.IssueDetail[i].Id;
+                                    //t.Address=object.getString("StatusName");
+                                    t.AssetSubType = resData.IssueDetail[i].AssetSubType;
+                                    t.AssetType = resData.IssueDetail[i].AssetType;
+                                    t.AssetSerialNumber = resData.IssueDetail[i].AssetSerialNo;
+                                    t.CategoryName = resData.IssueDetail[i].CategoryName;
+                                    t.CorporateName = resData.IssueDetail[i].CorporateName;
+                                    t.IssueText = resData.IssueDetail[i].IssueText;
+                                    t.Latitude = resData.IssueDetail[i].Latitude;
+                                    t.Longitude = resData.IssueDetail[i].Longitude;
+                                    t.ServiceItemNumber = resData.IssueDetail[i].ServiceItemNo;
+                                    t.Subject = resData.IssueDetail[i].Subject;
+                                    t.TicketHolder = resData.IssueDetail[i].TicketHolder;
+                                    t.TicketNumber = resData.IssueDetail[i].TicketNumber;
+                                    t.OEMNumber = resData.IssueDetail[i].OEMTicketId;
+                                    t.AssetDetail = resData.IssueDetail[i].AssetDetail;
+                                    t.ContractSubTypeName = resData.IssueDetail[i].ContractSubTypeName;
+                                    t.ContractName = resData.IssueDetail[i].ContractName;
+                                    t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
+                                    t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
+                                    t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
+                                    t.setType(resData.IssueDetail[i].type);
+                                    t.setJourneyStatus(resData.IssueDetail[i].journeyStatus);
+                                    scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
+                                    editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
+                                    editor.apply();
+                                    editor.commit();
+                                    Cursor cquery = sql.rawQuery("select Action from FirebaseIssueData where IssueId ='" + t.IssueID + "'", null);
+                                    if (cquery.getCount() > 0) {
+                                        cquery.moveToFirst();
+                                        if (cquery.getString(0).equals("Delete") || cquery.getString(0).equals("delete")) {
+                                            ref = new Firebase(PostUrl.sFirebaseUrlTickets);
+                                            if (!nh_userid.equals("0")) {
+                                                ref.child(nh_userid).child(t.IssueID).removeValue();
+                                                sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                            }
+
+
+                                        } else if (cquery.getString(0).equals("New") || cquery.getString(0).equals("new")) {
+                                            Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
+                                            if (forMainTable.getCount() > 0) {
+                                                sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
+                                                try {
+                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+//                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            } else {
+                                                try {
+                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+//                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                            // comment if upper one is not commented
+                                        } else if (cquery.getString(0).equals("Update")
+                                                || cquery.getString(0).equals("update")) {
+                                            char str = cquery.getString(0).charAt(0);
+                                            if (str == 'W') {
+
+                                            }
+                                            cquery.close();
+                                            Cursor forMainTable = sql.rawQuery("select * from Issue_Detail where IssueId ='" + t.IssueID + "'", null);
+                                            if (forMainTable.getCount() > 0) {
+                                                ContentValues newValues = new ContentValues();
+                                                Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
+//                                            if (!MyApp.getStatus("isTicketUpdating")) {
+                                                if (cursorIssuesWhichComplete.getCount() > 0) {
+                                                    cursorIssuesWhichComplete.moveToFirst();
+                                                    if (cursorIssuesWhichComplete.getString(0).equals("4")) {
+                                                        newValues.put("IsAccepted", "3");//resolved
+                                                    } else if (cursorIssuesWhichComplete.getString(0).equals("1") ||
+                                                            cursorIssuesWhichComplete.getString(0).equals("5") ||
+                                                            cursorIssuesWhichComplete.getString(0).equals("6")) {
+                                                        newValues.put("IsAccepted", "1");//pending
+                                                    } else {
+                                                        newValues.put("IsAccepted", "2");//Attended
+                                                    }
+                                                }
+//                                            } else {
+//
+//                                            }
+                                                newValues.put("StatusId", t.StatusId);
+                                                newValues.put("CategoryName", t.CategoryName);
+                                                newValues.put("IssueText", t.IssueText);
+                                                newValues.put("Subject", t.Subject);
+                                                newValues.put("ServiceItemNumber", t.ServiceItemNumber);
+                                                newValues.put("AssetSerialNumber", t.AssetSerialNumber);
+                                                newValues.put("CreatedDate", t.CreatedDate);
+                                                newValues.put("SLADate", t.SLADate);
+                                                newValues.put("CorporateName", t.CorporateName);
+                                                newValues.put("Address", t.Address);
+                                                newValues.put("Latitude", t.Latitude);
+                                                newValues.put("Longitude", t.Longitude);
+                                                newValues.put("AssetType", t.AssetType);
+                                                newValues.put("AssetSubType", t.AssetSubType);
+                                                newValues.put("UpdatedDate", t.UpdatedDate);
+                                                newValues.put("TicketHolder", t.TicketHolder);
+                                                newValues.put("TicketNumber", t.TicketNumber);
+                                                newValues.put("IsVerified", t.IsVerified);
+                                                newValues.put("OEMNumber", t.OEMNumber);
+                                                newValues.put("AssetDetail", t.AssetDetail);
+                                                newValues.put("ContractName", t.ContractName);
+                                                newValues.put("ContractSubTypeName", t.ContractSubTypeName);
+                                                newValues.put("PreviousStatus", t.PreviousStatus);
+//                                            newValues.put("ScheduleDate", t.ScheduleDate);
+                                                sql.update("Issue_Detail", newValues, "IssueId=" + t.IssueID, null);
+                                                forMainTable.close();
+                                            } else {
+                                                Cursor cursorIssuesWhichComplete = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + t.StatusId + "'", null);
+                                                int counter = cursorIssuesWhichComplete.getCount();
+                                                if (counter > 0) {
+                                                    cursorIssuesWhichComplete.moveToFirst();
+                                                    if (cursorIssuesWhichComplete.getString(0).equals("4")) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','3','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else if (cursorIssuesWhichComplete.getString(0).equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','2','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    }
+                                                }
+                                                cursorIssuesWhichComplete.close();
+                                            }
+                                        }
+//
+                                    }
+                                    issueDetailsHistory.put(t.getIssueID(), t);
+                                }
+                                obj.setHideAlert();
+                                MainActivity m = new MainActivity();
+                                m.updateCounter(getApplicationContext(), false);
+                                MyApp.getApplication().writeIssueDetailsHistory(issueDetailsHistory);
+                                MyApp.getApplication().writeTicketCaptureSchedule(scheduleMap);
+                                fetchDataFromLocal();
+//                                ((MainActivity) getActivity()).updateCounter(getActivity(), false);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
-                    call.cancel();
-                    obj.setHideAlert();
-                }
-            });
-        } catch (Exception e) {
+                    @Override
+                    public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
+                        call.cancel();
+                        obj.setHideAlert();
+                    }
+                });
+            } catch (Exception e) {
+            }
+        else {
+            fetchDataFromLocal();
         }
     }
 
@@ -421,11 +477,11 @@ public class ServiceDataUpdateFirstFragment extends Service {
             } else {
 //                MainActivity.showTkt();
                 MainActivity m = new MainActivity();
-                m.updateCounter(ctx,false);
+                m.updateCounter(getApplicationContext(), false);
 
                 HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
                 for (int i = 0; i < newTickets.size(); i++) {
-                    sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
+                    sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, getApplicationContext(), newTickets.get(i).TicketNumber);
                     if (!map.containsKey(newTickets.get(i).IssueID)) {
                         map.put(newTickets.get(i).IssueID, newTickets.get(i));
                     }
@@ -455,7 +511,19 @@ public class ServiceDataUpdateFirstFragment extends Service {
         String date = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(cDate);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         Log.e("Capture Operation key: ", key);
-        Call<ApiResult.CaptureTicket> call1 = apiInterface.captureTicket(key, nh_userid, date);
+
+        String sType = "Ticket";
+        Map<String, TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
+        if (issueDetailsMap.containsKey(key)) {
+            if (issueDetailsMap.get(key).getType().equals("Ticket")) {
+                sType = "Ticket";
+            } else {
+                sType = "Task";
+            }
+        }
+
+
+        Call<ApiResult.CaptureTicket> call1 = apiInterface.captureTicket(key, nh_userid, date, sType);
         call1.enqueue(new Callback<ApiResult.CaptureTicket>() {
             @Override
             public void onResponse(Call<ApiResult.CaptureTicket> call, Response<ApiResult.CaptureTicket> response) {
@@ -484,47 +552,54 @@ public class ServiceDataUpdateFirstFragment extends Service {
         });
     }
 
+    private Map<String, String> notifMap;
+
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
-        String str = ticketNumber;
-        str = str.replaceAll("[^\\d.]", "");
-        int ticket = Integer.parseInt(str);
-        //Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Intent intent = new Intent(ctx, MainActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(ctx, (int) System.currentTimeMillis(), intent, 0);
-        Notification noti = new Notification.Builder(ctx).setContentTitle("MZS Notifier")
-                //.setContentText("New Updates in your Task Manager for "+ sIssueId)
-                .setSmallIcon(R.mipmap.som)
-                .setContentText(sNotificationMessage)
-                .setContentIntent(pIntent)
-                .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
-                .addAction(R.drawable.som, "View", pIntent).build();
-        NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
-        // hide the notification after its selected
-        noti.flags |= Notification.FLAG_AUTO_CANCEL;
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            noti = new Notification.Builder(ctx).setContentTitle("MZS Notifier")
-                    //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+        try {
+            if (nh_userid.equals("0")) {
+                return;
+            }
+        } catch (Exception e) {
+        }
+        notifMap = MyApp.getApplication().readNotifMap();
+        if (!notifMap.containsKey(ticketNumber)) {
+            String str = ticketNumber;
+            str = str.replaceAll("[^\\d.]", "");
+            int ticket = Integer.parseInt(str);
+            Intent intent = new Intent(activity, MainActivity.class);
+            PendingIntent pIntent = PendingIntent.getActivity(activity, (int) System.currentTimeMillis(), intent, 0);
+            Notification noti = new Notification.Builder(activity).setContentTitle("MZS Notifier")
                     .setSmallIcon(R.mipmap.som)
                     .setContentText(sNotificationMessage)
                     .setContentIntent(pIntent)
-                    .setChannelId(ticket + "")
                     .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
                     .addAction(R.drawable.som, "View", pIntent).build();
-            CharSequence name = ctx.getString(R.string.app_name);
-            NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
-//            AudioAttributes att = new AudioAttributes.Builder()
-//                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-//                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-//                    .build();
-//            mChannel.setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone),att);
-            notificationManager.createNotificationChannel(mChannel);
-        }
-        notificationManager.notify(ticket, noti);
-        //
+            NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            // hide the notification after its selected
+            noti.flags |= Notification.FLAG_AUTO_CANCEL;
+            int importance = NotificationManager.IMPORTANCE_HIGH;
 
-        ++MULTIPLE_NOTIFICATION;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                noti = new Notification.Builder(activity).setContentTitle("MZS Notifier")
+                        //.setContentText("New Updates in your Task Manager for "+ sIssueId)
+                        .setSmallIcon(R.mipmap.som)
+                        .setContentText(sNotificationMessage)
+                        .setContentIntent(pIntent)
+                        .setChannelId(ticket + "")
+                        .setSound(Uri.parse("android.resource://" + "net.mzi.trackengine" + "/" + R.raw.message_tone))
+                        .addAction(R.drawable.som, "View", pIntent).build();
+                CharSequence name = activity.getString(R.string.app_name);
+                NotificationChannel mChannel = new NotificationChannel(ticket + "", name, importance);
+                notificationManager.createNotificationChannel(mChannel);
+            }
+            notificationManager.notify(ticket, noti);
+            //
+
+            ++MULTIPLE_NOTIFICATION;
+            notifMap.put(ticketNumber, ticketNumber);
+            MyApp.getApplication().writeNotifMap(notifMap);
+        }
+
     }
 }

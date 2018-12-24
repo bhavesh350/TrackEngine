@@ -50,10 +50,10 @@ import com.google.gson.Gson;
 
 import net.mzi.trackengine.fragment.EngineerFeedbackFragment;
 import net.mzi.trackengine.model.PostUrl;
+import net.mzi.trackengine.model.TicketInfoClass;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -130,12 +130,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     Context ctx = null;
     Context context;
     private boolean statusByHierarchy;
+    private Map<String, TicketInfoClass> issueDetailsMap;
 
     public SchedulingAdapter() {
 
     }
 
-    public SchedulingAdapter(List<String> mIssueID, List<String> mName, List<String> mTime, List<String> mLoc, List<String> mMob, List<String> mSub, List<Integer> mDatasetTypes, List<Integer> mCardColor, List<String> mCardType, List<String> mTicketNumber, Context context) {
+    public SchedulingAdapter(List<String> mIssueID, List<String> mName, List<String> mTime, List<String> mLoc, List<String> mMob, List<String> mSub, List<Integer> mDatasetTypes, List<Integer> mCardColor, List<String> mCardType, List<String> mTicketNumber, Map<String, TicketInfoClass> issueDetailsMap, Context context) {
         this.statusByHierarchy = MyApp.getStatus("statusByHierarchy");
         this.mName = mName;
         this.mTime = mTime;
@@ -148,6 +149,18 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         this.mIssueID = mIssueID;
         this.mTicketNumber = mTicketNumber;
         this.context = context;
+        this.issueDetailsMap = issueDetailsMap;
+        this.ctx = context;
+
+        for (int i = 0; i < mIssueID.size(); i++) {
+            String savedId = MyApp.getSharedPrefString("savedCardId");
+            boolean isAvail = false;
+            if (mIssueID.get(i).equals(savedId)) {
+                isAvail = true;
+            }
+            if (!isAvail || savedId.equals("0"))
+                MyApp.setSharedPrefString("savedCardId", "");
+        }
     }
 
     @Override
@@ -171,7 +184,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     private class TicketHolder extends ViewHolder {
-        TextView IssueID, IssueText, time, Adress, StatusId, schedule_date;
+        TextView IssueID, IssueText, time, Adress, StatusId, schedule_date, txt_lable;
         FloatingActionButton acceptButton, rejectButton;
 
         public TicketHolder(View itemView) {
@@ -185,13 +198,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             time = v.findViewById(R.id.beontime);
             acceptButton = v.findViewById(R.id.accept);
             rejectButton = v.findViewById(R.id.reject);
+            txt_lable = v.findViewById(R.id.txt_lable);
 
 
         }
     }
 
     private class SchedulingViewHolder extends ViewHolder {
-        TextView name, time, sub, location, mobile, stats, sIssueID, preTime, schedule_date_value;
+        TextView name, time, sub, location, mobile, stats, sIssueID, preTime, schedule_date_value, txt_lable;
         ImageView mbut;
         LinearLayout bot;
         RelativeLayout top;
@@ -212,6 +226,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             this.top = v.findViewById(R.id.topLayout2);
             this.bot = v.findViewById(R.id.bottomLayout);
             this.sIssueID = v.findViewById(R.id.issueId_Id);
+            this.txt_lable = v.findViewById(R.id.txt_lable);
             popup = new PopupMenu(ctx, mbut);
             popup.inflate(R.menu.toolbar_card_menu);
 
@@ -226,7 +241,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
-        ctx = parent.getContext();
+//        ctx = parent.getContext();
         Firebase.setAndroidContext(ctx);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         pref = ctx.getSharedPreferences("login", 0);
@@ -275,6 +290,19 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             ticketHolder.time.setText(sDateUI);
             ticketHolder.IssueText.setText(mSub.get(position));
             ticketHolder.schedule_date.setText(map.get(mTicketNumber.get(position)));
+
+            Map<String, TicketInfoClass> savedDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
+
+            if (savedDetailsMap.containsKey(mIssueID.get(position))) {
+                if (savedDetailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                    ticketHolder.txt_lable.setText("Issue ID");
+                } else {
+                    ticketHolder.txt_lable.setText("Task ID");
+                }
+            } else {
+                ticketHolder.txt_lable.setText("Issue ID");
+            }
+
             ticketHolder.acceptButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -291,15 +319,30 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                     Map<String, String> map = new HashMap<>();
                     map.put("TicketId", mIssueID.get(position));
-                    map.put("ticketNumber",mTicketNumber.get(position));
+                    map.put("ticketNumber", mTicketNumber.get(position));
                     map.put("UserId", nh_userid);
                     map.put("StatusId", sAcceptStatus);
                     map.put("ParentCompanyId", sParentComapnyId);
                     map.put("Comment", "Accepted By Engineer");
                     map.put("ActivityDate", currentDateTimeString);
                     map.put("SyncStatus", "-1");
-                    ticketsMap.put(mIssueID.get(position), map);
-                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                    map.put("TaskId", "0");
+                    if (issueDetailsMap.containsKey(mIssueID.get(position)))
+                        if (issueDetailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                            map.put("TaskId", "0");
+                        } else {
+                            map.put("TicketId", "0");
+                            map.put("TaskId", mIssueID.get(position));
+                        }
+
+                    if (ticketsMap.containsKey(mIssueID.get(position))) {
+                        ticketsMap.put(mIssueID.get(position) + "@@" + System.currentTimeMillis(), map);
+                        MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                    } else {
+                        ticketsMap.put(mIssueID.get(position), map);
+                        MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                    }
+
                     cquery = sql.rawQuery("select IssueId,TicketHolder,SLADate,Address,PhoneNo,Subject,StatusId,TicketNumber from Issue_Detail where IssueId ='" + mIssueID.get(position) + "'", null);
                     cquery.moveToFirst();
 
@@ -308,7 +351,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     newValues.put("PreviousStatus", cquery.getString(6).toString());
                     newValues.put("StatusId", sAcceptStatus);
                     newValues.put("UpdatedDate", currentDateTimeString);
-                    sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
+                    try {
+                        sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
+                    } catch (Exception e) {
+                    }
 
                     final ApiResult apiResult = new ApiResult();
                     final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId,
@@ -392,7 +438,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Boolean wantToCloseDialog = true;
+                            boolean wantToCloseDialog = true;
                             if (commemt.getText().toString().length() == 0) {
                                 commemt.setError("Please enter comment");
                                 wantToCloseDialog = false;
@@ -412,15 +458,28 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
                                 Map<String, String> map = new HashMap<>();
                                 map.put("TicketId", mIssueID.get(position));
-                                map.put("ticketNumber",mTicketNumber.get(position));
+                                map.put("ticketNumber", mTicketNumber.get(position));
                                 map.put("UserId", nh_userid);
                                 map.put("StatusId", sAcceptStatus);
                                 map.put("ParentCompanyId", sParentComapnyId);
                                 map.put("Comment", commemt.getText().toString());
                                 map.put("ActivityDate", currentDateTimeString);
                                 map.put("SyncStatus", "-1");
-                                ticketsMap.put(mIssueID.get(position), map);
-                                MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                                map.put("TaskId", "0");
+                                if (issueDetailsMap.containsKey(mIssueID.get(position)))
+                                    if (issueDetailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                                        map.put("TaskId", "0");
+                                    } else {
+                                        map.put("TicketId", "0");
+                                        map.put("TaskId", mIssueID.get(position));
+                                    }
+                                if (ticketsMap.containsKey(mIssueID.get(position))) {
+                                    ticketsMap.put(mIssueID.get(position) + "@@" + System.currentTimeMillis(), map);
+                                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                                } else {
+                                    ticketsMap.put(mIssueID.get(position), map);
+                                    MyApp.getApplication().writeTicketsIssueHistory(ticketsMap);
+                                }
 
                                 final ApiResult apiResult = new ApiResult();
                                 final ApiResult.IssueDetail issueDetail = apiResult.new IssueDetail(nh_userid, sParentComapnyId, mIssueID.get(position), sAcceptStatus, commemt.getText().toString(), currentDateTimeString, DepartmentId, "", "", "", sDeviceId, "-1", "", "", "", "", "");
@@ -516,10 +575,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 schedulingholder.btn_start.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
-
                         populateStatusStartReach(mIssueID.get(position), position, "", true);
-
                     }
                 });
 
@@ -529,7 +585,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         MyApp.setStatus("savedCardStatus", false);
                         MyApp.setSharedPrefString("savedCardId", "");
                         notifyDataSetChanged();
-
+                        try {
+                            ((TaskActivity) context).updateButtons();
+                        } catch (Exception e) {
+                        }
                         goForStartReachStatus(false, position);
                     }
                 });
@@ -555,6 +614,18 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     ctx.startActivity(in);
                 }
             });
+            Map<String, TicketInfoClass> savedDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
+
+            if (savedDetailsMap.containsKey(mIssueID.get(position))) {
+                if (savedDetailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                    schedulingholder.txt_lable.setText("Issue ID");
+                } else {
+                    schedulingholder.txt_lable.setText("Task ID");
+                }
+            } else {
+                schedulingholder.txt_lable.setText("Issue ID");
+            }
+
             schedulingholder.stats.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -588,7 +659,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Boolean wantToCloseDialog = true;
+                                boolean wantToCloseDialog = true;
                                 if (commentVerify.getText().toString().length() == 0) {
                                     commentVerify.setError("Please enter Asset Serial Number");
                                     wantToCloseDialog = false;
@@ -628,9 +699,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                 try {
                     dSLAdate = format.parse(dtStart);
-                    System.out.println(dSLAdate);
+//                    System.out.println(dSLAdate);
                 } catch (ParseException e) {
-                    // TODO Auto-generated catch block
                     dSLAdate = new Date();
                     e.printStackTrace();
                 }
@@ -640,7 +710,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 try {
                     dCurrentDate = format.parse(currentDateTimeString);
                 } catch (ParseException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 long l = printDifference(dSLAdate, dCurrentDate);
@@ -713,7 +782,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        Boolean wantToCloseDialog = true;
+                                        boolean wantToCloseDialog = true;
                                         if (commemtVerify.getText().toString().length() == 0) {
                                             commemtVerify.setError("Please enter Asset Serial Number");
                                             wantToCloseDialog = false;
@@ -772,7 +841,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    Boolean wantToCloseDialog = true;
+                                    boolean wantToCloseDialog = true;
                                     if (commemt.getText().toString().length() == 0) {
                                         commemt.setError("Please enter OEM Ticket Number");
                                         wantToCloseDialog = false;
@@ -807,16 +876,24 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     private void goForStartReachStatus(boolean isStart, int position) {
+        MyApp.spinnerStart(context, "Please wait...");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                MyApp.spinnerStop();
+            }
+        }, 10000);
         getLocation();
         Date cDate1 = new Date();
         currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
         postTktStatus.put("UserId", nh_userid);
         postTktStatus.put("ParentCompanyId", sParentComapnyId);
         postTktStatus.put("TicketId", mIssueID.get(position));
-        postTktStatus.put("StatusId", "3");
+        postTktStatus.put("StatusId", isStart ? "2" : "3");
         postTktStatus.put("StartingForSite", isStart ? 1 + "" : 0 + "");
         postTktStatus.put("CustomDestination", "");
         postTktStatus.put("Comment", "");
+        postTktStatus.put("ticketNumber", mTicketNumber.get(position));
         postTktStatus.put("ActivityDate", currentTime);
         postTktStatus.put("DepartmentId", DepartmentId);
         postTktStatus.put("RealtimeUpdate", "true");
@@ -829,10 +906,27 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         postTktStatus.put("ModeOfTransport", "");
         postTktStatus.put("Expense", "0");
         postTktStatus.put("AssignedUserId", "0");
+        postTktStatus.put("TaskId", "0");
+        if (issueDetailsMap.containsKey(mIssueID.get(position)))
+            if (issueDetailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                postTktStatus.put("TaskId", "0");
+            } else {
+                postTktStatus.put("TicketId", "0");
+                postTktStatus.put("TaskId", mIssueID.get(position));
+            }
 
         Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
-        issuesMap.put(mIssueID.get(position), postTktStatus);
-        MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+        if (issuesMap.containsKey(mIssueID.get(position))) {
+            issuesMap.put(mIssueID.get(position) + "@@" + System.currentTimeMillis(), postTktStatus);
+            MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+        } else {
+            issuesMap.put(mIssueID.get(position), postTktStatus);
+            MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+        }
+
+//        issuesMap.put(mIssueID.get(position), postTktStatus);
+//        MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
         UpdateTask(ctx, postTktStatus, "true");
 
         Snackbar.make(nhn, "Status update successfully!", Snackbar.LENGTH_LONG).show();
@@ -886,34 +980,38 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         dialogMain.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
+                try {
+                    cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
+                } catch (Exception e) {
+                    MyApp.showMassage(context, "Some problem occurred, Please try again.");
+                    return;
+                }
                 cquery.moveToFirst();
-//                sSelectedStatus = statusListIds.get(poss);
                 Date cDate = new Date();
                 currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-//                if (cquery.getString(0).equals("4")) {
                 sMainStatusId = cquery.getString(0);
                 getLocation();
-//                        ContentValues newValues = new ContentValues();
-//                        newValues.put("StatusId", "3");
-//                        newValues.put("IsAccepted", "3");
-//                        newValues.put("UpdatedDate", currentTime);
-//                        newValues.put("PreviousStatus", sCurrentStatusId);
-//                        try {
-//                            sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
-//                        } catch (Exception e) {
-//                        }
-//                    MainActivity m = new MainActivity();
-//                    m.updateCounter(ctx);
+                MyApp.spinnerStart(context, "Please wait...");
+                try {
+                    ((TaskActivity) context).updateButtons();
+                } catch (Exception e) {
+                }
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        MyApp.spinnerStop();
+                    }
+                }, 10000);
                 Snackbar.make(v, "Status updated successfully!!!", Snackbar.LENGTH_LONG).show();
                 postTktStatus.put("UserId", nh_userid);
                 postTktStatus.put("ParentCompanyId", sParentComapnyId);
                 postTktStatus.put("TicketId", id);
-                postTktStatus.put("StatusId", "3");
+                postTktStatus.put("StatusId", isStart ? "2" : "3");
                 postTktStatus.put("Comment", "");
                 postTktStatus.put("DeviceId", sDeviceId);
                 postTktStatus.put("ActivityDate", currentTime);
                 postTktStatus.put("DepartmentId", DepartmentId);
+                postTktStatus.put("ticketNumber", mTicketNumber.get(position));
                 postTktStatus.put("RealtimeUpdate", "true");
                 postTktStatus.put("Latitude", String.valueOf(latitude));
                 postTktStatus.put("Latitude", String.valueOf(latitude));
@@ -923,24 +1021,40 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 postTktStatus.put("StartingForSite", isStart ? 1 + "" : 0 + "");
                 postTktStatus.put("CustomDestination", "");
                 postTktStatus.put("SyncStatus", "-1");
+                postTktStatus.put("TaskId", "0");
+                if (issueDetailsMap.containsKey(id))
+                    if (issueDetailsMap.get(id).getType().equals("Ticket")) {
+                        postTktStatus.put("TaskId", "0");
+                    } else {
+                        postTktStatus.put("TicketId", "0");
+                        postTktStatus.put("TaskId", id);
+                    }
                 Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
-                issuesMap.put(id, postTktStatus);
-                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+                if (issuesMap.containsKey(mIssueID.get(position))) {
+                    issuesMap.put(mIssueID.get(position) + "@@" + System.currentTimeMillis(), postTktStatus);
+                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                } else {
+                    issuesMap.put(mIssueID.get(position), postTktStatus);
+                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                }
+
+//                issuesMap.put(id, postTktStatus);
+//                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
 
                 try {
                     Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                     if (cqueryTemp.getCount() > 0) {
                         cqueryTemp.moveToFirst();
-//                                if (!nh_userid.equals("0"))
-//                                    ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
                     }
                     UpdateTask(context, postTktStatus, "true");
-
-
                     MyApp.setStatus("savedCardStatus", isStart);
                     MyApp.setSharedPrefString("savedCardId", isStart ? id : "");
+                    try {
+                        ((TaskActivity) context).updateButtons();
+                    } catch (Exception e) {
+                    }
                     notifyDataSetChanged();
-
 
                 } catch (Exception e) {
                 }
@@ -949,31 +1063,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 editor.putString("LastTransport", LastTransportMode);
                 editor.apply();
                 editor.commit();
-//                        removeCard(position);
-
-//                }
-
-//                Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
-//                if (cqueryTemp.getCount() > 0) {
-//                    cqueryTemp.moveToFirst();
-//                    if (!nh_userid.equals("0"))
-//                        ref.child(nh_userid).child(id).child("Action").setValue("Update");
-//                }
-//                MainActivity m = new MainActivity();
-//                m.updateCounter(ctx);
-                Log.e("onClick: mcard ", String.valueOf(statusList.size()));
-//                mCardType.add(position, statusList.get(poss));
-//                notifyItemChanged(position);
                 Snackbar.make(nhn, "Status update successfully!", Snackbar.LENGTH_LONG).show();
-
                 dialogMain.dismiss();
             }
             //else dialog stays open. Make sure you have an obvious way to close the dialog especially if you set cancellable to false.
 
         });
-//        ArrayAdapter<String> adapter = new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_item, statusList);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        spinnercategory.setAdapter(adapter);
 
         ArrayAdapter<String> adapterTransport = new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_item, mtTransportlistName);
         adapterTransport.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1099,34 +1194,19 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         dialogMain.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
-//                cquery.moveToFirst();
-//                sSelectedStatus = statusListIds.get(poss);
                 Date cDate = new Date();
                 currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-//                if (cquery.getString(0).equals("4")) {
-//                sMainStatusId = cquery.getString(0);
                 getLocation();
-//                        ContentValues newValues = new ContentValues();
-//                        newValues.put("StatusId", "3");
-//                        newValues.put("IsAccepted", "3");
-//                        newValues.put("UpdatedDate", currentTime);
-//                        newValues.put("PreviousStatus", sCurrentStatusId);
-//                        try {
-//                            sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
-//                        } catch (Exception e) {
-//                        }
-//                    MainActivity m = new MainActivity();
-//                    m.updateCounter(ctx);
                 Snackbar.make(v, "Status updated successfully!!!", Snackbar.LENGTH_LONG).show();
                 postTktStatus.put("UserId", nh_userid);
                 postTktStatus.put("ParentCompanyId", sParentComapnyId);
                 postTktStatus.put("TicketId", "");
-                postTktStatus.put("StatusId", "3");
+                postTktStatus.put("StatusId", isStart ? "2" : "3");
                 postTktStatus.put("Comment", "");
                 postTktStatus.put("DeviceId", sDeviceId);
                 postTktStatus.put("ActivityDate", currentTime);
                 postTktStatus.put("DepartmentId", DepartmentId);
+                postTktStatus.put("ticketNumber", mTicketNumber.get(pos));
                 postTktStatus.put("RealtimeUpdate", "true");
                 postTktStatus.put("Latitude", String.valueOf(latitude));
                 postTktStatus.put("Latitude", String.valueOf(latitude));
@@ -1136,57 +1216,30 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 postTktStatus.put("StartingForSite", isStart ? 1 + "" : 0 + "");
                 postTktStatus.put("CustomDestination", type);
                 postTktStatus.put("SyncStatus", "-1");
+                postTktStatus.put("TaskId", "0");
+
                 Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+
                 issuesMap.put(currentTime, postTktStatus);
                 MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
-
+                MyApp.spinnerStart(context, "Please wait...");
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        MyApp.spinnerStop();
+                    }
+                }, 10000);
                 try {
-//                    Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + "" + "'", null);
-//                    if (cqueryTemp.getCount() > 0) {
-//                        cqueryTemp.moveToFirst();
-//                                if (!nh_userid.equals("0"))
-//                                    ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
-//                    }
                     UpdateTask(context, postTktStatus, "true");
-
-
-//                    MyApp.setStatus("savedCardStatus", isStart);
-//                    MyApp.setSharedPrefString("savedCardId", isStart ? "" : "");
-//                    notifyDataSetChanged();
-
-
                 } catch (Exception e) {
                 }
 
                 LastTransportMode = postTktStatus.get("ModeOfTransport");
-//                editor.putString("LastTransport", LastTransportMode);
-//                editor.apply();
-//                editor.commit();
-//                        removeCard(position);
-
-//                }
-
-//                Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
-//                if (cqueryTemp.getCount() > 0) {
-//                    cqueryTemp.moveToFirst();
-//                    if (!nh_userid.equals("0"))
-//                        ref.child(nh_userid).child(id).child("Action").setValue("Update");
-//                }
-//                MainActivity m = new MainActivity();
-//                m.updateCounter(ctx);
-//                Log.e("onClick: mcard ", String.valueOf(statusList.size()));
-//                mCardType.add(position, statusList.get(poss));
-//                notifyItemChanged(position);
-//                Snackbar.make(nhn, "Status update successfully!", Snackbar.LENGTH_LONG).show();
-
                 dialogMain.dismiss();
             }
             //else dialog stays open. Make sure you have an obvious way to close the dialog especially if you set cancellable to false.
 
         });
-//        ArrayAdapter<String> adapter = new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_item, statusList);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        spinnercategory.setAdapter(adapter);
 
         ArrayAdapter<String> adapterTransport = new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_item, mtTransportlistName);
         adapterTransport.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1201,50 +1254,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             public void onItemSelected(AdapterView<?> parent, View arg1,
                                        int arg2, long arg3) {
 
-//                try {
-//                    poss = arg2;
-//                    cquery = sql.rawQuery("select CommentRequired,StartingForSite from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
-//                    cquery.moveToFirst();
-//                    if (cquery.getCount() > 0) {
-//                        cquery.moveToFirst();
-//                        if (cquery.getString(0).equals("true")) {
-//                            commemt.setText("");
-//                            commemt.setVisibility(View.INVISIBLE);
-//                        } else {
-//                            commemt.setVisibility(View.INVISIBLE);
-//                            commemt.setText("n/a");
-//                        }
-//                        if (cquery.getString(1).equals("true")) {
-//                            layoutTransport.setVisibility(View.VISIBLE);
-//                        } else {
-//                            layoutTransport.setVisibility(View.VISIBLE);
-//                        }
-//                    }
-//                } catch (Exception e) {
-////                    MyApp.showMassage(context, "Local database Problem found with status id = " + statusListIds.get(poss));
-//                    return;
-//                }
-
-//                Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + LastTransportMode + "'", null);
-//                Cursor cquery2 = sql.rawQuery("select StartingForSite from Issue_Status where StatusId ='" + sCurrentStatusId + "'", null);
-//                if (cquery1.getCount() > 0 && cquery2.getCount() > 0) {
-//                    cquery1.moveToFirst();
-//                    cquery2.moveToFirst();
-//                    if (cquery1.getString(0).equals("true") && cquery2.getString(0).equals("true")) {
-//                        eTransport.setText("");
-//                        eTransport.setVisibility(View.VISIBLE);
-//                    } else {
                 eTransport.setText("0");
                 eTransport.setVisibility(View.GONE);
-//                    }
-//                } else {
-//                    eTransport.setText("0");
-//                    eTransport.setVisibility(View.GONE);
-//                }
             }
 
             public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
             }
         });
 
@@ -1260,7 +1274,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             }
 
             public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
             }
         });
     }
@@ -1493,12 +1506,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             dialogMain.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Boolean wantToCloseDialog = true;
+                    boolean wantToCloseDialog = true;
                     if (commemt.getText().toString().length() == 0) {
                         commemt.setError("Please enter comment");
+                        commemt.setText("No comment");
                         wantToCloseDialog = false;
                     }
-                    if (wantToCloseDialog) {
+                    if (true) {
                         String sSelectedStatus;
                         cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
                         cquery.moveToFirst();
@@ -1546,8 +1560,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
                                 } catch (Exception e) {
                                 }
-                                MainActivity m = new MainActivity();
-                                m.updateCounter(ctx, false);
+                                try {
+                                    MainActivity m = new MainActivity();
+                                    m.updateCounter(ctx, false);
+                                } catch (Exception e) {
+                                }
                                 Snackbar.make(v, "Status updated successfully!!!", Snackbar.LENGTH_LONG).show();
                                 postTktStatus.put("UserId", nh_userid);
                                 postTktStatus.put("ParentCompanyId", sParentComapnyId);
@@ -1555,6 +1572,11 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("StatusId", sSelectedStatus);
                                 postTktStatus.put("Comment", commemt.getText().toString());
                                 postTktStatus.put("ActivityDate", currentTime);
+                                try {
+                                    postTktStatus.put("ticketNumber", mTicketNumber.get(position));
+                                } catch (Exception e) {
+                                    postTktStatus.put("ticketNumber", "Not captured");
+                                }
                                 postTktStatus.put("DepartmentId", DepartmentId);
                                 postTktStatus.put("RealtimeUpdate", "true");
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
@@ -1565,29 +1587,59 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("StartingForSite", "");
                                 postTktStatus.put("CustomDestination", "");
                                 postTktStatus.put("SyncStatus", "-1");
+                                postTktStatus.put("TaskId", "0");
+                                if (issueDetailsMap.containsKey(id))
+                                    if (issueDetailsMap.get(id).getType().equals("Ticket")) {
+                                        postTktStatus.put("TaskId", "0");
+                                    } else {
+                                        postTktStatus.put("TicketId", "0");
+                                        postTktStatus.put("TaskId", id);
+                                    }
+                                else
+                                    postTktStatus.put("TaskId", "0");
                                 Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
-                                issuesMap.put(id, postTktStatus);
-                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+                                if (issuesMap.containsKey(id)) {
+                                    issuesMap.put(id + "@@" + System.currentTimeMillis(), postTktStatus);
+                                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                                } else {
+                                    issuesMap.put(id, postTktStatus);
+                                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                                }
+
+//                                issuesMap.put(id, postTktStatus);
+//                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
 
                                 try {
                                     Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                                     if (cqueryTemp.getCount() > 0) {
                                         cqueryTemp.moveToFirst();
-                                        if (!nh_userid.equals("0"))
-                                            ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
-                                    }
+                                        if (!nh_userid.equals("0")) {
+                                            Map<String, TicketInfoClass> detailsMap = MyApp.getApplication().readIssueDetailsHistory();
+                                            if (detailsMap.containsKey(mIssueID.get(position))) {
+                                                if (detailsMap.get(mIssueID.get(position)).getType().equals("Ticket")) {
+                                                    ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
+                                                } else {
+                                                    Firebase ref = new Firebase(PostUrl.sFirebaseUrlIssues);
+                                                    ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
+                                                }
+                                            } else {
+                                                ref.child(nh_userid).child(mIssueID.get(position)).child("Action").setValue("Update");
+                                            }
 
-                                    MyApp.spinnerStart(context, "Please wait...");
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            MyApp.spinnerStop();
                                         }
-                                    }, 10000);
-                                    UpdateTask(context, postTktStatus, "true");
+                                    }
                                 } catch (Exception e) {
+                                    MyApp.popMessage("Error", e.getMessage(), context);
                                 }
-
+                                MyApp.spinnerStart(context, "Please wait...");
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MyApp.spinnerStop();
+                                    }
+                                }, 10000);
+                                UpdateTask(context, postTktStatus, "true");
                                 LastTransportMode = postTktStatus.get("ModeOfTransport");
                                 editor.putString("LastTransport", LastTransportMode);
                                 editor.apply();
@@ -1615,14 +1667,18 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             savedMap.put(id, previousValues);
                             MyApp.getApplication().writeSavedStatusValues(savedMap);
 
-                            if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).toString().equals("6") || cqueryCurrentStatus_MainId.getString(0).toString().equals("5")) {
+                            if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).equals("6") || cqueryCurrentStatus_MainId.getString(0).toString().equals("5")) {
 
                                 ContentValues newValues = new ContentValues();
                                 newValues.put("StatusId", sSelectedStatus);
                                 newValues.put("IsAccepted", "1");
                                 newValues.put("UpdatedDate", currentTime);
                                 newValues.put("PreviousStatus", sCurrentStatusId);
-                                sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                try {
+                                    sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                } catch (Exception e) {
+                                    MyApp.popMessage("Error", e.getMessage(), context);
+                                }
                                 flag = false;
                             } else {
                                 flag = true;
@@ -1631,7 +1687,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 newValues.put("IsAccepted", "2");
                                 newValues.put("UpdatedDate", currentTime);
                                 newValues.put("PreviousStatus", sCurrentStatusId);
-                                sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                try {
+                                    sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                } catch (Exception e) {
+                                    MyApp.popMessage("Error", e.getMessage(), context);
+                                }
+
                                 isAttended = "1";
                             }
                         } else {
@@ -1660,7 +1721,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     newValues.put("IsAccepted", "2");
                                     newValues.put("UpdatedDate", currentTime);
                                     newValues.put("PreviousStatus", sCurrentStatusId);
-                                    sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                    try {
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                    } catch (Exception e) {
+                                    }
                                     isAttended = "1";
                                 } else {
                                     flag = false;
@@ -1669,7 +1733,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     newValues.put("IsAccepted", "2");
                                     newValues.put("UpdatedDate", currentTime);
                                     newValues.put("PreviousStatus", sCurrentStatusId);
-                                    sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                    try {
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + id, null);
+                                    } catch (Exception e) {
+                                    }
                                     isAttended = "1";
                                 }
                             }
@@ -1695,8 +1762,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         } else {
                             Cursor cqueryTempStatus = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + sSelectedStatus + "'", null);
                             cqueryTempStatus.moveToFirst();
-                            if (sMainStatusId.equals(cqueryTempStatus.getString(0))) ;
-                            else {
+                            /*if (sMainStatusId.equals(cqueryTempStatus.getString(0))) {
+                            } else */{
                                 getLocation();
                                 Date cDate1 = new Date();
                                 currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
@@ -1710,25 +1777,49 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 postTktStatus.put("RealtimeUpdate", "true");
                                 postTktStatus.put("Latitude", String.valueOf(latitude));
                                 postTktStatus.put("Longitude", String.valueOf(longitude));
+                                try {
+                                    postTktStatus.put("ticketNumber", mTicketNumber.get(position));
+                                } catch (Exception e) {
+                                    postTktStatus.put("ticketNumber", "Not captured");
+
+                                }
                                 postTktStatus.put("AssetSerialNo", sAssetVerificationText);
                                 postTktStatus.put("DeviceId", sDeviceId);
                                 postTktStatus.put("Expense", eTransport.getText().toString());
                                 postTktStatus.put("StartingForSite", "");
                                 postTktStatus.put("CustomDestination", "");
                                 postTktStatus.put("SyncStatus", "-1");
-
+                                postTktStatus.put("TaskId", "0");
+                                if (issueDetailsMap.containsKey(id))
+                                    if (issueDetailsMap.get(id).getType().equals("Ticket")) {
+                                        postTktStatus.put("TaskId", "0");
+                                    } else {
+                                        postTktStatus.put("TicketId", "0");
+                                        postTktStatus.put("TaskId", id);
+                                    }
+                                else
+                                    postTktStatus.put("TaskId", "0");
                                 String issueStatus = postTktStatus.get("Comment").replace("'", "''");
 
                                 Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
-                                issuesMap.put(id, postTktStatus);
-                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+
+                                if (issuesMap.containsKey(id)) {
+                                    issuesMap.put(id + "@@" + System.currentTimeMillis(), postTktStatus);
+                                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                                } else {
+                                    issuesMap.put(id, postTktStatus);
+                                    MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                                }
+
+//                                issuesMap.put(id, postTktStatus);
+//                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
 
                                 LastTransportMode = postTktStatus.get("ModeOfTransport");
                                 editor.putString("LastTransport", postTktStatus.get("ModeOfTransport"));
                                 editor.apply();
                                 editor.commit();
 
-                                UpdateTask(ctx, postTktStatus, "true");
+
                                 MyApp.spinnerStart(context, "Please wait...");
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
@@ -1736,11 +1827,23 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                         MyApp.spinnerStop();
                                     }
                                 }, 10000);
+                                UpdateTask(ctx, postTktStatus, "true");
                                 Cursor cqueryTemp = sql.rawQuery("select * from FirebaseIssueData where IssueId = '" + id + "'", null);
                                 if (cqueryTemp.getCount() > 0) {
                                     cqueryTemp.moveToFirst();
+                                    Map<String, TicketInfoClass> detailsMap = MyApp.getApplication().readIssueDetailsHistory();
                                     if (!nh_userid.equals("0"))
-                                        ref.child(nh_userid).child(id).child("Action").setValue("Update");
+                                        if (detailsMap.containsKey(id)) {
+                                            if (detailsMap.get(id).getType().equals("Ticket")) {
+                                                ref.child(nh_userid).child(id).child("Action").setValue("Update");
+                                            } else {
+                                                Firebase ref = new Firebase(PostUrl.sFirebaseUrlIssues);
+                                                ref.child(nh_userid).child(id).child("Action").setValue("Update");
+                                            }
+                                        } else {
+                                            ref.child(nh_userid).child(id).child("Action").setValue("Update");
+                                        }
+
                                 }
                                 MainActivity m = new MainActivity();
                                 m.updateCounter(ctx, false);
@@ -1760,7 +1863,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 //else dialog stays open. Make sure you have an obvious way to close the dialog especially if you set cancellable to false.
 
             });
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_item, statusList);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(ctx, android.R.layout.simple_spinner_item, statusList);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnercategory.setAdapter(adapter);
 
@@ -1820,7 +1923,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
 
                 public void onNothingSelected(AdapterView<?> arg0) {
-                    // TODO Auto-generated method stub
                 }
             });
 
@@ -1836,7 +1938,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
 
                 public void onNothingSelected(AdapterView<?> arg0) {
-                    // TODO Auto-generated method stub
                 }
             });
 
@@ -1897,7 +1998,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                         cquery = sql.rawQuery("select IsAccepted from Issue_Detail where IssueId='" + mIssueID.get(getAdapterPosition()) + "'", null);
                         cquery.moveToFirst();
-                        String cardType = cquery.getString(0).toString();
+                        String cardType = cquery.getString(0);
                         if (cardType.equals("-1")) ;
                         else {
                             Intent i = new Intent(v.getContext(), TicketInfo.class);
@@ -1927,45 +2028,104 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         try {
             ApiResult.IssueDetail issueDetail;
             try {
-                issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
-                        postTktStatus.get("ParentCompanyId"),
-                        postTktStatus.get("TicketId"),
-                        postTktStatus.get("StatusId"),
-                        postTktStatus.get("Comment"),
-                        postTktStatus.get("ActivityDate"),
-                        postTktStatus.get("DepartmentId"),
-                        postTktStatus.get("Latitude"),
-                        postTktStatus.get("Longitude"),
-                        postTktStatus.get("AssetSerialNo"),
-                        postTktStatus.get("DeviceId"),
-                        postTktStatus.get(realTimeUpdate),
-                        postTktStatus.get("ModeOfTransport"),
-                        postTktStatus.get("Expense"),
-                        postTktStatus.get("AssignedUserId"),
-                        postTktStatus.get("CustomDestination"),
-                        postTktStatus.get("StartingForSite")
-                );
+                if (postTktStatus.get("TicketId").equals("0")) {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TaskId").contains("@@") ? postTktStatus.get("TaskId").split("@@")[0] : postTktStatus.get("TaskId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            postTktStatus.get("CustomDestination"),
+                            postTktStatus.get("StartingForSite")
+                    );
+
+                } else {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TicketId").contains("@@") ? postTktStatus.get("TicketId").split("@@")[0] : postTktStatus.get("TicketId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            postTktStatus.get("CustomDestination"),
+                            postTktStatus.get("StartingForSite")
+                    );
+
+                }
             } catch (Exception e) {
-                issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
-                        postTktStatus.get("ParentCompanyId"),
-                        postTktStatus.get("TicketId"),
-                        postTktStatus.get("StatusId"),
-                        postTktStatus.get("Comment"),
-                        postTktStatus.get("ActivityDate"),
-                        postTktStatus.get("DepartmentId"),
-                        postTktStatus.get("Latitude"),
-                        postTktStatus.get("Longitude"),
-                        postTktStatus.get("AssetSerialNo"),
-                        postTktStatus.get("DeviceId"),
-                        postTktStatus.get(realTimeUpdate),
-                        postTktStatus.get("ModeOfTransport"),
-                        postTktStatus.get("Expense"),
-                        postTktStatus.get("AssignedUserId"),
-                        "",
-                        ""
-                );
+                if (postTktStatus.get("TicketId").equals("0")) {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TaskId").contains("@@") ? postTktStatus.get("TaskId").split("@@")[0] : postTktStatus.get("TaskId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            "",
+                            ""
+                    );
+
+                } else {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TicketId").contains("@@") ? postTktStatus.get("TicketId").split("@@")[0] : postTktStatus.get("TicketId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            "",
+                            ""
+                    );
+
+                }
             }
 
+            if (issueDetail.taskId.equals("0") && issueDetail.IssueId.equals("0")) {
+                Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                savedMap.remove(postTktStatus.get("TicketId"));
+                savedMap.remove(postTktStatus.get("ActivityDate"));
+                MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                int issuesCount = savedMap.keySet().size();
+                try {
+                    ((MainActivity) ctx).txt_issues_count.setText(issuesCount + "");
+                } catch (Exception e) {
+                }
+
+                return;
+            }
 
             try {
                 if (postTktStatus.get("ModeOfTransport").equals("0")) ;
@@ -1984,6 +2144,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             call1.enqueue(new Callback<ApiResult.IssueDetail>() {
                 @Override
                 public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
+                    MyApp.setStatus("isTicketUpdating", false);
                     MyApp.spinnerStop();
                     try {
                         ApiResult.IssueDetail iData = response.body();
@@ -2003,17 +2164,38 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             Log.e("TicketStatusTable", "Success" + " response " + iData.toString());
 
                             if (iData.resData.Status.equals("false")) {
-                                String[] previousStatus = MyApp.getApplication().readSavedStatusValue().get(postTktStatus.get("TicketId"));
+                                try {
+                                    Map<String, String[]> statusArr = MyApp.getApplication().readSavedStatusValue();
+                                    String[] previousStatus = statusArr.get(postTktStatus.get("TicketId"));
+                                    if (statusArr.containsKey(postTktStatus.get("TicketId"))) {
+                                        ContentValues newValues = new ContentValues();
+                                        newValues.put("StatusId", previousStatus[0]);
+                                        newValues.put("IsAccepted", previousStatus[1]);
+                                        newValues.put("UpdatedDate", previousStatus[2]);
+                                        newValues.put("PreviousStatus", previousStatus[3]);
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + postTktStatus.get("TicketId"), null);
+                                    } else if (statusArr.containsKey(postTktStatus.get("TaskId"))) {
+                                        ContentValues newValues = new ContentValues();
+                                        newValues.put("StatusId", previousStatus[0]);
+                                        newValues.put("IsAccepted", previousStatus[1]);
+                                        newValues.put("UpdatedDate", previousStatus[2]);
+                                        newValues.put("PreviousStatus", previousStatus[3]);
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + postTktStatus.get("TaskId"), null);
+                                    }
+                                } catch (Exception e) {
+                                }
 
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("StatusId", previousStatus[0]);
-                                newValues.put("IsAccepted", previousStatus[1]);
-                                newValues.put("UpdatedDate", previousStatus[2]);
-                                newValues.put("PreviousStatus", previousStatus[3]);
-                                sql.update("Issue_Detail", newValues, "IssueId=" + postTktStatus.get("TicketId"), null);
                             }
                             Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-                            savedMap.remove(postTktStatus.get("TicketId"));
+                            String removableKey = "";
+                            for (String keyValue : savedMap.keySet()) {
+                                if (keyValue.contains(postTktStatus.get("TicketId"))) {
+                                    removableKey = keyValue;
+                                } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
+                                    removableKey = keyValue;
+                                }
+                            }
+                            savedMap.remove(removableKey);
                             savedMap.remove(postTktStatus.get("ActivityDate"));
                             MyApp.getApplication().writeTicketsIssueHistory(savedMap);
                             int issuesCount = savedMap.keySet().size();
@@ -2026,6 +2208,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             }
                         }
                     } catch (Exception e) {
+                        MyApp.spinnerStop();
+                        MyApp.setStatus("isTicketUpdating", false);
                         Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
                         Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
                         try {
@@ -2040,19 +2224,24 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                 @Override
                 public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
-                 try{
-                     Log.e("TicketStatusTable", "On failure");
-                     call.cancel();
-                     Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-                     Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
-                     map.put("SyncStatus", "false");
-                     savedMap.put(postTktStatus.get("TicketId"), map);
-                     MyApp.getApplication().writeTicketsIssueHistory(savedMap);
-                 }catch (Exception e){}
+                    MyApp.spinnerStop();
+                    MyApp.setStatus("isTicketUpdating", false);
+                    try {
+                        Log.e("TicketStatusTable", "On failure");
+                        call.cancel();
+                        Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                        Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                        map.put("SyncStatus", "false");
+                        savedMap.put(postTktStatus.get("TicketId"), map);
+                        MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                    } catch (Exception e) {
+                    }
                 }
             });
         } catch (Exception e) {
+            MyApp.setStatus("isTicketUpdating", false);
             e.printStackTrace();
+            MyApp.spinnerStop();
             try {
                 Log.e("TicketStatusTable", "came to exception " + e.toString());
                 Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
@@ -2068,19 +2257,29 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     private void fetchStatus(String currentStatus, String sIssueId, String sCurrentStatusId) {
+        Log.d("debuggingStatus", "statusId " + sIssueId);
+        Log.d("debuggingStatus", currentStatus);
         statusListIds.clear();
         statusList.clear();
         Cursor cqueryFetchingStatus = sql.rawQuery("select IsMobileStatus from Issue_Status where StatusId='" + sCurrentStatusId + "'", null);
         if (cqueryFetchingStatus.getCount() > 0) {
             cqueryFetchingStatus.moveToFirst();
-            if (cqueryFetchingStatus.getString(0).toString().equals("1")) {
+            Log.d("debuggingStatus", "currentStatus " + cqueryFetchingStatus.getString(0));
+            if (cqueryFetchingStatus.getString(0).equals("1")) {
                 Cursor cTemp = sql.rawQuery("select PreviousStatus from Issue_Detail where IssueId='" + sIssueId + "'", null);
+
                 if (cTemp.getCount() > 0) {
                     cTemp.moveToFirst();
+                    Log.d("debuggingStatus", "count " + cTemp.getCount() + " previous " + cTemp.getString(0));
+
+                    cTemp.moveToFirst();
                     Cursor cqueryFetchingChildStatus = sql.rawQuery("select StatusId from Issue_StatusHiererchy where ParentStatus='" + cTemp.getString(0).toString() + "'", null);
+                    Log.d("debuggingStatus", "childStatus " + cqueryFetchingChildStatus.getCount());
                     if (cqueryFetchingChildStatus.getCount() > 0) {
+
                         for (cqueryFetchingChildStatus.moveToFirst(); !cqueryFetchingChildStatus.isAfterLast(); cqueryFetchingChildStatus.moveToNext()) {
                             Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0).toString() + "'", null);
+                            Log.d("debuggingStatus", "statusName " + cqueryFetchingStatusName.getCount());
                             if (cqueryFetchingStatusName.getCount() > 0) {
                                 cqueryFetchingStatusName.moveToFirst();
                                 statusList.add(cqueryFetchingStatusName.getString(0).toString());//Name

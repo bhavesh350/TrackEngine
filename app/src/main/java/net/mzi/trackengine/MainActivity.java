@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        new FetchStatus().execute();
+//        new FetchStatus().execute();
         setContentView(R.layout.activity_main);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
@@ -361,7 +361,8 @@ public class MainActivity extends AppCompatActivity
                                     int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
                                     int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
                                     txt_battery_count.setText(batteryCount + "");
-                                    txt_issues_count.setText(issuesCount + "");
+                                    if (!MyApp.getStatus("isTicketUpdating"))
+                                        txt_issues_count.setText(issuesCount + "");
                                     txt_locations_count.setText(locationsCount + "");
                                     txt_check_in_out_count.setText(checkInOutCount + "");
                                     syncLocations();
@@ -584,7 +585,7 @@ public class MainActivity extends AppCompatActivity
                                         }
                                     } catch (Exception ee) {
                                     }
-                                    showUpdateAppDialog(true);
+                                    showUpdateAppDialog(true, serverVersionCode);
                                 }
                             } catch (PackageManager.NameNotFoundException ee) {
                                 e.printStackTrace();
@@ -608,7 +609,7 @@ public class MainActivity extends AppCompatActivity
                                         }
                                     } catch (Exception ee) {
                                     }
-                                    showUpdateAppDialog(false);
+                                    showUpdateAppDialog(false, serverVersionCode);
                                 }
                             } catch (PackageManager.NameNotFoundException ee) {
                                 e.printStackTrace();
@@ -625,11 +626,12 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+        updateCounter(this, false);
     }
 
     private Dialog updateDialog = null;
 
-    private void showUpdateAppDialog(boolean isForce) {
+    private void showUpdateAppDialog(boolean isForce, final int version) {
         AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
         b.setTitle("Update App").setMessage("New update is available to download on playstore, please updated this app for better " +
                 "experience.\nThank you").setCancelable(isForce).setPositiveButton("Update", new DialogInterface.OnClickListener() {
@@ -641,7 +643,9 @@ public class MainActivity extends AppCompatActivity
                 } catch (android.content.ActivityNotFoundException anfe) {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
                 }
-                clearPreferences();
+                MyApp.setStatus("resetAppData", true);
+                MyApp.setSharedPrefInteger("updatingVersion", version);
+//                clearPreferences();
                 finish();
             }
         });
@@ -687,10 +691,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void showTkt() {
-//        MainActivity.newtkt.setVisibility(View.VISIBLE);
-        startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
-    }
+//    public void showTkt() {
+////        MainActivity.newtkt.setVisibility(View.VISIBLE);
+//        startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
+//    }
 
     @Override
     public void onBackPressed() {
@@ -969,7 +973,7 @@ public class MainActivity extends AppCompatActivity
 
                 MyApp.showMassage(this, "Refreshing...");
                 refreshData(true);
-                new FetchStatus().execute();
+//                new FetchStatus().execute();
                 onResume();
 
             } else {
@@ -1026,6 +1030,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(i);
             overridePendingTransition(0, 0);
         } else if (id == R.id.nav_offlinesync) {
+            callable = true;
             // Toast.makeText(getApplicationContext(), "Coming Soon", Toast.LENGTH_LONG).show();
             Intent i = new Intent(MainActivity.this, OfflineSyncInfo.class);
             startActivity(i);
@@ -1393,8 +1398,13 @@ public class MainActivity extends AppCompatActivity
                     }
                     bufferedReader.close();
                     return stringBuilder.toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    urlConnection.disconnect();
+                    return null;
                 } finally {
                     urlConnection.disconnect();
+                    return null;
                 }
             } catch (Exception e) {
                 Log.e("FollowUp CLASS,", e.getMessage(), e);
@@ -1592,6 +1602,7 @@ public class MainActivity extends AppCompatActivity
         mCardBgClr.clear();
         mCardColor.clear();
         mDataset.clear();
+        mDatasetTypes.clear();
 
 //        for (int i = 0; i < max; i++) {
 //            try {
@@ -1829,6 +1840,9 @@ public class MainActivity extends AppCompatActivity
             Collections.sort(historyData, Collections.<Long>reverseOrder());
             sCheckInStatus = map.get(historyData.get(0));
             checkInOutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(historyData.get(0)));
+
+            MyApp.setStatus("CheckedInStatus", map.get(0));
+            MyApp.setSharedPrefString("CheckedInTime", checkInOutTime);
         }
 
         if (sCheckInStatus) {
@@ -2617,7 +2631,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-
+        MyApp.setStatus("isNewTaskOpen", false);
         MyApp.activityResumed();
         if (mGoogleApiClient.isConnected()) {
             getDeviceLocation();
@@ -2631,7 +2645,8 @@ public class MainActivity extends AppCompatActivity
         int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
 
         txt_battery_count.setText(batteryCount + "");
-        txt_issues_count.setText(issuesCount + "");
+        if (!MyApp.getStatus("isTicketUpdating"))
+            txt_issues_count.setText(issuesCount + "");
         txt_locations_count.setText(locationsCount + "");
         txt_check_in_out_count.setText(checkInOutCount + "");
 
@@ -2648,7 +2663,8 @@ public class MainActivity extends AppCompatActivity
         } catch (NoSuchMethodError e) {
             txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
             txt_check_in_out_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
-            txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            if (!MyApp.getStatus("isTicketUpdating"))
+                txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
             txt_battery_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
         } catch (Exception e) {
         }

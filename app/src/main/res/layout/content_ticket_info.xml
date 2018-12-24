@@ -938,6 +938,15 @@
             android:typeface="serif"
             android:windowSoftInputMode="stateVisible" />
 
+        <CheckBox
+            android:id="@+id/chk_external"
+            android:layout_width="match_parent"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:layout_marginBottom="15dp"
+            android:layout_height="wrap_content"
+            android:text="External"/>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

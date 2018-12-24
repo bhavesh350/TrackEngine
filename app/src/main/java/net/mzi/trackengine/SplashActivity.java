@@ -3,7 +3,9 @@ package net.mzi.trackengine;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -12,6 +14,7 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 
@@ -162,7 +165,9 @@ public class SplashActivity extends AppCompatActivity {
                         + "AssetDetail varchar,"//23
                         + "ContractSubTypeName varchar,"//24
                         + "ContractName varchar,"//25
-                        + "PreviousStatus varchar);");//26
+                        + "PreviousStatus varchar,"
+                        + "TaskId integer);");//26
+//                        + "PreviousStatus varchar);");//26
 
 
                 sql.execSQL("create table if not exists Issue_Attachment("
@@ -217,15 +222,51 @@ public class SplashActivity extends AppCompatActivity {
                     sql.execSQL("INSERT INTO IssueStatus_Main(IssueStatus_MainId,StatusName)VALUES('4','Close')");
                     sql.execSQL("INSERT INTO IssueStatus_Main(IssueStatus_MainId,StatusName)VALUES('5','App Specific')");
                 }
-                if (session.isLoggedIn() && MyApp.getStatus("forceReLogin")) {
-                    Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    SplashActivity.this.finish();
+                int versionCode = 0;
+                try {
+                    PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    versionCode = pInfo.versionCode;
+                } catch (PackageManager.NameNotFoundException e) {
+                    versionCode = 0;
+                    e.printStackTrace();
+                }
+                if (MyApp.getStatus("resetAppData")) {
+                    if (MyApp.getSharedPrefInteger("updatingVersion") == versionCode) {
+                        AlertDialog.Builder b = new AlertDialog.Builder(SplashActivity.this);
+                        b.setTitle("Reset Data").setMessage("You just have updated your app, so we recommend you to reset your app data.")
+                                .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        MyApp.setStatus("resetAppData", false);
+                                        clearPreferences();
+                                        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                }).create().show();
+
+                    } else {
+                        if (session.isLoggedIn() && MyApp.getStatus("forceReLogin")) {
+                            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            SplashActivity.this.finish();
+                        } else {
+                            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                            SplashActivity.this.finish();
+                        }
+                    }
                 } else {
-                    Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    SplashActivity.this.finish();
+                    if (session.isLoggedIn() && MyApp.getStatus("forceReLogin")) {
+                        Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        SplashActivity.this.finish();
+                    } else {
+                        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        SplashActivity.this.finish();
 //                    session.createLoginSession(Login.uname,Login.pwd);
+                    }
                 }
                 try {
                     cquery.close();
@@ -287,6 +328,17 @@ public class SplashActivity extends AppCompatActivity {
                 }
                 return;
             }
+        }
+    }
+
+    private void clearPreferences() {
+        try {
+            // clearing app data
+            Runtime runtime = Runtime.getRuntime();
+            runtime.exec("pm clear net.mzi.trackengine");
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
