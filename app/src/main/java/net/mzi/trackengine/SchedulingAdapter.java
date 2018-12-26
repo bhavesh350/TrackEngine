@@ -115,14 +115,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     public static final int Attended = 2;
     String sAcceptStatus;
 
-    List<String> mName = new ArrayList<String>();
-    List<String> mTime = new ArrayList<String>();
-    List<String> mSub = new ArrayList<String>();
-    List<String> mMob = new ArrayList<String>();
-    List<String> mLoc = new ArrayList<String>();
-    List<String> mCardType = new ArrayList<String>();
-    List<String> mIssueID = new ArrayList<String>();
-    List<Integer> mCardColor = new ArrayList<Integer>();
+    List<String> mName = new ArrayList<>();
+    List<String> mTime = new ArrayList<>();
+    List<String> mSub = new ArrayList<>();
+    List<String> mMob = new ArrayList<>();
+    List<String> mLoc = new ArrayList<>();
+    List<String> mCardType = new ArrayList<>();
+    List<String> mIssueID = new ArrayList<>();
+    List<Integer> mCardColor = new ArrayList<>();
     static int poss;
     String currentStatus;
     static View nhn;
@@ -152,15 +152,21 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         this.issueDetailsMap = issueDetailsMap;
         this.ctx = context;
 
-        for (int i = 0; i < mIssueID.size(); i++) {
-            String savedId = MyApp.getSharedPrefString("savedCardId");
-            boolean isAvail = false;
-            if (mIssueID.get(i).equals(savedId)) {
-                isAvail = true;
-            }
-            if (!isAvail || savedId.equals("0"))
-                MyApp.setSharedPrefString("savedCardId", "");
-        }
+
+//        String savedId = MyApp.getSharedPrefString("savedCardId");
+//        boolean isAvail = false;
+//
+//        for (int i = 0; i < mIssueID.size(); i++) {
+//            if (mIssueID.get(i).equals(savedId)) {
+//                isAvail = true;
+//            }
+//        }
+//
+//        if (savedId.equals("-1") || savedId.equals("-2"))
+//            isAvail = true;
+//
+//        if (!isAvail)
+//            MyApp.setSharedPrefString("savedCardId", "");
     }
 
     @Override
@@ -286,7 +292,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
             ticketHolder.IssueID.setText(mTicketNumber.get(position));
             ticketHolder.Adress.setText(mLoc.get(position));
-            ticketHolder.StatusId.setText(mCardType.get(position));
+            ticketHolder.StatusId.setText(mCardType.get(position).equals("Open") ? "Accepted" : mCardType.get(position));
             ticketHolder.time.setText(sDateUI);
             ticketHolder.IssueText.setText(mSub.get(position));
             ticketHolder.schedule_date.setText(map.get(mTicketNumber.get(position)));
@@ -602,7 +608,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.time.setText(mTime.get(position));
             schedulingholder.name.setText(mName.get(position));
             schedulingholder.schedule_date_value.setText(map.get(mTicketNumber.get(position)));
-            schedulingholder.stats.setText(mCardType.get(position));
+            schedulingholder.stats.setText(mCardType.get(position).equals("Open") ? "Accepted" : mCardType.get(position));
             schedulingholder.top.setBackgroundResource(mCardColor.get(position));
             schedulingholder.bot.setBackgroundResource(mCardColor.get(position));
             schedulingholder.mbut.setBackgroundResource(mCardColor.get(position));
@@ -1507,6 +1513,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 @Override
                 public void onClick(View v) {
                     boolean wantToCloseDialog = true;
+                    boolean isWritten = false;
                     if (commemt.getText().toString().length() == 0) {
                         commemt.setError("Please enter comment");
                         commemt.setText("No comment");
@@ -1606,7 +1613,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     issuesMap.put(id, postTktStatus);
                                     MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
                                 }
-
+                                isWritten = true;
 //                                issuesMap.put(id, postTktStatus);
 //                                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
 
@@ -1763,7 +1770,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             Cursor cqueryTempStatus = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + sSelectedStatus + "'", null);
                             cqueryTempStatus.moveToFirst();
                             /*if (sMainStatusId.equals(cqueryTempStatus.getString(0))) {
-                            } else */{
+                            } else */
+                            if (!isWritten) {
                                 getLocation();
                                 Date cDate1 = new Date();
                                 currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
@@ -1923,6 +1931,46 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
 
                 public void onNothingSelected(AdapterView<?> arg0) {
+                    try {
+                        poss = 0;
+                        cquery = sql.rawQuery("select CommentRequired,StartingForSite from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
+                        cquery.moveToFirst();
+                        if (cquery.getCount() > 0) {
+                            cquery.moveToFirst();
+                            if (cquery.getString(0).equals("true")) {
+                                commemt.setText("");
+                                commemt.setVisibility(View.VISIBLE);
+                            } else {
+                                commemt.setVisibility(View.INVISIBLE);
+                                commemt.setText("n/a");
+                            }
+                            if (cquery.getString(1).equals("true")) {
+                                layoutTransport.setVisibility(View.VISIBLE);
+                            } else {
+                                layoutTransport.setVisibility(View.GONE);
+                            }
+                        }
+                    } catch (Exception e) {
+                        MyApp.showMassage(context, "Local database Problem found with status id = " + statusListIds.get(poss));
+                        return;
+                    }
+
+                    Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + LastTransportMode + "'", null);
+                    Cursor cquery2 = sql.rawQuery("select StartingForSite from Issue_Status where StatusId ='" + sCurrentStatusId + "'", null);
+                    if (cquery1.getCount() > 0 && cquery2.getCount() > 0) {
+                        cquery1.moveToFirst();
+                        cquery2.moveToFirst();
+                        if (cquery1.getString(0).equals("true") && cquery2.getString(0).equals("true")) {
+                            eTransport.setText("");
+                            eTransport.setVisibility(View.VISIBLE);
+                        } else {
+                            eTransport.setText("0");
+                            eTransport.setVisibility(View.GONE);
+                        }
+                    } else {
+                        eTransport.setText("0");
+                        eTransport.setVisibility(View.GONE);
+                    }
                 }
             });
 
@@ -2122,6 +2170,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 try {
                     ((MainActivity) ctx).txt_issues_count.setText(issuesCount + "");
                 } catch (Exception e) {
+                    MyApp.spinnerStop();
                 }
 
                 return;
@@ -2139,6 +2188,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     }
                 }
             } catch (Exception e) {
+                MyApp.spinnerStop();
             }
             Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
             call1.enqueue(new Callback<ApiResult.IssueDetail>() {
@@ -2201,6 +2251,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             int issuesCount = savedMap.keySet().size();
                             try {
                                 ((MainActivity) ctx).txt_issues_count.setText(issuesCount + "");
+                                if (issuesCount == 0) {
+                                    ((MainActivity) ctx).refreshData(true);
+                                }
                             } catch (Exception e) {
                             }
                             if (iData.resData.Status.equals("false")) {

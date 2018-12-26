@@ -22,7 +22,6 @@ import com.firebase.client.Firebase;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.gson.Gson;
 
 import net.mzi.trackengine.model.FirebaseTicketData;
 import net.mzi.trackengine.model.PostUrl;
@@ -172,7 +171,9 @@ public class ServiceDataUpdateFirstFragment extends Service {
                             mTicketIdList.put("LastAction", sLastAction);
 
                             if (!(nh_userid.equals("0"))) {
-                                NewTicketsInfo(mTicketIdList);
+                                int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+                                if (issuesCount == 0)
+                                    NewTicketsInfo(mTicketIdList);
                             }
 
                         }
@@ -557,7 +558,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
         try {
-            if (nh_userid.equals("0")) {
+            if (nh_userid.equals("0") || nh_userid.isEmpty()) {
                 return;
             }
         } catch (Exception e) {

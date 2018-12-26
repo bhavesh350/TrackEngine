@@ -318,6 +318,7 @@ public class MyApp extends MultiDexApplication {
     public static void spinnerStart(Context context, String text) {
         String pleaseWait = text;
         try {
+            spinnerStop();
             dialog = ProgressDialog.show(context, pleaseWait, "", true);
             dialog.setCancelable(false);
             dialog.setCanceledOnTouchOutside(false);
@@ -736,6 +737,7 @@ public class MyApp extends MultiDexApplication {
 
 
     public void writeTicketsIssueHistory(Map<String, Map<String, String>> map) {
+
         try {
             String path = "/data/data/" + c.getPackageName()
                     + "/issueHistory.ser";

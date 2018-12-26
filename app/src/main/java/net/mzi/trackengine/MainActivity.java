@@ -110,6 +110,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1838,11 +1839,15 @@ public class MainActivity extends AppCompatActivity
 
         if (historyData.size() > 0) {
             Collections.sort(historyData, Collections.<Long>reverseOrder());
-            sCheckInStatus = map.get(historyData.get(0));
-            checkInOutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(historyData.get(0)));
+            try {
 
-            MyApp.setStatus("CheckedInStatus", map.get(0));
-            MyApp.setSharedPrefString("CheckedInTime", checkInOutTime);
+                MyApp.setStatus("CheckedInStatus", map.get(0));
+                MyApp.setSharedPrefString("CheckedInTime", checkInOutTime);
+
+                sCheckInStatus = map.get(historyData.get(0));
+                checkInOutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(historyData.get(0)));
+            } catch (Exception e) {
+            }
         }
 
         if (sCheckInStatus) {
@@ -2740,7 +2745,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     progress_sync_locations.setVisibility(View.GONE);
-                    txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
+                    txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
                 }
             }, 4000);
             if (cquery.getCount() > 0) {
@@ -2826,18 +2831,39 @@ public class MainActivity extends AppCompatActivity
                     callableIssues = true;
                 }
             }, 5000);
-            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+            final Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
             if (savedMap.keySet().size() == 0) return;
             progress_sync_status.setVisibility(View.VISIBLE);
             txt_issues_count.setBackground(null);
-            if (savedMap.keySet().size() > 0) {
 
-                for (String key : savedMap.keySet()) {
-                    if (savedMap.get(key).get("SyncStatus").equals("true")) {
+
+            if (savedMap.keySet().size() > 0) {
+                ArrayList<String> keys = new ArrayList<>(savedMap.keySet());
+                List<String> arrayList = new ArrayList<>();
+                for (int i = 0; i < keys.size(); i++) {
+                    arrayList.add(savedMap.get(keys.get(i)).get("ActivityDate")+"@@@"+keys.get(i));
+                }
+
+                class StringDateComparator implements Comparator<String> {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+                    public int compare(String lhs, String rhs) {
+                        try {
+                            return dateFormat.parse(lhs.split("@@@")[0]).compareTo(dateFormat.parse(rhs.split("@@@")[0]));
+                        } catch (ParseException e) {
+                            return 0;
+                        }
+                    }
+                }
+
+                Collections.sort(arrayList, new StringDateComparator());
+
+                for (String key : arrayList) {
+                    if (savedMap.get(key.split("@@@")[1]).get("SyncStatus").equals("true")) {
                         savedMap.remove("TicketId");
                     } else {
                         SchedulingAdapter m = new SchedulingAdapter();
-                        m.UpdateTask(MainActivity.this, savedMap.get(key), "false");
+                        m.UpdateTask(MainActivity.this, savedMap.get(key.split("@@@")[1]), "false");
                     }
                 }
             } else {
@@ -2847,9 +2873,9 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     progress_sync_status.setVisibility(View.GONE);
-                    txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
+                    txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
                 }
-            }, 3000);
+            }, 5000);
         }
     }
 

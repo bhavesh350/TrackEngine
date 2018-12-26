@@ -206,7 +206,11 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                 String sTktInJson = new Gson().toJson(mTicketIdList);
                                 if (!isFirebaseCalled) {
                                     isFirebaseCalled = true;
-                                    NewTicketsInfo(mTicketIdList);
+
+                                    int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+
+                                    if (issuesCount == 0)
+                                        NewTicketsInfo(mTicketIdList);
 
                                     h.postDelayed(new Runnable() {
                                         @Override
@@ -258,7 +262,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void sendNotification(String sNotificationMessage, Context activity, String ticketNumber) {
         nh_userid = pref.getString("userid", "0");
-        if(nh_userid.equals("0")){
+        if (nh_userid.equals("0") || nh_userid.isEmpty()) {
             return;
         }
         notifMap = MyApp.getApplication().readNotifMap();
@@ -329,21 +333,8 @@ public class Firstfrag extends Fragment implements CardStackListener {
             MainActivity.removeTkt();
             MyApp.getApplication().writeNotifMap(new HashMap<String, String>());
         } else {
-
-//            MainActivity.showTkt();
             MainActivity m = new MainActivity();
             m.updateCounter(ctx, false);
-//            manager = new CardStackLayoutManager(getActivity(), this);
-//            cardStackView.setLayoutManager(manager);
-//            manager.setDirections(Direction.HORIZONTAL);
-//            manager.setVisibleCount(3);
-//            manager.setTranslationInterval(8f);
-//            manager.setStackFrom(StackFrom.Top);
-//            manager.setCanScrollHorizontal(false);
-//            manager.setCanScrollVertical(false);
-//            adapter = new SwipeDeckAdapter(newTickets, getActivity(), Firstfrag.this);
-//            manager.setVisibleCount(newTickets.size());
-//            cardStackView.setAdapter(adapter);
             Log.e("?????????????????", cardStackView.isShown() + " " + cardStackView.getChildCount());
             HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
             for (int i = 0; i < newTickets.size(); i++) {
@@ -351,13 +342,16 @@ public class Firstfrag extends Fragment implements CardStackListener {
                 if (!map.containsKey(newTickets.get(i).IssueID)) {
                     map.put(newTickets.get(i).IssueID, newTickets.get(i));
                 }
-//                else if(!map.get(newTickets.get(i).TicketNumber).isCaptured()){
-//                }
             }
             MyApp.getApplication().writeTicketCapture(map);
             captureAllNow();
-            if (!MyApp.getStatus("isNewTaskOpen"))
-                startActivity(new Intent(getActivity(), NewTaskActivity.class));
+
+            if (!MyApp.getStatus("isNewTaskOpen")) {
+                int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+                if (issuesCount == 0)
+                    startActivity(new Intent(getActivity(), NewTaskActivity.class));
+            }
+
         }
 
     }
@@ -802,7 +796,10 @@ public class Firstfrag extends Fragment implements CardStackListener {
 
                                         if (!isFirebaseCalled) {
                                             isFirebaseCalled = true;
-                                            NewTicketsInfo(mTicketIdList);
+                                            int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+
+                                            if (issuesCount == 0)
+                                                NewTicketsInfo(mTicketIdList);
 
                                             h.postDelayed(new Runnable() {
                                                 @Override

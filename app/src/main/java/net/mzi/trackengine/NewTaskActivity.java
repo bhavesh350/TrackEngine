@@ -1,11 +1,10 @@
 package net.mzi.trackengine;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
@@ -45,37 +44,40 @@ public class NewTaskActivity extends AppCompatActivity {
         mDatasetTypes.clear();
         sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
+
         for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
             mStatus.add("New");
-            mIssueID.add(cquery.getString(1).toString());
+            mIssueID.add(cquery.getString(1));
             if (cquery.getString(8).length() < 12) {
-                mTime.add(cquery.getString(7).toString());
+                mTime.add(cquery.getString(7));
             } else {
-                mTime.add(cquery.getString(8).toString());
+                mTime.add(cquery.getString(8));
             }
-            mSub.add(cquery.getString(3).toString());
-            mLoc.add(cquery.getString(10).toString());
-            mTicketNumber.add(cquery.getString(20).toString());
+            mSub.add(cquery.getString(3));
+            mLoc.add(cquery.getString(10));
+            mTicketNumber.add(cquery.getString(20));
             mDatasetTypes.add(TASK);
-
         }
-        mRecyclerView = (RecyclerView) findViewById(R.id.new_task_view);
+
+        mRecyclerView = findViewById(R.id.new_task_view);
         mLayoutManager = new LinearLayoutManager(NewTaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
+
         newtaskAdapter = new NewTaskAdapter(mIssueID, mTime, mLoc, mSub, mStatus, mDatasetTypes, mTicketNumber, NewTaskActivity.this);
         mRecyclerView.setAdapter(newtaskAdapter);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        MyApp.setStatus("isNewTaskOpen",true);
+        MyApp.setStatus("isNewTaskOpen", true);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MyApp.setStatus("isNewTaskOpen",false);
+        MyApp.setStatus("isNewTaskOpen", false);
     }
 
     @Override
