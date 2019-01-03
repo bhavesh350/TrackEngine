@@ -113,6 +113,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -129,7 +130,7 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, SharedPreferences.OnSharedPreferenceChangeListener {
-    BroadcastReceiver brOfflineData;
+    GpsLocationReceiver gpsLocationReceiver;
     private FusedLocationProviderClient mFusedLocationClient;
     private static final String TAG = MainActivity.class.getSimpleName();
     ApiInterface apiInterface;
@@ -141,14 +142,14 @@ public class MainActivity extends AppCompatActivity
     static PendingIntent batteryPendingIntent, locationPendingIntent;
     public static AlarmManager batteryAlarmManager, locationAlarmManager;
     RelativeLayout timerlayout;
-    LinearLayout lTimerLayout;
+    //    LinearLayout lTimerLayout;
     static RelativeLayout RLay;
     SwipeRefreshLayout mSwipeRefreshLayout;
     TextView timer, currTime;
     static RelativeLayout newtkt;
     String currentDateTimeString;
     static String currentDateTimeStringCheckIN = "";
-    TextView viewAll, h_uname, tCheckIntTime, tCheckInStatus;
+    TextView viewAll, h_uname;
     private Button btn_check_in_out;
     static TextView showAlert;
     LocationManager locationManager;
@@ -296,117 +297,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (brOfflineData == null) {
-            try {
-                brOfflineData = new BroadcastReceiver() {
-                    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        Bundle extras = intent.getExtras();
-
-                        ConnectivityManager cm =
-                                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-                        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-
-                        if (networkInfo != null) {
-                            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-                                // do something
-                                Log.e("TEST Internet", "WIFI");
-                            } else if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-                                // check NetworkInfo subtype
-                                Log.e("TEST Internet", "Mobile");
-                                if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_HSPAP) {
-                                    // Bandwidth between 100 kbps and below
-                                    Log.e("TEST Internet", "LOW");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_GPRS) {
-                                    // Bandwidth between 100 kbps and below
-                                    Log.e("TEST Internet", "LOW");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EDGE) {
-                                    // Bandwidth between 50-100 kbps
-                                    Log.e("TEST Internet", "MEDIUM");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_0) {
-                                    // Bandwidth between 400-1000 kbps
-                                    Log.e("TEST Internet", "NORMAL");
-                                } else if (networkInfo.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_A) {
-                                    // Bandwidth between 600-1400 kbps
-                                    Log.e("TEST Internet", "HIGH");
-                                }
-                            }
-
-
-                            Date cDate = new Date();
-                            currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                            if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
-
-                                InternetConnector icDataSyncing = new InternetConnector();
-                                try {
-                                    icDataSyncing.offlineSyncing(MainActivity.this, 1);
-                                    mMobileDataInfo.put("UserId", LOGINID);
-                                    mMobileDataInfo.put("DeviceId", sDeviceId);
-                                    mMobileDataInfo.put("Enabled", "true");
-                                    mMobileDataInfo.put("ActionDate", currentDateTimeString);
-                                    mMobileDataInfo.put("RealTimeUpdate", "true");
-//                                    String jsonString = new Gson().toJson(mMobileDataInfo);
-                                    sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                                            "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
-                                    Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
-                                    String sColumnId = null;
-                                    if (cquery.getCount() > 0) {
-                                        cquery.moveToLast();
-                                        sColumnId = cquery.getString(0).toString();
-                                    }
-                                    cquery.close();
-                                    PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
-                                    int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
-                                    int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
-                                    int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
-                                    int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
-                                    txt_battery_count.setText(batteryCount + "");
-                                    if (!MyApp.getStatus("isTicketUpdating"))
-                                        txt_issues_count.setText(issuesCount + "");
-                                    txt_locations_count.setText(locationsCount + "");
-                                    txt_check_in_out_count.setText(checkInOutCount + "");
-                                    syncLocations();
-                                    syncCheckInOut();
-                                    syncBattery();
-                                    syncIssues();
-                                } catch (Exception e) {
-                                }
-
-
-                            } else {
-                                MyApp.showMassage(MainActivity.this, "Internet connection is Off");
-//                                Toast.makeText(getApplicationContext(), "Internet connection is Off", Toast.LENGTH_LONG).show();
-                                mMobileDataInfo.put("UserId", LOGINID);
-                                mMobileDataInfo.put("DeviceId", sDeviceId);
-                                mMobileDataInfo.put("Enabled", "false");
-                                mMobileDataInfo.put("ActionDate", currentDateTimeString);
-                                mMobileDataInfo.put("RealTimeUpdate", "true");
-                                String jsonString = new Gson().toJson(mMobileDataInfo);
-                                sql.execSQL("INSERT INTO User_MobileData(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                                        "('" + mMobileDataInfo.get("UserId") + "','" + mMobileDataInfo.get("Enabled") + "','" + mMobileDataInfo.get("ActionDate") + "','-1')");
-                                Cursor cquery = sql.rawQuery("select * from User_MobileData ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                cquery.close();
-                                PushMobileData(mMobileDataInfo, getApplicationContext(), sColumnId);
-                            }
-                            showAlert.setText("Please Wait, fetching ticket info!!!");
-                        } else
-                            showAlert.setText("Internet is not Working");
-
-                    }
-                };
-                final IntentFilter intentFilter = new IntentFilter();
-                intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                registerReceiver(brOfflineData, intentFilter);
-            } catch (Exception e) {
-
-            }
-        }
 
         Firebase.setAndroidContext(this);
         session = new SessionManager(getApplicationContext());
@@ -427,10 +317,6 @@ public class MainActivity extends AppCompatActivity
         HashMap<String, String> map = new HashMap<>();
         map = s.getUserDetails();
         LOGINID = map.get("userid");
-        lTimerLayout = findViewById(R.id.timerL);
-        lTimerLayout.setVisibility(View.GONE);
-        tCheckInStatus = findViewById(R.id.checkInStatus);
-        tCheckIntTime = findViewById(R.id.checkInTime);
         btn_check_in_out = findViewById(R.id.btn_check_in_out);
         mSwipeRefreshLayout = findViewById(R.id.activity_main_swipe_refresh_layout);
         timerlayout = findViewById(R.id.timerLayout);
@@ -468,11 +354,6 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView.setLayoutManager(gaggeredGridLayoutManager);
 
         refreshData(false);
-
-//        boolean isFromLogin = getIntent().getBooleanExtra("fromLogin",false);
-//        if(isFromLogin){
-//            callPostLogin();
-//        }
 
         try {
             ApiResult.IssueStatus.lstDetails data[] = MyApp.getApplication().readIssuesStatusList();
@@ -519,7 +400,12 @@ public class MainActivity extends AppCompatActivity
                     }, 10000);
                     syncCheckInOut();
                     syncLocations();
-                    syncIssues();
+                    try {
+                        if (!stringIterator.hasNext())
+                            syncIssues();
+                    } catch (Exception ee) {
+                        syncIssues();
+                    }
                     syncBattery();
                 }
 
@@ -540,7 +426,12 @@ public class MainActivity extends AppCompatActivity
         rl_sync_issue_status.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                syncIssues();
+                try {
+                    if (!stringIterator.hasNext())
+                        syncIssues();
+                } catch (Exception ee) {
+                    syncIssues();
+                }
             }
         });
         rl_sync_battery.setOnClickListener(new View.OnClickListener() {
@@ -628,6 +519,21 @@ public class MainActivity extends AppCompatActivity
             }
         });
         updateCounter(this, false);
+        gpsLocationReceiver = new GpsLocationReceiver();
+        registerReceiver(new NetworkChangeReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(gpsLocationReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+    }
+
+    private boolean isOnline(Context context) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = cm.getActiveNetworkInfo();
+            //should check null because in airplane mode it will be null
+            return (netInfo != null && netInfo.isConnected());
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private Dialog updateDialog = null;
@@ -967,22 +873,78 @@ public class MainActivity extends AppCompatActivity
 //            refreshCounter += MyApp.getApplication().readBatteryHistory().keySet().size();
 
 
-            if (txt_battery_count.getText().toString().equals("0")
-                    && txt_issues_count.getText().toString().equals("0")
-                    && txt_locations_count.getText().toString().equals("0")
-                    && txt_check_in_out_count.getText().toString().equals("0")) {
+            if (txt_issues_count.getText().toString().equals("0")) {
 
                 MyApp.showMassage(this, "Refreshing...");
                 refreshData(true);
 //                new FetchStatus().execute();
-                onResume();
+                refreshResume();
 
             } else {
-                MyApp.popMessage("Alert!", "Please sync your offline data first", MainActivity.this);
+                MyApp.popMessage("Alert!", "Please sync your offline tickets status data first.", MainActivity.this);
             }
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void refreshResume(){
+        MyApp.setStatus("isNewTaskOpen", false);
+
+        int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
+        int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+        int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+        int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
+
+        txt_battery_count.setText(batteryCount + "");
+        if (!MyApp.getStatus("isTicketUpdating"))
+            txt_issues_count.setText(issuesCount + "");
+        txt_locations_count.setText(locationsCount + "");
+        txt_check_in_out_count.setText(checkInOutCount + "");
+
+        progress_sync_locations.setVisibility(View.GONE);
+        progress_sync_status.setVisibility(View.GONE);
+        progress_sync_battery.setVisibility(View.GONE);
+        progress_sync_progress_in_out.setVisibility(View.GONE);
+
+        try {
+            txt_locations_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_check_in_out_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_issues_count.setBackground(getDrawable(R.drawable.sync_orange));
+            txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
+        } catch (NoSuchMethodError e) {
+            txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            txt_check_in_out_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            if (!MyApp.getStatus("isTicketUpdating"))
+                txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+            txt_battery_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+        } catch (Exception e) {
+        }
+
+        if (callable) {
+
+            syncLocations();
+            syncCheckInOut();
+            syncBattery();
+            if (!MyApp.getStatus("isTicketUpdating"))
+                try {
+                    if (!stringIterator.hasNext())
+                        syncIssues();
+                } catch (Exception ee) {
+                    syncIssues();
+                }
+            callable = false;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    callable = true;
+                }
+            }, 10000);
+        }
+
+        if (checkInOutCount == 0)
+            new CheckInInfo().execute();
+
     }
 
 
@@ -1078,7 +1040,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(brOfflineData);
     }
 
     @Override
@@ -1682,14 +1643,11 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void PushMobileData(Map mMobileDataInfo, final Context ctx, final String sColumnId) {
+    public void PushMobileData(Map mMobileDataInfo, final Context ctx, final long key) {
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
-        Log.e("PushMobileData: ", mMobileDataInfo.toString());
         final ApiResult apiResult = new ApiResult();
         final ApiResult.User_MobileData user_MobileData = apiResult.new User_MobileData("true", mMobileDataInfo.get("UserId").toString(), mMobileDataInfo.get("DeviceId").toString(), mMobileDataInfo.get("Enabled").toString(), mMobileDataInfo.get("ActionDate").toString());
         Call<ApiResult.User_MobileData> call1 = apiInterface.PostMobileData(user_MobileData);
-        final String finalColumnId = sColumnId;
         call1.enqueue(new Callback<ApiResult.User_MobileData>() {
             @Override
             public void onResponse(Call<ApiResult.User_MobileData> call, Response<ApiResult.User_MobileData> response) {
@@ -1697,14 +1655,13 @@ public class MainActivity extends AppCompatActivity
                     ApiResult.User_MobileData iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "false");
-                        sql.update("User_MobileData", newValues, "Id=" + sColumnId, null);
-
                     } else {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "true");
-                        sql.update("User_MobileData", newValues, "Id=" + sColumnId, null);
+                        Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                        try {
+                            mobileData.remove(key);
+                            MyApp.getApplication().writeMobileData(mobileData);
+                        } catch (Exception e) {
+                        }
                     }
                 } catch (Exception e) {
                 }
@@ -1841,11 +1798,11 @@ public class MainActivity extends AppCompatActivity
             Collections.sort(historyData, Collections.<Long>reverseOrder());
             try {
 
-                MyApp.setStatus("CheckedInStatus", map.get(0));
-                MyApp.setSharedPrefString("CheckedInTime", checkInOutTime);
-
                 sCheckInStatus = map.get(historyData.get(0));
                 checkInOutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(historyData.get(0)));
+
+                MyApp.setStatus("CheckedInStatus", sCheckInStatus);
+                MyApp.setSharedPrefString("CheckedInTime", checkInOutTime);
             } catch (Exception e) {
             }
         }
@@ -1853,10 +1810,7 @@ public class MainActivity extends AppCompatActivity
         if (sCheckInStatus) {
             btn_check_in_out.setText("Checked-IN\n" + checkInOutTime);
             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
-            tCheckInStatus.setText("Checked-IN");
-            lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
-            tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
+
             /*********************************Alarm : 6 o clock********************************************************/
             Calendar alarmStartTime = Calendar.getInstance();
             alarmStartTime.set(Calendar.HOUR_OF_DAY, 18);
@@ -1879,19 +1833,10 @@ public class MainActivity extends AppCompatActivity
         } else {
             btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
-            tCheckInStatus.setText("Checked-OUT");
-            lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
-            tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nMgr.cancel(12345);
 
         }
-
-        tCheckIntTime.setText(checkInOutTime);
-
-
-        Log.e(TAG, "onCreate:sdsdsd " + tCheckIntTime.getText().toString());
         viewAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1900,9 +1845,7 @@ public class MainActivity extends AppCompatActivity
                 startActivity(i);
             }
         });
-//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
+
         mDataset = new ArrayList<>();
         mDatasetTypes = new ArrayList<>();
         mDatasetCount = new ArrayList<>();
@@ -1939,8 +1882,6 @@ public class MainActivity extends AppCompatActivity
         cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
         mDatasetCount.add(String.valueOf(cquery.getCount()));
         cquery.close();
-
-        // mLayoutManager = new LinearLayoutManager(MainActivity.this,LinearLayoutManager.HORIZONTAL,false);
 
         if (mAdapter != null) {
             mAdapter.notifyDataSetChanged();
@@ -1995,8 +1936,8 @@ public class MainActivity extends AppCompatActivity
                     }).create().show();
                     return;
                 }
-                if (tCheckInStatus.getText().toString().equals("Checked-OUT")) {
-                    Map<Long, Boolean> historyMap = MyApp.getApplication().readCheckInOutDataHistory();
+                if (!sCheckInStatus) {
+                    Map<Long, Boolean> historyMap = new HashMap<>();
                     historyMap.put(System.currentTimeMillis(), true);
                     MyApp.getApplication().writeCheckInOutDataHistory(historyMap);
                     btn_check_in_out.setEnabled(false);
@@ -2022,21 +1963,7 @@ public class MainActivity extends AppCompatActivity
 
                     currTime.setText("CheckedIN: " + currentDateTimeStringCheckIN);
                     appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
-
-
-                    tCheckIntTime.setText(currentDateTimeStringCheckIN);
-                    tCheckInStatus.setText("Checked-IN");
-                    Log.e(TAG, "onCheckedChanged: " + tCheckInStatus.getText().toString());
-                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-                    tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
-                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
                     isCheckIn = "true";
-                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.green));
-                    //tAt.setTextColor(getResources().getColor(R.color.green));
-//                    try {
-//                        sql.delete("User_AppCheckIn", null, null);
-//                    } catch (Exception e) {
-//                    }
                     Cursor cquery = sql.rawQuery("select * from User_Location", null);
                     if (cquery.getCount() > 0) {
 
@@ -2057,7 +1984,7 @@ public class MainActivity extends AppCompatActivity
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     btn_check_in_out.setEnabled(false);
-                                    Map<Long, Boolean> historyMap = MyApp.getApplication().readCheckInOutDataHistory();
+                                    Map<Long, Boolean> historyMap = new HashMap<>();
                                     historyMap.put(System.currentTimeMillis(), false);
                                     MyApp.getApplication().writeCheckInOutDataHistory(historyMap);
                                     new Handler().postDelayed(new Runnable() {
@@ -2083,18 +2010,10 @@ public class MainActivity extends AppCompatActivity
                                     } catch (Exception e) {
                                     }
 
-                                    Log.e(TAG, "setData:Checked-IN " + currentDateTimeString);
                                     isCheckIn = "false";
                                     appCheckInInfo.put("ActivityDate", currentDateTimeString);
                                     timer.setText("00:00:00");
 
-
-                                    tCheckIntTime.setText(currentDateTimeString);
-                                    tCheckInStatus.setText("Checked-OUT");
-                                    lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-                                    tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
-                                    //tCheckInStatus.setTextColor(getResources().getColor(R.color.red));
-                                    tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
 
                                     NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                                     nMgr.cancel(12345);
@@ -2478,112 +2397,80 @@ public class MainActivity extends AppCompatActivity
 //        new IsLogin(sPostLogin, 0, "0").execute();
 //    }
 
-//    private class CheckInInfo extends AsyncTask<String, Void, String> {
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//        }
-//
-//        @Override
-//        protected String doInBackground(String... params) {
-//            try {
-//                Date cDate = new Date();
-//                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-//                String API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
-//                URL url = new URL(API_URL);
-//                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-//                urlConnection.setConnectTimeout(15000);
-//                urlConnection.setReadTimeout(15000);
-//                try {
-//                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    String line;
-//                    while ((line = bufferedReader.readLine()) != null) {
-//                        stringBuilder.append(line).append("\n");
-//                    }
-//                    bufferedReader.close();
-//                    return stringBuilder.toString();
-//                } finally {
-//                    urlConnection.disconnect();
-//                }
-//            } catch (Exception e) {
-//                Log.e("FollowUp CLASS,", e.getMessage(), e);
-//
-//                return null;
-//            }
-//        }
-//
-//        @Override
-//        protected void onPostExecute(String s) {
-//            super.onPostExecute(s);
-//            if (s == null) {
-//            } else {
-//                Log.i("INFO", s);
-//                try {
-//
-//                    JSONObject jsonObject = (JSONObject) new JSONTokener(s).nextValue();
-//                    JSONArray jdata = jsonObject.getJSONArray("UserCheckInCheckOutDetails");
-//                    for (int i = 0; i < jdata.length(); i++) {
-//                        JSONObject object = jdata.getJSONObject(i);
-//                        if (object.optString("CheckOutTime").isEmpty()) {
-//                            // condition that it is checked in
-//                            String one = object.optString("CheckInTime").substring(0, 11);
-//                            String two = object.optString("CheckInTime").substring(12, object.optString("CheckInTime").length());
-//                            editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
-//                                    parseDateTime(two));
-//                            editor.putString("CheckedInStatus", "True");
-//                            editor.commit();
-//
-//                            sCheckInTime = pref.getString("CheckedInTime", "0");
-//                            sCheckInStatus = pref.getString("CheckedInStatus", "0");
-//                            Log.d(">>>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
-//                            {
-//                                tCheckInStatus.setText("Checked-IN");
-//                                lTimerLayout.setBackgroundResource(R.drawable.cardbk_green);
-//                                tCheckInStatus.setBackgroundResource(R.drawable.cardbk_green_solid);
-//                                tCheckIntTime.setTextColor(getResources().getColor(R.color.green));
-//                                tCheckIntTime.setText(sCheckInTime);
-//                            }
-//                        } else {
-//                            // condition that it is checked in
-//                            String one = object.optString("CheckOutTime").substring(0, 11);
-//                            String two = object.optString("CheckOutTime").substring(12, object.optString("CheckOutTime").length());
-//                            editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
-//                                    parseDateTime(two));
-//                            editor.putString("CheckedInStatus", "False");
-//                            editor.commit();
-//
-//                            sCheckInTime = pref.getString("CheckedInTime", "0");
-//                            sCheckInStatus = pref.getString("CheckedInStatus", "0");
-//                            tCheckInStatus.setText("Checked-OUT");
-//                            lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-//                            tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red);
-//                            tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
-//                            tCheckIntTime.setText(sCheckInTime);
-//                        }
-//                    }
-//
-//                    if (jdata.length() == 0) {
-////                        editor.putString("CheckedInTime", parseDateToddMMyyyy(one) + " " +
-////                                parseDateTime(two));
-//                        editor.putString("CheckedInStatus", "False");
-//                        editor.commit();
-//
-//                        sCheckInTime = pref.getString("CheckedInTime", "0");
-//                        sCheckInStatus = pref.getString("CheckedInStatus", "0");
-//                        Log.d(">>>>>>>>>>>>>>>>", "checked-in time " + sCheckInTime + " and sCheckInStatus " + sCheckInStatus);
-//                        tCheckInStatus.setText("Checked-OUT");
-//                        lTimerLayout.setBackgroundResource(R.drawable.cardbk_red);
-//                        tCheckInStatus.setBackgroundResource(R.drawable.cardbk_red_solid);
-//                        tCheckIntTime.setTextColor(getResources().getColor(R.color.red));
-//                        tCheckIntTime.setText(sCheckInTime);
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//    }
+    private class CheckInInfo extends AsyncTask<String, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                Date cDate = new Date();
+                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+//                http://trackengine.mzservices.net/api/Post/GetUserCheckIn?iUserId=7125
+                String API_URL = PostUrl.sUrl + "GetUserCheckIn?iUserId=" + LOGINID;
+                URL url = new URL(API_URL);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setConnectTimeout(15000);
+                urlConnection.setReadTimeout(15000);
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append("\n");
+                    }
+                    bufferedReader.close();
+                    return stringBuilder.toString();
+                } finally {
+                    urlConnection.disconnect();
+                }
+            } catch (Exception e) {
+                Log.e("FollowUp CLASS,", e.getMessage(), e);
+
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s == null) {
+            } else {
+                Log.i("INFO", s);
+                try {
+                    JSONObject o = new JSONObject(s);
+                    JSONArray arr = o.optJSONArray("UserCheckIn");
+                    JSONObject oo = arr.getJSONObject(0);
+                    String userId = oo.optString("UserId");
+                    boolean IsCheckIn = oo.optBoolean("IsCheckIn");
+                    String ActionDate = oo.optString("ActionDate");
+                    ActionDate = ActionDate.replace("T", " ");
+
+                    MyApp.setSharedPrefString("CheckedInTime", ActionDate);
+                    MyApp.setStatus("CheckedInStatus", IsCheckIn);
+
+                    checkInOutTime = MyApp.getSharedPrefString("CheckedInTime");
+                    sCheckInStatus = MyApp.getStatus("CheckedInStatus");
+
+
+                    if (sCheckInStatus) {
+                        btn_check_in_out.setText("Checked-IN\n" + checkInOutTime);
+                        btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
+                    } else {
+                        btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
+                        btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
+                        NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        nMgr.cancel(12345);
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 
     public static String parseDateToddMMyyyy(String time) {
@@ -2680,7 +2567,12 @@ public class MainActivity extends AppCompatActivity
             syncCheckInOut();
             syncBattery();
             if (!MyApp.getStatus("isTicketUpdating"))
-                syncIssues();
+                try {
+                    if (!stringIterator.hasNext())
+                        syncIssues();
+                } catch (Exception ee) {
+                    syncIssues();
+                }
             callable = false;
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -2689,6 +2581,9 @@ public class MainActivity extends AppCompatActivity
                 }
             }, 10000);
         }
+
+        if (checkInOutCount == 0)
+            new CheckInInfo().execute();
 
     }
 
@@ -2841,7 +2736,7 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<String> keys = new ArrayList<>(savedMap.keySet());
                 List<String> arrayList = new ArrayList<>();
                 for (int i = 0; i < keys.size(); i++) {
-                    arrayList.add(savedMap.get(keys.get(i)).get("ActivityDate")+"@@@"+keys.get(i));
+                    arrayList.add(savedMap.get(keys.get(i)).get("ActivityDate") + "@@@" + keys.get(i));
                 }
 
                 class StringDateComparator implements Comparator<String> {
@@ -2857,27 +2752,29 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 Collections.sort(arrayList, new StringDateComparator());
-
+                List<String> seqKeys = new ArrayList<>();
                 for (String key : arrayList) {
                     if (savedMap.get(key.split("@@@")[1]).get("SyncStatus").equals("true")) {
                         savedMap.remove("TicketId");
                     } else {
-                        SchedulingAdapter m = new SchedulingAdapter();
-                        m.UpdateTask(MainActivity.this, savedMap.get(key.split("@@@")[1]), "false");
+                        seqKeys.add(key.split("@@@")[1]);
                     }
                 }
+
+                if (seqKeys.size() > 0) {
+                    stringIterator = seqKeys.iterator();
+                    String keySent = stringIterator.next();
+                    Log.e("AssignedUserId", keySent);
+                    UpdateTask(savedMap.get(keySent), "false", keySent);
+                }
+
             } else {
                 Log.e("TicketStatusTable", "offline sync count is 0");
             }
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    progress_sync_status.setVisibility(View.GONE);
-                    txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
-                }
-            }, 5000);
         }
     }
+
+    Iterator<String> stringIterator = null;
 
     private void syncBattery() {
         if (MyApp.isConnectingToInternet(MainActivity.this) && callableBattery) {
@@ -2910,7 +2807,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     progress_sync_battery.setVisibility(View.GONE);
-                    txt_battery_count.setBackground(getDrawable(R.drawable.sync_orange));
+                    txt_battery_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
                 }
             }, 4000);
         }
@@ -2922,6 +2819,344 @@ public class MainActivity extends AppCompatActivity
         super.onNewIntent(intent);
         if (intent.getBooleanExtra("refresh", false)) {
             refreshData(true);
+        }
+    }
+
+
+    public void UpdateTask(final Map<String, String> postTktStatus, String realTimeUpdate, final String keyToDelete) {
+        if (postTktStatus == null) {
+            try {
+                if (stringIterator.hasNext()) {
+                    String keySent = stringIterator.next();
+                    Log.e("AssignedUserId", keySent);
+
+                    UpdateTask(MyApp.getApplication().readTicketsIssueHistory().get(keySent), "false", keySent);
+                } else {
+                    stringIterator = null;
+                    progress_sync_status.setVisibility(View.GONE);
+                    txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+                }
+            } catch (Exception e) {
+            }
+            return;
+        }
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        final ApiResult apiResult = new ApiResult();
+        try {
+            ApiResult.IssueDetail issueDetail;
+            try {
+                if (postTktStatus.get("TicketId").equals("0")) {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TaskId").contains("@@") ? postTktStatus.get("TaskId").split("@@")[0] : postTktStatus.get("TaskId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            postTktStatus.get("CustomDestination"),
+                            postTktStatus.get("StartingForSite")
+                    );
+
+                } else {
+                    issueDetail = apiResult.new IssueDetail(postTktStatus.get("UserId"),
+                            postTktStatus.get("ParentCompanyId"),
+                            postTktStatus.get("TicketId").contains("@@") ? postTktStatus.get("TicketId").split("@@")[0] : postTktStatus.get("TicketId"),
+                            postTktStatus.get("StatusId"),
+                            postTktStatus.get("Comment"),
+                            postTktStatus.get("ActivityDate"),
+                            postTktStatus.get("DepartmentId"),
+                            postTktStatus.get("Latitude"),
+                            postTktStatus.get("Longitude"),
+                            postTktStatus.get("AssetSerialNo"),
+                            postTktStatus.get("DeviceId"),
+                            postTktStatus.get(realTimeUpdate),
+                            postTktStatus.get("ModeOfTransport"),
+                            postTktStatus.get("Expense"),
+                            postTktStatus.get("AssignedUserId"),
+                            postTktStatus.get("CustomDestination"),
+                            postTktStatus.get("StartingForSite")
+                    );
+
+                }
+            } catch (Exception e) {
+                try {
+                    if (stringIterator.hasNext()) {
+                        String keySent = stringIterator.next();
+                        Log.e("AssignedUserId", keySent);
+
+                        UpdateTask(MyApp.getApplication().readTicketsIssueHistory().get(keySent), "false", keySent);
+                    } else {
+                        stringIterator = null;
+                        progress_sync_status.setVisibility(View.GONE);
+                        txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+                    }
+                } catch (Exception re) {
+                }
+                return;
+            }
+
+            if (issueDetail.taskId.equals("0") && issueDetail.IssueId.equals("0") &&
+                    !(issueDetail.Status.equals("2") || issueDetail.Status.equals("3"))) {
+                Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                String removableKey = "";
+                for (String keyValue : savedMap.keySet()) {
+                    if (keyValue.contains(postTktStatus.get("TicketId"))) {
+                        removableKey = keyValue;
+                    } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
+                        removableKey = keyValue;
+                    }
+                }
+                savedMap.remove(keyToDelete);
+//                savedMap.remove(postTktStatus.get("ActivityDate"));
+                MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                int issuesCount = savedMap.keySet().size();
+                try {
+                    txt_issues_count.setText(issuesCount + "");
+                } catch (Exception e) {
+                    MyApp.spinnerStop();
+                }
+
+                try {
+
+                    if (stringIterator.hasNext()) {
+                        String keySent = stringIterator.next();
+                        Log.e("AssignedUserId", keySent);
+
+                        UpdateTask(MyApp.getApplication().readTicketsIssueHistory().get(keySent), "false", keySent);
+                    } else {
+                        stringIterator = null;
+                        progress_sync_status.setVisibility(View.GONE);
+                        txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+                    }
+                } catch (Exception e) {
+                }
+
+                return;
+            }
+
+            Call<ApiResult.IssueDetail> call1 = apiInterface.PostTicketStatus(issueDetail);
+            call1.enqueue(new Callback<ApiResult.IssueDetail>() {
+                @Override
+                public void onResponse(Call<ApiResult.IssueDetail> call, Response<ApiResult.IssueDetail> response) {
+                    MyApp.setStatus("isTicketUpdating", false);
+                    MyApp.spinnerStop();
+                    try {
+                        ApiResult.IssueDetail iData = response.body();
+                        if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                            try {
+                                MyApp.showMassage(MainActivity.this, getString(R.string.internet_error));
+                            } catch (Exception e) {
+                                e.getMessage();
+                            }
+                            Log.e("TicketStatusTable", "Success but not true");
+                            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                            Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                            map.put("SyncStatus", "false");
+                            savedMap.put(postTktStatus.get("TicketId"), map);
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                        } else {
+                            Log.e("TicketStatusTable", "Success" + " response " + iData.toString());
+
+                            if (iData.resData.Status.equals("false")) {
+                                try {
+                                    Map<String, String[]> statusArr = MyApp.getApplication().readSavedStatusValue();
+                                    String[] previousStatus = statusArr.get(postTktStatus.get("TicketId"));
+                                    sql = openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
+
+                                    if (statusArr.containsKey(postTktStatus.get("TicketId"))) {
+                                        ContentValues newValues = new ContentValues();
+                                        newValues.put("StatusId", previousStatus[0]);
+                                        newValues.put("IsAccepted", previousStatus[1]);
+                                        newValues.put("UpdatedDate", previousStatus[2]);
+                                        newValues.put("PreviousStatus", previousStatus[3]);
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + postTktStatus.get("TicketId"), null);
+                                    } else if (statusArr.containsKey(postTktStatus.get("TaskId"))) {
+                                        ContentValues newValues = new ContentValues();
+                                        newValues.put("StatusId", previousStatus[0]);
+                                        newValues.put("IsAccepted", previousStatus[1]);
+                                        newValues.put("UpdatedDate", previousStatus[2]);
+                                        newValues.put("PreviousStatus", previousStatus[3]);
+                                        sql.update("Issue_Detail", newValues, "IssueId=" + postTktStatus.get("TaskId"), null);
+                                    }
+                                } catch (Exception e) {
+                                }
+
+                            }
+                            Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                            String removableKey = "";
+                            for (String keyValue : savedMap.keySet()) {
+                                if (keyValue.contains(postTktStatus.get("TicketId"))) {
+                                    removableKey = keyValue;
+                                } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
+                                    removableKey = keyValue;
+                                }
+                            }
+                            savedMap.remove(keyToDelete);
+//                            savedMap.remove(postTktStatus.get("ActivityDate"));
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                            int issuesCount = savedMap.keySet().size();
+                            try {
+                                txt_issues_count.setText(issuesCount + "");
+                                if (issuesCount == 0) {
+                                    refreshData(true);
+                                }
+                            } catch (Exception e) {
+                            }
+                            if (iData.resData.Status.equals("false")) {
+                                MyApp.popMessage("Error", iData.resData.Message, MainActivity.this);
+                            }
+                        }
+                    } catch (Exception e) {
+                        MyApp.spinnerStop();
+                        MyApp.setStatus("isTicketUpdating", false);
+                        Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                        Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                        try {
+                            map.put("SyncStatus", "false");
+                            savedMap.put(postTktStatus.get("TicketId"), map);
+                            MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                        } catch (Exception ee) {
+
+                        }
+                    }
+
+                    if (stringIterator.hasNext()) {
+                        String keySent = stringIterator.next();
+                        Log.e("AssignedUserId", keySent);
+
+                        UpdateTask(MyApp.getApplication().readTicketsIssueHistory().get(keySent), "false", keySent);
+                    } else {
+                        stringIterator = null;
+                        progress_sync_status.setVisibility(View.GONE);
+                        txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+                    }
+//                    progress_sync_status.setVisibility(View.GONE);
+//                    txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+//                    stringIterator = null;
+                }
+
+                @Override
+                public void onFailure(Call<ApiResult.IssueDetail> call, Throwable t) {
+                    MyApp.spinnerStop();
+                    MyApp.setStatus("isTicketUpdating", false);
+                    try {
+                        Log.e("TicketStatusTable", "On failure");
+                        call.cancel();
+                        Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                        Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                        map.put("SyncStatus", "false");
+                        savedMap.put(postTktStatus.get("TicketId"), map);
+                        MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+                    } catch (Exception e) {
+                    }
+
+                    stringIterator = null;
+                    progress_sync_status.setVisibility(View.GONE);
+                    txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+
+                }
+            });
+        } catch (Exception e) {
+            MyApp.setStatus("isTicketUpdating", false);
+            e.printStackTrace();
+            MyApp.spinnerStop();
+            try {
+                Log.e("TicketStatusTable", "came to exception " + e.toString());
+                Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
+                Map<String, String> map = savedMap.get(postTktStatus.get("TicketId"));
+                map.put("SyncStatus", "false");
+                savedMap.put(postTktStatus.get("TicketId"), map);
+                MyApp.getApplication().writeTicketsIssueHistory(savedMap);
+            } catch (Exception ee) {
+            }
+            stringIterator = null;
+            progress_sync_status.setVisibility(View.GONE);
+            txt_issues_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+
+        }
+    }
+
+    public class NetworkChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                if (isOnline(context)) {
+
+                    InternetConnector icDataSyncing = new InternetConnector();
+                    try {
+                        icDataSyncing.offlineSyncing(MainActivity.this, 1);
+                        mMobileDataInfo.put("UserId", LOGINID);
+                        mMobileDataInfo.put("DeviceId", sDeviceId);
+                        mMobileDataInfo.put("Enabled", "true");
+                        mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                        mMobileDataInfo.put("RealTimeUpdate", "true");
+
+                        Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                        long keyDelete = System.currentTimeMillis();
+                        mobileData.put(keyDelete, mMobileDataInfo);
+                        MyApp.getApplication().writeMobileData(mobileData);
+                        PushMobileData(mMobileDataInfo, getApplicationContext(), keyDelete);
+                        int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
+                        int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+                        int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+                        int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
+                        txt_battery_count.setText(batteryCount + "");
+                        if (!MyApp.getStatus("isTicketUpdating"))
+                            txt_issues_count.setText(issuesCount + "");
+                        txt_locations_count.setText(locationsCount + "");
+                        txt_check_in_out_count.setText(checkInOutCount + "");
+                        syncLocations();
+                        syncCheckInOut();
+                        syncBattery();
+                        try {
+                            if (!stringIterator.hasNext())
+                                syncIssues();
+                        } catch (Exception ee) {
+                            syncIssues();
+                        }
+                    } catch (Exception e) {
+                    }
+
+
+                } else {
+                    showAlert.setText("Internet is not Working");
+                    MyApp.showMassage(MainActivity.this, "Internet connection is Off");
+                    mMobileDataInfo.put("UserId", LOGINID);
+                    mMobileDataInfo.put("DeviceId", sDeviceId);
+                    mMobileDataInfo.put("Enabled", "false");
+                    mMobileDataInfo.put("ActionDate", currentDateTimeString);
+                    mMobileDataInfo.put("RealTimeUpdate", "true");
+                    Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                    long key = System.currentTimeMillis();
+                    mobileData.put(key, mMobileDataInfo);
+                    MyApp.getApplication().writeMobileData(mobileData);
+                    PushMobileData(mMobileDataInfo, getApplicationContext(), key);
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private boolean isOnline(Context context) {
+            try {
+                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo netInfo = cm.getActiveNetworkInfo();
+                //should check null because in airplane mode it will be null
+                return (netInfo != null && netInfo.isConnected());
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                showAlert.setText("Internet is not Working");
+                return false;
+            }
         }
     }
 }

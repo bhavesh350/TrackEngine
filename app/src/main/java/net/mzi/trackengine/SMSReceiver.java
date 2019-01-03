@@ -52,6 +52,11 @@ public class SMSReceiver extends BroadcastReceiver {
                 String rem1 = messageBody.substring(messageBody.indexOf("|") + 1);
                 String ticket_num = rem1.substring(0, rem1.indexOf("|"));
                 t.setTicketNumber(ticket_num);
+                if (ticket_num.contains("TAGIT")) {
+                    t.setType("Ticket");
+                } else {
+                    t.setType("Task");
+                }
 
                 String rem2 = rem1.substring(rem1.indexOf("|") + 1);
                 String creation_on = rem2.substring(0, rem2.indexOf("|"));
@@ -154,7 +159,7 @@ public class SMSReceiver extends BroadcastReceiver {
                             sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                     "('" + t.getIssueID() + "','" +
                                     t.getCategoryName() + "','" +
-                                    "" + "','" +
+                                    t.getSubject() + "','" +
                                     "" + "','" +
                                     "" + "','" +
                                     t.getAssetSerialNumber() + "','" +
@@ -184,6 +189,8 @@ public class SMSReceiver extends BroadcastReceiver {
                             e.printStackTrace();
                         }
                         Log.d("SMSTRACK", "Notification sent");
+                        Map<String, TicketInfoClass> issueDetailsHistory = MyApp.getApplication().readIssueDetailsHistory();
+                        issueDetailsHistory.put(t.getIssueID(), t);
 //                        Firstfrag f = new Firstfrag();
                         sendNotification("New Ticket: " + t.getTicketNumber(), context,
                                 t.getIssueID());

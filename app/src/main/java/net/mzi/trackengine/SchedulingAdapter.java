@@ -756,6 +756,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(in);
                             return true;
                         case R.id.chStatus:
+                            if (!MyApp.getSharedPrefString("savedCardId").isEmpty()) {
+                                MyApp.popMessage("Alert!", "Please finish your journey first.", context);
+                                return true;
+                            }
                             currentStatus = mCardType.get(position);
                             Cursor cqueryIsVerified = sql.rawQuery("select IsVerified from Issue_Detail where IssueId='" + mIssueID.get(position) + "'", null);
                             if (cqueryIsVerified.getCount() == 0) {
@@ -1206,7 +1210,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 Snackbar.make(v, "Status updated successfully!!!", Snackbar.LENGTH_LONG).show();
                 postTktStatus.put("UserId", nh_userid);
                 postTktStatus.put("ParentCompanyId", sParentComapnyId);
-                postTktStatus.put("TicketId", "");
+                postTktStatus.put("TicketId", "0");
                 postTktStatus.put("StatusId", isStart ? "2" : "3");
                 postTktStatus.put("Comment", "");
                 postTktStatus.put("DeviceId", sDeviceId);
@@ -1469,6 +1473,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     String[] previousValues;
 
     private void populateStatus(final String id, final int position, final String sAssetVerificationText, final String sPreviousId) {
+        if (!MyApp.getSharedPrefString("savedCardId").isEmpty()) {
+            MyApp.popMessage("Alert!", "Please finish your journey first.", context);
+            return;
+        }
         postTktStatus.put("ModeOfTransport", "0");
         postTktStatus.put("Expense", "0");
         postTktStatus.put("AssignedUserId", "0");
@@ -2161,7 +2169,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 }
             }
 
-            if (issueDetail.taskId.equals("0") && issueDetail.IssueId.equals("0")) {
+            if (issueDetail.taskId.equals("0") && issueDetail.IssueId.equals("0") &&
+                    !(issueDetail.Status.equals("2") || issueDetail.Status.equals("3"))) {
                 Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
                 savedMap.remove(postTktStatus.get("TicketId"));
                 savedMap.remove(postTktStatus.get("ActivityDate"));

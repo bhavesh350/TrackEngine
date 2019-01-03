@@ -33,15 +33,12 @@ public class GpsLocationReceiver extends BroadcastReceiver {
     Map<String, String> mGpsInfo = new HashMap<String, String>();
     String currentDateTimeString, sDeviceId;
     ApiInterface apiInterface;
-    String sColumnId;
     SharedPreferences pref;
-    SQLiteDatabase sql;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onReceive(Context context, Intent intent) {
 //        h.postDelayed(check2MinTask, 2 * 60 * 1000);
-        sql = context.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         pref = context.getSharedPreferences("login", 0);
         sDeviceId = pref.getString("DeviceId", "0");
         if (intent.getAction().matches("android.location.PROVIDERS_CHANGED")) {
@@ -56,40 +53,27 @@ public class GpsLocationReceiver extends BroadcastReceiver {
                 if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss").format(cDate);
-
+                    Log.e("GPS_RECEIVER: ", "Enabled");
                     mGpsInfo.put("Enabled", "true");
                     mGpsInfo.put("ActionDate", currentDateTimeString);
-
-                    String jsonString = new Gson().toJson(mGpsInfo);
-                    sql.execSQL("INSERT INTO User_Gps(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                            "('" + mGpsInfo.get("UserId") + "','" + mGpsInfo.get("Enabled") + "','" + mGpsInfo.get("ActionDate") + "','-1')");
-                    Cursor cquery = sql.rawQuery("select * from User_Gps ", null);
-                    String sColumnId = null;
-                    if (cquery.getCount() > 0) {
-                        cquery.moveToLast();
-                        sColumnId = cquery.getString(0).toString();
-                    }
-                    cquery.close();
-                    GPSEnableOperation(mGpsInfo, context, sColumnId);
+                    Map<Long, Map<String, String>> gpsMap = MyApp.getApplication().readGPSData();
+                    long insertKey = System.currentTimeMillis();
+                    gpsMap.put(insertKey, mGpsInfo);
+                    MyApp.getApplication().writeGPSData(gpsMap);
+                    GPSEnableOperation(mGpsInfo, context, insertKey);
 
                 } else {
-
+                    Log.e("GPS_RECEIVER: ", "Disabled");
                     Date cDate = new Date();
                     currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss").format(cDate);
                     mGpsInfo.put("Enabled", "false");
                     mGpsInfo.put("ActionDate", currentDateTimeString);
 
-                    String jsonString = new Gson().toJson(mGpsInfo);
-                    sql.execSQL("INSERT INTO User_Gps(UserId,Enabled,ActionDate,SyncStatus)VALUES" +
-                            "('" + mGpsInfo.get("UserId") + "','" + mGpsInfo.get("Enabled") + "','" + mGpsInfo.get("ActionDate") + "','-1')");
-                    Cursor cquery = sql.rawQuery("select * from User_Gps ", null);
-
-                    if (cquery.getCount() > 0) {
-                        cquery.moveToLast();
-                        sColumnId = cquery.getString(0).toString();
-                    }
-                    cquery.close();
-                    GPSEnableOperation(mGpsInfo, context, sColumnId);
+                    Map<Long, Map<String, String>> gpsMap = MyApp.getApplication().readGPSData();
+                    long insertKey = System.currentTimeMillis();
+                    gpsMap.put(insertKey, mGpsInfo);
+                    MyApp.getApplication().writeGPSData(gpsMap);
+                    GPSEnableOperation(mGpsInfo, context, insertKey);
                     //showAlert
                 }
                 // react on GPS provider change action
@@ -99,53 +83,37 @@ public class GpsLocationReceiver extends BroadcastReceiver {
         }
     }
 
-    private Handler h = new Handler();
-    private boolean isLocationCalled = true;
-//    private Runnable check2MinTask = new Runnable() {
-//        @Override
-//        public void run() {
-//            if (!isLocationCalled) {
-//                isLocationCalled = true;
-//            }
-//            h.postDelayed(check2MinTask, 2 * 60 * 1000);
-//        }
-//    };
-
-
-    public void GPSEnableOperation(Map mGpsInfo, final Context context, final String sColumnId) {
-//        if (isLocationCalled) {
-//            return;
-//        }
+    public void GPSEnableOperation(Map mGpsInfo, final Context context, final long key) {
         try {
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
-            sql = context.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
-            Log.e("GPSEnableOperation: ", mGpsInfo.toString());
             final ApiResult apiResult = new ApiResult();
             final ApiResult.User_GPS user_GPS = apiResult.new User_GPS("-1", mGpsInfo.get("UserId").toString(), mGpsInfo.get("DeviceId").toString(), mGpsInfo.get("Enabled").toString(), mGpsInfo.get("ActionDate").toString());
             Call<ApiResult.User_GPS> call1 = apiInterface.PostGpsStatus(user_GPS);
-            final String finalColumnId = sColumnId;
             call1.enqueue(new Callback<ApiResult.User_GPS>() {
                 @Override
                 public void onResponse(Call<ApiResult.User_GPS> call, Response<ApiResult.User_GPS> response) {
                     ApiResult.User_GPS iData = response.body();
-                    if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                        try{Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();}catch (Exception e){}
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "false");
-                        sql.update("User_Gps", newValues, "Id=" + sColumnId, null);
-                    } else {
-                        ContentValues newValues = new ContentValues();
-                        newValues.put("SyncStatus", "true");
-                        sql.update("User_Gps", newValues, "Id=" + sColumnId, null);
+                    try {
+                        if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                            try {
+                                Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                            } catch (Exception e) {
+                            }
+                        } else {
+                            Map<Long, Map<String, String>> gpsMap = MyApp.getApplication().readGPSData();
+                            try {
+                                gpsMap.remove(key);
+                                MyApp.getApplication().writeGPSData(gpsMap);
+                            } catch (Exception e) {
+                            }
+                        }
+                    } catch (Exception e) {
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ApiResult.User_GPS> call, Throwable t) {
                     call.cancel();
-                    ContentValues newValues = new ContentValues();
-                    newValues.put("SyncStatus", "false");
-                    sql.update("User_Gps", newValues, "Id=" + sColumnId, null);
 
                 }
             });

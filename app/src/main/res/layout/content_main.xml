@@ -39,41 +39,41 @@
                     android:text="Checked In\n"
                     android:textColor="@color/white" />
 
-                <LinearLayout
-                    android:id="@+id/timerL"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#fcebbf"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
+                <!--<LinearLayout-->
+                    <!--android:id="@+id/timerL"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:background="#fcebbf"-->
+                    <!--android:orientation="horizontal"-->
+                    <!--android:visibility="visible">-->
 
-                    <TextView
-                        android:id="@+id/checkInStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginLeft="@dimen/_5sdp"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text=""
-                        android:textColor="#fff"
-                        android:textStyle="bold"
-                        android:typeface="serif" />
+                    <!--<TextView-->
+                        <!--android:id="@+id/checkInStatus"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_gravity="center"-->
+                        <!--android:layout_marginLeft="@dimen/_5sdp"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:gravity="center"-->
+                        <!--android:text=""-->
+                        <!--android:textColor="#fff"-->
+                        <!--android:textStyle="bold"-->
+                        <!--android:typeface="serif" />-->
 
-                    <TextView
-                        android:id="@+id/checkInTime"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_weight="2.2"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:padding="@dimen/_5sdp"
-                        android:text=""
-                        android:textStyle="bold"
-                        android:typeface="serif" />
+                    <!--<TextView-->
+                        <!--android:id="@+id/checkInTime"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_gravity="center"-->
+                        <!--android:layout_weight="2.2"-->
+                        <!--android:gravity="center"-->
+                        <!--android:maxLines="1"-->
+                        <!--android:padding="@dimen/_5sdp"-->
+                        <!--android:text=""-->
+                        <!--android:textStyle="bold"-->
+                        <!--android:typeface="serif" />-->
 
-                </LinearLayout>
+                <!--</LinearLayout>-->
 
 
                 <RelativeLayout
@@ -266,7 +266,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:padding="5dp"
-                    android:text="Copyright © 2017 by MZS LLP.\nAll Right Reserved." />
+                    android:text="Copyright © 2018 by MZS LLP.\nAll Right Reserved." />
 
                 <View
                     android:layout_width="fill_parent"

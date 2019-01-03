@@ -608,7 +608,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
 
 
         if (isStart) {
-            scehduleAdapter.populateStatusStartReachTaskActivity("", 0, "", true, isOffice ? "Office" : "Miscellaneous");
+            scehduleAdapter.populateStatusStartReachTaskActivity("0", 0, "", true, isOffice ? "Office" : "Miscellaneous");
         } else {
             MyApp.spinnerStart(this, "Please wait...");
             new Handler().postDelayed(new Runnable() {

@@ -220,6 +220,8 @@ public class TicketInfo extends AppCompatActivity {
         if (cquery.getString(21).equals("1")) {
             lyServiceItem.setVisibility(View.VISIBLE);
             lyAssetSerial.setVisibility(View.VISIBLE);
+        } else {
+            lyAssetSerial.setVisibility(View.VISIBLE);
         }
         sStatusId = cquery.getString(15);
         try {

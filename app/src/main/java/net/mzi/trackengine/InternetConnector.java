@@ -26,14 +26,6 @@ public class InternetConnector {
     SharedPreferences pref;
 
     SQLiteDatabase sql;
-    Map<String, String> loginInfo = new HashMap<String, String>();
-    Map<String, String> gpsInfo = new HashMap<String, String>();
-    Map<String, String> internetInfo = new HashMap<String, String>();
-    Map<String, String> locationInfo = new HashMap<String, String>();
-    //    Map<String, String> batteryInfo = new HashMap<String, String>();
-    //    Map<String, String> appCheckInInfo = new HashMap<String, String>();
-    Map<String, String> issueHistoryInfo = new HashMap<String, String>();
-    String sAddressLine, sCity, sState, sCountry, sPostalCode, sKnownName, sPremises, sSubLocality, sSubAdminArea;
 
     public void offlineSyncing(final Context context, int Flag) {
         sql = context.openOrCreateDatabase("MZI.sqlite", context.MODE_PRIVATE, null);
@@ -41,201 +33,19 @@ public class InternetConnector {
         sDeviceId = pref.getString("DeviceId", "0");
         try {
             if (Flag == 1) {
-//                Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-////                cquery = sql.rawQuery("select * from Issue_History", null);
-//                if (savedMap.keySet().size() > 0) {
-//                    Log.e("TicketStatusTable", "offline syncing with data");
-//                    Log.e("InternetConnector: ", "I am in Issue_History");
-//
-//                    for (String key : savedMap.keySet()) {
-//                        if (savedMap.get(key).get("SyncStatus").equals("true")) {
-//                            savedMap.remove("TicketId");
-//                        } else {
-//                            SchedulingAdapter m = new SchedulingAdapter();
-//                            m.UpdateTask(context, savedMap.get(key), "false");
-//                        }
-//
-//                    }
-//                } else {
-//                    Log.e("TicketStatusTable", "offline sync count is 0");
-//                }
-//                try {
-//                    cquery.close();
-//                } catch (Exception e) {
-//                }
-////                cquery = sql.rawQuery("select * from User_AppCheckIn", null);
-//                Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
-//                for (String key : map.keySet()) {
-//                    MainActivity mm = new MainActivity();
-//                    map.get(key).put("RealTimeUpdate", "false");
-//                    mm.appCheckINOperation(map.get(key), "false");
-//                }
-
-//                cquery = sql.rawQuery("select * from User_BatteryLevel", null);
-//                final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
-//                if (batMap.keySet().size() > 0) {
-//                    Log.e("InternetConnector: ", "I am in User_BatteryLevel");
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            for (String key : batMap.keySet()) {
-//                                if (batMap.get(key).get("syncStatus").equals("false")) {
-//                                    ServiceBattery m = new ServiceBattery();
-//                                    m.BatteryOffline(batMap.get(key), context, false);
-//                                }
-//                            }
-//                        }
-//                    }).start();
-
-//                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-//                        if (cquery.getString(5).equals("true")) {
-//                            String id = cquery.getString(0).toString();
-//                            sql.delete("User_BatteryLevel", "Id" + "=" + id, null);
-//                        } else {
-//                            if (cquery.getString(5).toString().equals("-1") || cquery.getString(5).toString().equals("false")) {
-//                                batteryInfo.put("RealTimeUpdate", "false");
-//                            }
-//                            batteryInfo.put("UserId", cquery.getString(1).toString());
-//                            batteryInfo.put("DeviceId", sDeviceId);
-//                            batteryInfo.put("Battery", cquery.getString(2).toString());
-//                            batteryInfo.put("ActivityDate", cquery.getString(4).toString());
-//                            batteryInfo.put("AutoCaptured", cquery.getString(3).toString());
-//                            String jsonString = new Gson().toJson(batteryInfo);
-//                            ServiceBattery m = new ServiceBattery();
-//                            m.BatteryOperation(batteryInfo, context, cquery.getString(0).toString());
-//                        }
-//                    }
-//                }
-
-//                int counter = 0;
-//                sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
-//                cquery = sql.rawQuery("select * from User_Location", null);
-//                if (cquery.getCount() > 0) {
-//                    String sCheckInStatus = pref.getString("CheckedInStatus", "0");
-//                    if (sCheckInStatus.equals("True") || sCheckInStatus.equals("true")) {
-//
-//                    } else {
-//                        Cursor cquery = sql.rawQuery("select * from User_Location", null);
-//                        if (cquery.getCount() > 0) {
-//
-//                            Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-//
-//                            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-//                                String id = cquery.getString(0).toString();
-//                                sql.delete("User_Location", "Id" + "=" + id, null);
-//                            }
-//                        }
-//                        cquery.close();
-//                        return;
-//                    }
-//
-//                    Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-//
-//                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-//                        ++counter;
-//                        if (counter >= 50) {
-//                            cquery.moveToLast();
-//                            break;
-//                        }
-//                        if (cquery.getString(15).toString().equals("true")) {
-//                            String id = cquery.getString(0).toString();
-//                            sql.delete("User_Location", "Id" + "=" + id, null);
-//                        } else {
-//                            if (cquery.getString(15).toString().equals("-1")
-//                                    || cquery.getString(15).toString().equals("false")) {
-//                                locationInfo.put("RealTimeUpdate", "false");
-//                            }
-//                            locationInfo.put("UserId", cquery.getString(1).toString());
-//                            locationInfo.put("DeviceId", sDeviceId);
-//                            locationInfo.put("Latitude", cquery.getString(2).toString());
-//                            locationInfo.put("Longitude", cquery.getString(3).toString());
-//                            locationInfo.put("AutoCaptured", cquery.getString(4).toString());
-//                            locationInfo.put("ActivityDate", cquery.getString(5).toString());
-//                            locationInfo.put("AddressLine", "NA");
-//                            locationInfo.put("Premises", "NA");
-//                            locationInfo.put("SubLocality", "NA");
-//                            locationInfo.put("SubAdminArea", "NA");
-//                            locationInfo.put("PostalCode", "NA");
-//                            locationInfo.put("City", "NA");
-//                            locationInfo.put("State", "NA");
-//                            locationInfo.put("Country", "NA");
-//                            locationInfo.put("KnownName", "NA");
-//                            locationInfo.put("Provider", "NA");
-//                            ServiceLocation m = new ServiceLocation(context);
-//                            //insert
-//
-//                            m.LocationOperation(locationInfo, context, cquery.getString(0).toString(), true);
-//                            String id = cquery.getString(0).toString();
-//                            Log.d("postcoordinat", "offline syncing with id = " + id);
-//                            sql.delete("User_Location", "Id" + "=" + id, null);
-//                        }
-//                        if (counter >= 50) {
-//                            break;
-//                        }
-//                    }
-//
-//                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
-//                    if (cquery.getCount() > 0) {
-//
-//                        Log.e("InternetConnector: ", "I am in User_location" + cquery.getCount());
-//
-//                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-//                            String id = cquery.getString(0).toString();
-//                            sql.delete("User_Location", "Id" + "=" + id, null);
-//                        }
-//                    }
-//                    cquery.close();
-//
-//                }
-//
-//                try {
-//                    cquery.close();
-//                } catch (Exception e) {
-//                }
-                cquery = sql.rawQuery("select * from User_MobileData", null);
-                if (cquery.getCount() > 0) {
-                    Log.e("InternetConnector: ", "I am in User_MobileData");
-                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        if (cquery.getString(4).toString().equals("true")) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_MobileData", "Id" + "=" + id, null);
-                        } else {
-                            if (cquery.getString(4).toString().equals("-1") || cquery.getString(4).toString().equals("false")) {
-                                internetInfo.put("RealTimeUpdate", "false");
-                            }
-                            internetInfo.put("UserId", cquery.getString(1).toString());
-                            internetInfo.put("Enabled", cquery.getString(2).toString());
-                            internetInfo.put("ActionDate", cquery.getString(3).toString());
-                            internetInfo.put("DeviceId", sDeviceId);
-                            MainActivity m = new MainActivity();
-                            m.PushMobileData(internetInfo, context, cquery.getString(0).toString());
-                        }
+                Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                if (mobileData.keySet().size() > 0) {
+                    for (long key : mobileData.keySet()) {
+                        MainActivity m = new MainActivity();
+                        m.PushMobileData(mobileData.get(key), context, key);
                     }
                 }
-                try {
-                    cquery.close();
-                } catch (Exception e) {
-                }
-                cquery = sql.rawQuery("select * from User_Gps ", null);
-                if (cquery.getCount() > 0) {
-                    Log.e("InternetConnector: ", "I am in User_Gps");
-                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        if (cquery.getString(4).toString().equals("true")) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_Gps", "Id" + "=" + id, null);
-                        } else {
-                            if (cquery.getString(4).toString().equals("-1") || cquery.getString(4).toString().equals("false")) {
-                                gpsInfo.put("RealTimeUpdate", "false");
-                            }
-                            gpsInfo.put("UserId", cquery.getString(1).toString());
-                            gpsInfo.put("Enabled", cquery.getString(2).toString());
-                            gpsInfo.put("ActionDate", cquery.getString(3).toString());
-                            gpsInfo.put("DeviceId", sDeviceId);
-                            String jsonString = new Gson().toJson(gpsInfo);
-                            GpsLocationReceiver m = new GpsLocationReceiver();
-                            m.GPSEnableOperation(gpsInfo, context, cquery.getString(0).toString());
-                        }
 
+                Map<Long, Map<String, String>> gpsData = MyApp.getApplication().readGPSData();
+                if (gpsData.keySet().size() > 0) {
+                    for (long key : gpsData.keySet()) {
+                        GpsLocationReceiver m = new GpsLocationReceiver();
+                        m.GPSEnableOperation(gpsData.get(key), context, key);
                     }
                 }
 
