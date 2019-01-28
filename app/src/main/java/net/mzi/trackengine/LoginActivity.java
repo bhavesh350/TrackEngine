@@ -192,50 +192,57 @@ public class LoginActivity extends AppCompatActivity {
                             public void onResponse(Call<ApiResult.User> call, Response<ApiResult.User> response) {
                                 ApiResult.User user = response.body();
                                 MyApp.getApplication().writeUser(user);
-                                ref.child(user.data.UserId).child("DeviceId").setValue(sDeviceId);
-                                deleteDataFromTables(user.data.UserId);
-                                if (user.data.Status.equals("true")) {
-                                    Cursor cqueryTemp = sql.rawQuery("select * from Issue_Status where DepartmentId='" + user.data.DepartmentId + "'", null);
-                                    if (cqueryTemp.getCount() > 0) ;
-                                    else {
+                                try {
+                                    ref.child(user.data.UserId).child("DeviceId").setValue(sDeviceId);
+                                    deleteDataFromTables(user.data.UserId);
+                                    if (user.data.Status.equals("true")) {
+                                        sql.delete("Issue_Status", null, null);
+                                        sql.delete("Issue_StatusHiererchy", null, null);
+                                        Cursor cqueryTemp = sql.rawQuery("select * from Issue_Status where DepartmentId='" + user.data.DepartmentId + "'", null);
+                                        if (cqueryTemp.getCount() > 0) ;
+                                        else {
 //                                        str.replaceAll("[^\\d.]", "");
-                                        MyApp.getApplication().writeIssuesStatusList(user.data.dataStatus);
-                                        for (int i = 0; i < user.data.dataStatus.length; i++) {
-                                            Log.e("TAG", "onPostExecute: " + user.data.dataStatus[i]);
-                                            sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
-                                                    "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "" + "')");
-                                            String sAllParentStatuses = user.data.dataStatus[i].ParentStatuses;
-                                            List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
-                                            for (int j = 0; j < listsAllParentStatuses.size(); j++) {
-                                                sql.execSQL("INSERT INTO Issue_StatusHiererchy(StatusId,ParentStatus,WaitForEntry,ActionDate,RedirectToStatus)VALUES" +
-                                                        "('" + user.data.dataStatus[i].Id + "','" + listsAllParentStatuses.get(j).trim() + "','0','0','0')");
+                                            MyApp.getApplication().writeIssuesStatusList(user.data.dataStatus);
+                                            for (int i = 0; i < user.data.dataStatus.length; i++) {
+                                                Log.e("TAG", "onPostExecute: " + user.data.dataStatus[i]);
+                                                sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
+                                                        "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "" + "')");
+                                                String sAllParentStatuses = user.data.dataStatus[i].ParentStatuses;
+                                                List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
+                                                for (int j = 0; j < listsAllParentStatuses.size(); j++) {
+                                                    sql.execSQL("INSERT INTO Issue_StatusHiererchy(StatusId,ParentStatus,WaitForEntry,ActionDate,RedirectToStatus)VALUES" +
+                                                            "('" + user.data.dataStatus[i].Id + "','"
+                                                            + listsAllParentStatuses.get(j).trim() + "','0','0','0')");
+                                                }
                                             }
-                                        }
 
-                                    }
-                                    cqueryTemp = sql.rawQuery("select * from ModeOfTrasportList", null);
-                                    if (cqueryTemp.getCount() > 0) ;
-                                    else {
-                                        try {
-                                            for (int i = 0; i < user.data.modeOfTrasportList.length; i++) {
-                                                sql.execSQL("INSERT INTO ModeOfTrasportList(TransportId,TransportMode,IsPublic)VALUES" +
-                                                        "('" + user.data.modeOfTrasportList[i].Id + "','" + user.data.modeOfTrasportList[i].TransportMode + "','" + user.data.modeOfTrasportList[i].IsPublic + "" + "')");
-                                            }
-                                        } catch (Exception e) {
                                         }
+                                        cqueryTemp = sql.rawQuery("select * from ModeOfTrasportList", null);
+                                        if (cqueryTemp.getCount() > 0) ;
+                                        else {
+                                            try {
+                                                for (int i = 0; i < user.data.modeOfTrasportList.length; i++) {
+                                                    sql.execSQL("INSERT INTO ModeOfTrasportList(TransportId,TransportMode,IsPublic)VALUES" +
+                                                            "('" + user.data.modeOfTrasportList[i].Id + "','" + user.data.modeOfTrasportList[i].TransportMode + "','" + user.data.modeOfTrasportList[i].IsPublic + "" + "')");
+                                                }
+                                            } catch (Exception e) {
+                                            }
+                                        }
+                                        cqueryTemp.close();
+                                        session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
+                                        MyApp.setStatus("statusByHierarchy", user.StatusByHierarchy);
+                                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                        MyApp.setStatus("forceReLogin", true);
+                                        LoginActivity.this.finish();
+                                        intent.putExtra("fromLogin", true);
+                                        startActivity(intent);
+                                    } else {
+                                        showAlert(LoginActivity.this, user.data.Message);
+                                        sql.delete("Issue_Status", null, null);
+                                        sql.delete("Issue_StatusHiererchy", null, null);
                                     }
-                                    cqueryTemp.close();
-                                    session.createLoginSession(user.data.Username, pwd, user.data.UserId, user.data.DepartmentId, user.data.RoleId, user.data.IsCoordinator, user.data.IsFieldAgent, user.data.UserType, user.data.CompanyId, user.data.ParentCompanyId, user.data.CheckedInTime, user.data.CheckedInStatus, user.data.IsDefaultDepartment, user.data.AppLocationSendingFrequency, user.data.AppBatterySendingFrequency, user.data.CSATEnable, user.data.AssetVerification, "2017-01-01", sDeviceId, "0");
-                                    MyApp.setStatus("statusByHierarchy", user.StatusByHierarchy);
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    MyApp.setStatus("forceReLogin", true);
-                                    LoginActivity.this.finish();
-                                    intent.putExtra("fromLogin", true);
-                                    startActivity(intent);
-                                } else {
-                                    showAlert(LoginActivity.this, user.data.Message);
-                                    sql.delete("Issue_Status", null, null);
-                                    sql.delete("Issue_StatusHiererchy", null, null);
+                                } catch (Exception e) {
+                                    showAlert(LoginActivity.this, "Process failed. Please try again!!!");
                                 }
                                 progress.dismiss();
                             }

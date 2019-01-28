@@ -57,8 +57,7 @@ public class InternetConnector {
             }
             cquery.close();
         } catch (Exception e) {
-            e.getMessage().toString();
-
+//            e.getMessage().toString();
         }
 
         try {

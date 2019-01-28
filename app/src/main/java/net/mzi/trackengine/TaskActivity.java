@@ -1,6 +1,7 @@
 package net.mzi.trackengine;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -18,11 +19,15 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import net.mzi.trackengine.fragment.FilterListFragment;
 
@@ -45,6 +50,8 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     public static final int Pending = 1;
     public static final int Attended = 2;
     public static final int Complete = 3;
+    public static final int Scheduled = 4;
+    public static final int PendingScheduled = 5;
     Button bFilterList, bSorting;
     //static  String parentId;
     RecyclerView mRecyclerView;
@@ -55,6 +62,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     List<String> mTime = new ArrayList<String>();
     List<String> mSub = new ArrayList<String>();
     List<String> mMob = new ArrayList<String>();
+    List<String> mLatLng = new ArrayList<>();
     List<String> mLoc = new ArrayList<String>();
     List<String> mcardType = new ArrayList<String>();
     List<Integer> mCardColor = new ArrayList<Integer>();
@@ -142,6 +150,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 mName.clear();
                 mTime.clear();
                 mLoc.clear();
+                mLatLng.clear();
                 mMob.clear();
                 mSub.clear();
                 mTicketNumber.clear();
@@ -153,33 +162,40 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                     cquery = sql.rawQuery("select * from Issue_Detail where IssueId = '" + lDistance.get(i).sIssueId + "'", null);
                     if (cquery.getCount() > 0) {
                         cquery.moveToFirst();
-                        mIssueID.add(cquery.getString(1).toString());
-                        mName.add(cquery.getString(19).toString());
-                        mTime.add(cquery.getString(8).toString());
-                        mSub.add(cquery.getString(3).toString());
-                        mMob.add(cquery.getString(13).toString());
-                        mLoc.add(cquery.getString(10).toString());
-                        mTicketNumber.add(cquery.getString(20).toString());
-                        //parentId=cquery.getString(13).toString();
-                        if (cquery.getString(14).toString().equals("-1")) {
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
+                        //parentId=cquery.getString(13);
+                        if (cquery.getString(14).equals("-1")) {
                             mcardType.add("New");
                             mCardColor.add(R.color.purple);
                             mDatasetTypes.add(New);
                         } else {
-                            if (cquery.getString(14).toString().equals("1")) {
+                            if (cquery.getString(14).equals("1")) {
                                 mCardColor.add(R.color.orange);
                                 mDatasetTypes.add(Pending);
-                            } else if (cquery.getString(14).toString().equals("2")) {
+                            } else if (cquery.getString(14).equals("2")) {
                                 mCardColor.add(R.color.blue);
                                 mDatasetTypes.add(Attended);
-                            } else if (cquery.getString(14).toString().equals("3")) {
+                            } else if (cquery.getString(14).equals("3")) {
                                 mCardColor.add(R.color.green);
                                 mDatasetTypes.add(Complete);
+                            } else if (cquery.getString(14).equals("4")) {
+                                mCardColor.add(R.color.red);
+                                mDatasetTypes.add(Scheduled);
+                            } else if (cquery.getString(14).equals("5")) {
+                                mCardColor.add(R.color.colorPrimaryDark);
+                                mDatasetTypes.add(PendingScheduled);
                             }
-                            cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                            cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                             if (cqueryForStatus.getCount() > 0) {
                                 cqueryForStatus.moveToFirst();
-                                mcardType.add(cqueryForStatus.getString(0).toString());
+                                mcardType.add(cqueryForStatus.getString(0));
                             } else {
                                 mcardType.add("NA");
                             }
@@ -191,7 +207,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub,
-                        mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
+                        mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this, mLatLng);
                 mRecyclerView.setNestedScrollingEnabled(false);
                 mRecyclerView.setAdapter(scehduleAdapter);
 
@@ -224,18 +240,19 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 if (card.equals("1")) {
                     cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 1", null);
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        mIssueID.add(cquery.getString(1).toString());
-                        mName.add(cquery.getString(19).toString());
-                        mTime.add(cquery.getString(8).toString());
-                        mSub.add(cquery.getString(3).toString());
-                        mMob.add(cquery.getString(13).toString());
-                        mLoc.add(cquery.getString(10).toString());
-                        mTicketNumber.add(cquery.getString(20).toString());
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
 
-                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                         if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
-                            mcardType.add(cqueryForStatus.getString(0).toString());
+                            mcardType.add(cqueryForStatus.getString(0));
                         } else
                             mcardType.add("N/A");
 
@@ -246,14 +263,15 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 } else if (card.equals("2")) {
                     cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 2", null);
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        mIssueID.add(cquery.getString(1).toString());
-                        mName.add(cquery.getString(19).toString());
-                        mTime.add(cquery.getString(8).toString());
-                        mSub.add(cquery.getString(3).toString());
-                        mMob.add(cquery.getString(13).toString());
-                        mLoc.add(cquery.getString(10).toString());
-                        mTicketNumber.add(cquery.getString(20).toString());
-                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
+                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                         if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
                             mcardType.add(cqueryForStatus.getString(0).toString());
@@ -268,18 +286,19 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
 
                     cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 3", null);
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        mIssueID.add(cquery.getString(1).toString());
-                        mName.add(cquery.getString(19).toString());
-                        mTime.add(cquery.getString(8).toString());
-                        mSub.add(cquery.getString(3).toString());
-                        mMob.add(cquery.getString(13).toString());
-                        mLoc.add(cquery.getString(10).toString());
-                        mTicketNumber.add(cquery.getString(20).toString());
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
 
-                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                         if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
-                            mcardType.add(cqueryForStatus.getString(0).toString());
+                            mcardType.add(cqueryForStatus.getString(0));
                         } else {
                             mcardType.add("N/A");
                         }
@@ -288,40 +307,91 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         mDatasetTypes.add(Complete);
                     }
 
+                } else if (card.equals("4")) {
+
+                    cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 4", null);
+                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
+
+                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
+                        if (cqueryForStatus.getCount() > 0) {
+                            cqueryForStatus.moveToFirst();
+                            mcardType.add(cqueryForStatus.getString(0));
+                        } else {
+                            mcardType.add("N/A");
+                        }
+                        //mcardType.add("Closed");
+                        mCardColor.add(R.color.red);
+                        mDatasetTypes.add(Scheduled);
+                    }
+
+                } else if (card.equals("5")) {
+
+                    cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = 5", null);
+                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                        mIssueID.add(cquery.getString(1));
+                        mName.add(cquery.getString(19));
+                        mTime.add(cquery.getString(8));
+                        mSub.add(cquery.getString(3));
+                        mMob.add(cquery.getString(13));
+                        mLoc.add(cquery.getString(10));
+                        mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                        mTicketNumber.add(cquery.getString(20));
+
+                        cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
+                        if (cqueryForStatus.getCount() > 0) {
+                            cqueryForStatus.moveToFirst();
+                            mcardType.add(cqueryForStatus.getString(0));
+                        } else {
+                            mcardType.add("N/A");
+                        }
+                        //mcardType.add("Closed");
+                        mCardColor.add(R.color.colorPrimaryDark);
+                        mDatasetTypes.add(PendingScheduled);
+                    }
+
                 } else {
                     cquery = sql.rawQuery("select * from Issue_Detail", null);
                     for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
 
-                        Log.e("onCreate: is Accepted", cquery.getString(12).toString());
-                        if (cquery.getString(12).toString().equals("0")) ;
+                        Log.e("onCreate: is Accepted", cquery.getString(12));
+                        if (cquery.getString(12).equals("0")) ;
                         else {
-                            mIssueID.add(cquery.getString(1).toString());
-                            mName.add(cquery.getString(19).toString());
-                            mTime.add(cquery.getString(8).toString());
-                            mSub.add(cquery.getString(3).toString());
-                            mMob.add(cquery.getString(13).toString());
-                            mLoc.add(cquery.getString(10).toString());
-                            mTicketNumber.add(cquery.getString(20).toString());
-                            //parentId=cquery.getString(13).toString();
-                            if (cquery.getString(14).toString().equals("-1")) {
+                            mIssueID.add(cquery.getString(1));
+                            mName.add(cquery.getString(19));
+                            mTime.add(cquery.getString(8));
+                            mSub.add(cquery.getString(3));
+                            mMob.add(cquery.getString(13));
+                            mLoc.add(cquery.getString(10));
+                            mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                            mTicketNumber.add(cquery.getString(20));
+                            //parentId=cquery.getString(13);
+                            if (cquery.getString(14).equals("-1")) {
                                 mcardType.add("New");
                                 mCardColor.add(R.color.purple);
                                 mDatasetTypes.add(New);
                             } else {
-                                if (cquery.getString(14).toString().equals("1")) {
+                                if (cquery.getString(14).equals("1")) {
                                     mCardColor.add(R.color.orange);
                                     mDatasetTypes.add(Pending);
-                                } else if (cquery.getString(14).toString().equals("2")) {
+                                } else if (cquery.getString(14).equals("2")) {
                                     mCardColor.add(R.color.blue);
                                     mDatasetTypes.add(Attended);
-                                } else if (cquery.getString(14).toString().equals("3")) {
+                                } else if (cquery.getString(14).equals("3")) {
                                     mCardColor.add(R.color.green);
                                     mDatasetTypes.add(Complete);
                                 }
-                                cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                                cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                                 if (cqueryForStatus.getCount() > 0) {
                                     cqueryForStatus.moveToFirst();
-                                    mcardType.add(cqueryForStatus.getString(0).toString());
+                                    mcardType.add(cqueryForStatus.getString(0));
                                 } else {
                                     mcardType.add("N/A");
                                 }
@@ -338,7 +408,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes,
-                mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
+                mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this, mLatLng);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setNestedScrollingEnabled(false);
         if (mIssueID.size() == 0) {
@@ -355,7 +425,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 android.Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            sDeviceId = telephonyManager.getDeviceId().toString();
+            sDeviceId = telephonyManager.getDeviceId();
         }
     }
 
@@ -377,6 +447,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         mName.clear();
         mTime.clear();
         mLoc.clear();
+        mLatLng.clear();
         mMob.clear();
         mSub.clear();
         mDatasetTypes.clear();
@@ -390,33 +461,40 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             if (sIsAccepted.equals("0")) {
                 cquery = sql.rawQuery("select * from Issue_Detail where StatusId = '" + selectedItems.get(i) + "'", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                    mIssueID.add(cquery.getString(1).toString());
-                    mName.add(cquery.getString(19).toString());
-                    mTime.add(cquery.getString(8).toString());
-                    mSub.add(cquery.getString(3).toString());
-                    mMob.add(cquery.getString(13).toString());
-                    mLoc.add(cquery.getString(10).toString());
-                    mTicketNumber.add(cquery.getString(20).toString());
+                    mIssueID.add(cquery.getString(1));
+                    mName.add(cquery.getString(19));
+                    mTime.add(cquery.getString(8));
+                    mSub.add(cquery.getString(3));
+                    mMob.add(cquery.getString(13));
+                    mLoc.add(cquery.getString(10));
+                    mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                    mTicketNumber.add(cquery.getString(20));
                     cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
                     if (cqueryForStatus.getCount() > 0) {
                         cqueryForStatus.moveToFirst();
-                        mcardType.add(cqueryForStatus.getString(0).toString());
+                        mcardType.add(cqueryForStatus.getString(0));
                     }
                     cqueryForStatus = sql.rawQuery("select IsAccepted from Issue_Detail where StatusId = '" + selectedItems.get(i) + "'", null);
                     if (cqueryForStatus.getCount() > 0) {
                         cqueryForStatus.moveToFirst();
-                        if (cqueryForStatus.getString(0).toString().equals("1")) {
+                        if (cqueryForStatus.getString(0).equals("1")) {
 
                             mCardColor.add(R.color.orange);
                             mDatasetTypes.add(Pending);
-                        } else if (cqueryForStatus.getString(0).toString().equals("2")) {
+                        } else if (cqueryForStatus.getString(0).equals("2")) {
 
                             mCardColor.add(R.color.blue);
                             mDatasetTypes.add(Attended);
-                        } else if (cqueryForStatus.getString(0).toString().equals("3")) {
+                        } else if (cqueryForStatus.getString(0).equals("3")) {
 
                             mCardColor.add(R.color.green);
                             mDatasetTypes.add(Complete);
+                        } else if (cquery.getString(14).equals("4")) {
+                            mCardColor.add(R.color.red);
+                            mDatasetTypes.add(Scheduled);
+                        } else if (cquery.getString(14).equals("5")) {
+                            mCardColor.add(R.color.colorPrimaryDark);
+                            mDatasetTypes.add(PendingScheduled);
                         }
 
                     }
@@ -424,17 +502,18 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             } else {
                 cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = '" + selectedItems.get(i) + "'", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                    mIssueID.add(cquery.getString(1).toString());
-                    mName.add(cquery.getString(19).toString());
-                    mTime.add(cquery.getString(8).toString());
-                    mSub.add(cquery.getString(3).toString());
-                    mMob.add(cquery.getString(13).toString());
-                    mLoc.add(cquery.getString(10).toString());
-                    mTicketNumber.add(cquery.getString(20).toString());
+                    mIssueID.add(cquery.getString(1));
+                    mName.add(cquery.getString(19));
+                    mTime.add(cquery.getString(8));
+                    mSub.add(cquery.getString(3));
+                    mMob.add(cquery.getString(13));
+                    mLoc.add(cquery.getString(10));
+                    mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
+                    mTicketNumber.add(cquery.getString(20));
                     cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
                     if (cqueryForStatus.getCount() > 0) {
                         cqueryForStatus.moveToFirst();
-                        mcardType.add(cqueryForStatus.getString(0).toString());
+                        mcardType.add(cqueryForStatus.getString(0));
                     }
                     if (selectedItems.get(i).equals("1")) {
 
@@ -448,6 +527,12 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
 
                         mCardColor.add(R.color.green);
                         mDatasetTypes.add(Complete);
+                    } else if (cquery.getString(14).equals("4")) {
+                        mCardColor.add(R.color.red);
+                        mDatasetTypes.add(Scheduled);
+                    } else if (cquery.getString(14).equals("5")) {
+                        mCardColor.add(R.color.colorPrimaryDark);
+                        mDatasetTypes.add(PendingScheduled);
                     }
 
                     // }
@@ -456,11 +541,14 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             //mcardType.add("Complete");
         }
 
-        cqueryForStatus.close();
+        try {
+            cqueryForStatus.close();
+        } catch (Exception e) {
+        }
         mRecyclerView = findViewById(R.id.task_view);
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this);
+        scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes, mCardColor, mcardType, mTicketNumber, MyApp.getApplication().readIssueDetailsHistory(), TaskActivity.this, mLatLng);
         mRecyclerView.setAdapter(scehduleAdapter);
         mRecyclerView.setVisibility(View.VISIBLE);
         mRecyclerView.setNestedScrollingEnabled(false);
@@ -525,6 +613,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
 
     public void updateButtons() {
         boolean isEngaged = MyApp.getStatus("savedCardStatus");
+        boolean isBothDisable = MyApp.getStatus("isBothDisable");
         String idClicked = MyApp.getSharedPrefString("savedCardId");
         if (isEngaged && idClicked.equals("-2")) {
             btn_misl_start.setImageResource(R.drawable.btn_d_start);
@@ -539,13 +628,16 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         } else if (idClicked.isEmpty()) {
             btn_misl_start.setImageResource(R.drawable.btn_start);
             btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
-
             btn_office_start.setImageResource(R.drawable.btn_start);
+            btn_office_reached.setImageResource(R.drawable.btn_d_reach);
+        } else if (isBothDisable) {
+            btn_misl_start.setImageResource(R.drawable.btn_d_start);
+            btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
+            btn_office_start.setImageResource(R.drawable.btn_d_start);
             btn_office_reached.setImageResource(R.drawable.btn_d_reach);
         } else {
             btn_misl_start.setImageResource(R.drawable.btn_d_start);
             btn_misl_reached.setImageResource(R.drawable.btn_d_reach);
-
             btn_office_start.setImageResource(R.drawable.btn_d_start);
             btn_office_reached.setImageResource(R.drawable.btn_d_reach);
         }
@@ -558,6 +650,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     protected void onResume() {
         super.onResume();
         boolean isEngaged = MyApp.getStatus("savedCardStatus");
+        boolean isBothDisable = MyApp.getStatus("isBothDisable");
 
         if (isEngaged && MyApp.getSharedPrefString("savedCardId").equals("-2")) {
             btn_misl_start.setEnabled(false);
@@ -572,7 +665,6 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         } else {
             btn_misl_start.setEnabled(true);
             btn_misl_reached.setEnabled(false);
-
             btn_office_start.setEnabled(true);
             btn_office_reached.setEnabled(false);
         }
@@ -581,10 +673,10 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
     }
 
     private void callStartReachApi(boolean isStart, boolean isOffice) {
-        HashMap<String, String> postTktStatus = new HashMap<>();
+        final HashMap<String, String> postTktStatus = new HashMap<>();
         scehduleAdapter.getLocation();
         Date cDate1 = new Date();
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
+        final String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate1);
         postTktStatus.put("UserId", nh_userid);
         postTktStatus.put("ParentCompanyId", sParentComapnyId);
         postTktStatus.put("TicketId", "0");
@@ -610,17 +702,83 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
         if (isStart) {
             scehduleAdapter.populateStatusStartReachTaskActivity("0", 0, "", true, isOffice ? "Office" : "Miscellaneous");
         } else {
-            MyApp.spinnerStart(this, "Please wait...");
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    MyApp.spinnerStop();
+
+            try {
+                if (scehduleAdapter.LastTransportMode.equals("0")) {
+                    Log.e("Transport", "zero");
+                } else {
+                    Log.e("Transport", scehduleAdapter.LastTransportMode);
                 }
-            }, 10000);
-            Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
-            issuesMap.put(currentTime, postTktStatus);
-            MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
-            scehduleAdapter.UpdateTask(scehduleAdapter.context, postTktStatus, "true");
+                Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + scehduleAdapter.LastTransportMode + "'", null);
+                if (cquery1.getCount() > 0) {
+                    cquery1.moveToFirst();
+                    if (cquery1.getString(0).equals("true")) {
+                        android.support.v7.app.AlertDialog.Builder alertDialog = new android.support.v7.app.AlertDialog.Builder(this);
+                        alertDialog.setTitle("Transport Expense");
+                        alertDialog.setMessage("Enter amount");
+                        alertDialog.setCancelable(false);
+                        final EditText input = new EditText(this);
+                        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                300,
+                                LinearLayout.LayoutParams.MATCH_PARENT);
+                        input.setGravity(Gravity.CENTER);
+                        lp.setMargins(20, 0, 20, 0);
+                        input.setLayoutParams(lp);
+                        input.setHint("Amount");
+                        alertDialog.setView(input);
+                        alertDialog.setIcon(R.mipmap.som);
+
+                        alertDialog.setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String password = input.getText().toString();
+                                        if (!password.isEmpty()) {
+                                            postTktStatus.put("Expense", password);
+                                            MyApp.spinnerStart(TaskActivity.this, "Please wait...");
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    MyApp.spinnerStop();
+                                                }
+                                            }, 10000);
+                                            Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+                                            issuesMap.put(currentTime, postTktStatus);
+                                            MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                                            scehduleAdapter.UpdateTask(scehduleAdapter.context, postTktStatus, "true");
+                                        } else {
+                                            MyApp.popMessage("Alert!", "Please enter amount.", TaskActivity.this);
+                                        }
+                                    }
+                                });
+                        alertDialog.show();
+                    } else {
+                        MyApp.spinnerStart(this, "Please wait...");
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                MyApp.spinnerStop();
+                            }
+                        }, 10000);
+                        Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+                        issuesMap.put(currentTime, postTktStatus);
+                        MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                        scehduleAdapter.UpdateTask(scehduleAdapter.context, postTktStatus, "true");
+                    }
+                }
+            } catch (Exception e) {
+                MyApp.spinnerStart(this, "Please wait...");
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        MyApp.spinnerStop();
+                    }
+                }, 10000);
+                Map<String, Map<String, String>> issuesMap = MyApp.getApplication().readTicketsIssueHistory();
+                issuesMap.put(currentTime, postTktStatus);
+                MyApp.getApplication().writeTicketsIssueHistory(issuesMap);
+                scehduleAdapter.UpdateTask(scehduleAdapter.context, postTktStatus, "true");
+            }
         }
     }
 

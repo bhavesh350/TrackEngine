@@ -40,6 +40,7 @@ public class TicketInfoClass implements Serializable {
     public String ScheduleDate;
     public String type;
     public String journeyStatus;
+    public String OtherDepartment;
     public boolean isCaptured = false;
 
     public String getType() {

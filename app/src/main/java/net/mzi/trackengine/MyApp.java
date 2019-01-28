@@ -25,11 +25,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.firebase.client.Firebase;
 
-import net.mzi.trackengine.model.Message;
 import net.mzi.trackengine.model.TicketInfoClass;
-
-import io.fabric.sdk.android.Fabric;
 
 import org.acra.ACRA;
 import org.acra.ReportField;
@@ -53,6 +51,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import fr.bmartel.speedtest.SpeedTestReport;
+import fr.bmartel.speedtest.SpeedTestSocket;
+import fr.bmartel.speedtest.inter.ISpeedTestListener;
+import fr.bmartel.speedtest.model.SpeedTestError;
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by Poonam on 5/1/2017.
@@ -179,8 +183,66 @@ public class MyApp extends MultiDexApplication {
 //
 //        } catch (Exception e) {
 //        }
+
+
+        speedTestSocket = new SpeedTestSocket();
+
+// add a listener to wait for speedtest completion and progress
+        speedTestSocket.addSpeedTestListener(new ISpeedTestListener() {
+
+            @Override
+            public void onCompletion(SpeedTestReport report) {
+                System.out.println("speedTest complete in octet/s : " + report.getTransferRateOctet().intValue() / 100000);
+            }
+
+            @Override
+            public void onError(SpeedTestError speedTestError, String errorMessage) {
+                // called when a download/upload error occur
+            }
+
+            @Override
+            public void onProgress(float percent, SpeedTestReport report) {
+                // called to notify download/upload progress
+                System.out.println("speedTest progress : " + percent + "%");
+                int speed = report.getTransferRateOctet().intValue() / 100000;
+                System.out.println("speedTest rate in kb/s : " + speed);
+                if (currentSpeed != 0) {
+                    if (speed < currentSpeed)
+                        currentSpeed = speed;
+                } else {
+                    currentSpeed = speed;
+                }
+//                System.out.println("speedTest rate in bit/s   : " + report.getTransferRateBit());
+            }
+        });
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 100000);
+            }
+        }).start();
+        new Handler().postDelayed(taskToCheckSpeed, 10000);
+
+        Firebase.setAndroidContext(this);
     }
 
+
+    SpeedTestSocket speedTestSocket;
+    private Runnable taskToCheckSpeed = new Runnable() {
+        @Override
+        public void run() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    currentSpeed = -1;
+                    speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 5000);
+                }
+            }).start();
+            new Handler().postDelayed(taskToCheckSpeed, 10000);
+        }
+    };
+
+    public static int currentSpeed = -1;
 
     Intent mServiceIntentBattery;
     Intent mServiceIntentLocation;
@@ -364,19 +426,19 @@ public class MyApp extends MultiDexApplication {
         }
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
-        boolean network_enabled = false;
+//        boolean network_enabled = false;
 
         try {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         } catch (Exception ex) {
         }
 
-        try {
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-        }
+//        try {
+//            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+//        } catch (Exception ex) {
+//        }
 
-        if (!gps_enabled && !network_enabled) {
+        if (!gps_enabled) {
             sIsLocationOn = "false";
         } else {
             sIsLocationOn = "true";
@@ -429,11 +491,14 @@ public class MyApp extends MultiDexApplication {
                 if (info != null)
                     for (int i = 0; i < info.length; i++)
                         if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-                            return true;
+                            if (currentSpeed < 15 && currentSpeed != -1) {
+                                return false;
+                            } else
+                                return true;
                         }
             }
         } catch (Exception e) {
-            return true;
+            return false;
         }
         return false;
     }
@@ -457,6 +522,23 @@ public class MyApp extends MultiDexApplication {
         } catch (Exception e) {
         }
 
+    }
+
+    public static boolean isSmallDate(String date) {
+//        2018-05-11T11:17:00Z
+        date = date.replace("T", " ").replace("Z", "");
+        String inputPattern = "yyyy-MM-dd HH:mm:ss";
+        SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern);
+        try {
+            Date d = inputFormat.parse(date);
+            Date dd = new Date();
+            if (d.getTime() > dd.getTime()) {
+                return true;
+            } else
+                return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static String parseDateTime(String time) {
@@ -759,31 +841,37 @@ public class MyApp extends MultiDexApplication {
     }
 
     public Map<String, Map<String, String>> readTicketsIssueHistory() {
-        String path = "/data/data/" + c.getPackageName()
-                + "/issueHistory.ser";
-        File f = new File(path);
-        Map<String, Map<String, String>> map = new HashMap<>();
-        if (f.exists()) {
-            try {
-                System.gc();
-                FileInputStream fileIn = new FileInputStream(path);
-                ObjectInputStream in = new ObjectInputStream(fileIn);
-                map = (Map<String, Map<String, String>>) in.readObject();
-                in.close();
-                fileIn.close();
-            } catch (StreamCorruptedException e) {
-                e.printStackTrace();
-            } catch (OptionalDataException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            {
+                String path = "/data/data/" + c.getPackageName()
+                        + "/issueHistory.ser";
+                File f = new File(path);
+                Map<String, Map<String, String>> map = new HashMap<>();
+                if (f.exists()) {
+                    try {
+                        System.gc();
+                        FileInputStream fileIn = new FileInputStream(path);
+                        ObjectInputStream in = new ObjectInputStream(fileIn);
+                        map = (Map<String, Map<String, String>>) in.readObject();
+                        in.close();
+                        fileIn.close();
+                    } catch (StreamCorruptedException e) {
+                        e.printStackTrace();
+                    } catch (OptionalDataException e) {
+                        e.printStackTrace();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return map;
             }
+        } catch (Exception e) {
+            return new HashMap<>();
         }
-        return map;
     }
 
 
@@ -1091,7 +1179,7 @@ public class MyApp extends MultiDexApplication {
     }
 
 
-    public void writeMobileData(Map<Long,Map<String, String>> map) {
+    public void writeMobileData(Map<Long, Map<String, String>> map) {
         try {
             String path = "/data/data/" + c.getPackageName()
                     + "/writeMobileData.ser";
@@ -1112,17 +1200,17 @@ public class MyApp extends MultiDexApplication {
         }
     }
 
-    public Map<Long,Map<String, String>> readMobileData() {
+    public Map<Long, Map<String, String>> readMobileData() {
         String path = "/data/data/" + c.getPackageName()
                 + "/writeMobileData.ser";
         File f = new File(path);
-        Map<Long,Map<String, String>> map = new HashMap<>();
+        Map<Long, Map<String, String>> map = new HashMap<>();
         if (f.exists()) {
             try {
                 System.gc();
                 FileInputStream fileIn = new FileInputStream(path);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
-                map = (Map<Long,Map<String, String>>) in.readObject();
+                map = (Map<Long, Map<String, String>>) in.readObject();
                 in.close();
                 fileIn.close();
             } catch (StreamCorruptedException e) {
@@ -1141,7 +1229,7 @@ public class MyApp extends MultiDexApplication {
     }
 
 
-    public void writeGPSData(Map<Long,Map<String, String>> map) {
+    public void writeGPSData(Map<Long, Map<String, String>> map) {
         try {
             String path = "/data/data/" + c.getPackageName()
                     + "/gpsData.ser";
@@ -1162,17 +1250,17 @@ public class MyApp extends MultiDexApplication {
         }
     }
 
-    public Map<Long,Map<String, String>> readGPSData() {
+    public Map<Long, Map<String, String>> readGPSData() {
         String path = "/data/data/" + c.getPackageName()
                 + "/gpsData.ser";
         File f = new File(path);
-        Map<Long,Map<String, String>> map = new HashMap<>();
+        Map<Long, Map<String, String>> map = new HashMap<>();
         if (f.exists()) {
             try {
                 System.gc();
                 FileInputStream fileIn = new FileInputStream(path);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
-                map = (Map<Long,Map<String, String>>) in.readObject();
+                map = (Map<Long, Map<String, String>>) in.readObject();
                 in.close();
                 fileIn.close();
             } catch (StreamCorruptedException e) {

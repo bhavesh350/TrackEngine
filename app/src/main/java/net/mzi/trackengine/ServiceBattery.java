@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -50,15 +51,16 @@ public class ServiceBattery extends Service {
     public void onCreate() {
         super.onCreate();
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
-        pref = getSharedPreferences("login", 0);
-        editor = pref.edit();
-        //editor = pref.edit();
-        nh_userid = pref.getString("userid", "userid");
-        sDeviceId = pref.getString("DeviceId", "0");
-//        sDuration = pref.getString("CheckedInDuration", currentDateTimeString);
-        this.registerReceiver(this.mBatInfoReceiver,
-                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        try {
+            sql = getApplicationContext().openOrCreateDatabase("MZI.sqlite", getApplicationContext().MODE_PRIVATE, null);
+            pref = getSharedPreferences("login", 0);
+            editor = pref.edit();
+            nh_userid = pref.getString("userid", "userid");
+            sDeviceId = pref.getString("DeviceId", "0");
+            this.registerReceiver(this.mBatInfoReceiver,
+                    new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        } catch (Exception e) {
+        }
 
     }
 

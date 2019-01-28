@@ -969,6 +969,8 @@ public class TicketInfo extends AppCompatActivity {
                 responseString = e.toString();
             } catch (IOException e) {
                 responseString = e.toString();
+            } catch (Exception e){
+                responseString = "Request Failed, Please try again later.";
             }
 
             return responseString;

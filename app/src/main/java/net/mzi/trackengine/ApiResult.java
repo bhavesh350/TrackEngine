@@ -21,6 +21,9 @@ public class ApiResult {
 
         @SerializedName("Message")
         public String Message;
+
+        @SerializedName("TicketRedirection")
+        public boolean TicketRedirection;
     }
 
     public class CaptureTicket {
@@ -444,6 +447,9 @@ public class ApiResult {
 
             @SerializedName("JourneyStatus")
             public String journeyStatus;
+
+            @SerializedName("OtherDepartment")
+            public String otherDepartment;
 
         }
     }

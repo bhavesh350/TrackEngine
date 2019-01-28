@@ -30,7 +30,9 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -89,7 +91,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     boolean isGPSEnabled = false;
     Location location;
     static Double latitude, longitude;
-    boolean isNetworkEnabled = false;
+    //    boolean isNetworkEnabled = false;
     SharedPreferences pref;
     String DepartmentId, LastTransportMode = "0";
     static String isAttended;
@@ -116,6 +118,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     String sAcceptStatus;
 
     List<String> mName = new ArrayList<>();
+    List<String> mLatLng = new ArrayList<>();
     List<String> mTime = new ArrayList<>();
     List<String> mSub = new ArrayList<>();
     List<String> mMob = new ArrayList<>();
@@ -136,7 +139,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
     }
 
-    public SchedulingAdapter(List<String> mIssueID, List<String> mName, List<String> mTime, List<String> mLoc, List<String> mMob, List<String> mSub, List<Integer> mDatasetTypes, List<Integer> mCardColor, List<String> mCardType, List<String> mTicketNumber, Map<String, TicketInfoClass> issueDetailsMap, Context context) {
+    public SchedulingAdapter(List<String> mIssueID, List<String> mName, List<String> mTime, List<String> mLoc, List<String> mMob, List<String> mSub, List<Integer> mDatasetTypes, List<Integer> mCardColor, List<String> mCardType, List<String> mTicketNumber, Map<String, TicketInfoClass> issueDetailsMap, Context context, List<String> mLatLnt) {
         this.statusByHierarchy = MyApp.getStatus("statusByHierarchy");
         this.mName = mName;
         this.mTime = mTime;
@@ -151,22 +154,8 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         this.context = context;
         this.issueDetailsMap = issueDetailsMap;
         this.ctx = context;
+        this.mLatLng = mLatLnt;
 
-
-//        String savedId = MyApp.getSharedPrefString("savedCardId");
-//        boolean isAvail = false;
-//
-//        for (int i = 0; i < mIssueID.size(); i++) {
-//            if (mIssueID.get(i).equals(savedId)) {
-//                isAvail = true;
-//            }
-//        }
-//
-//        if (savedId.equals("-1") || savedId.equals("-2"))
-//            isAvail = true;
-//
-//        if (!isAvail)
-//            MyApp.setSharedPrefString("savedCardId", "");
     }
 
     @Override
@@ -205,8 +194,6 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             acceptButton = v.findViewById(R.id.accept);
             rejectButton = v.findViewById(R.id.reject);
             txt_lable = v.findViewById(R.id.txt_lable);
-
-
         }
     }
 
@@ -214,7 +201,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         TextView name, time, sub, location, mobile, stats, sIssueID, preTime, schedule_date_value, txt_lable;
         ImageView mbut;
         LinearLayout bot;
-        RelativeLayout top;
+        RelativeLayout top, pendinglayout;
         final PopupMenu popup;
         ImageButton btn_start, btn_reached;
 
@@ -230,6 +217,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             this.mbut = v.findViewById(R.id.mb);
             this.stats = v.findViewById(R.id.status);
             this.top = v.findViewById(R.id.topLayout2);
+            this.pendinglayout = v.findViewById(R.id.pendinglayout);
             this.bot = v.findViewById(R.id.bottomLayout);
             this.sIssueID = v.findViewById(R.id.issueId_Id);
             this.txt_lable = v.findViewById(R.id.txt_lable);
@@ -280,6 +268,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
+//        Boolean isFuture = false;
+//        if (MyApp.isSmallDate(mTime.get(position))) {
+//            isFuture = true;
+//        }
+
+
         if (holder.getItemViewType() == New) {
             final TicketHolder ticketHolder = (TicketHolder) holder;
             String sDateUI;
@@ -416,9 +410,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     addCard(cquery.getString(0).toString(), cquery.getString(1).toString(), cquery.getString(2).toString(), cquery.getString(3).toString(), cquery.getString(4).toString(), cquery.getString(5).toString(), cqueryForStatus.getString(0).toString(), R.color.orange, Pending, position, cquery.getString(7).toString());
                 }
             });
+//            final Boolean finalIsFuture = isFuture;
             ticketHolder.rejectButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+//                    if (finalIsFuture) {
+//                        MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                        return;
+//                    }
                     isAttended = "0";
                     final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
                     Dialog.setTitle("Rejection Reason: ");
@@ -546,41 +545,69 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             });
 
         } else {
+//            final Boolean finalIsFuture1 = isFuture;
+
             Map<String, String> map = MyApp.getApplication().readTicketCaptureSchedule();
             final SchedulingViewHolder schedulingholder = (SchedulingViewHolder) holder;
 
             String savedCardId = MyApp.getSharedPrefString("savedCardId");
             boolean savedCardStatus = MyApp.getStatus("savedCardStatus");
+            boolean isBothDisable = MyApp.getStatus("isBothDisable");
             try {
                 if (!savedCardId.isEmpty()) {
-                    if (mIssueID.get(position).equals(savedCardId)) {
+                    if (mIssueID.get(position).equals(savedCardId) && !isBothDisable) {
                         if (savedCardStatus) {
                             schedulingholder.btn_start.setImageResource(R.drawable.btn_d_start);
-                            schedulingholder.btn_reached.setImageResource(R.drawable.btn_reach);
+                            schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop);
                             schedulingholder.btn_reached.setEnabled(true);
                             schedulingholder.btn_start.setEnabled(false);
                         } else {
                             schedulingholder.btn_start.setImageResource(R.drawable.btn_start);
-                            schedulingholder.btn_reached.setImageResource(R.drawable.btn_d_reach);
+                            schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
                             schedulingholder.btn_reached.setEnabled(false);
                             schedulingholder.btn_start.setEnabled(true);
                         }
-                    } else {
+                    } else if (isBothDisable/* && mIssueID.get(position).equals(savedCardId)*/) {
                         schedulingholder.btn_start.setImageResource(R.drawable.btn_d_start);
-                        schedulingholder.btn_reached.setImageResource(R.drawable.btn_d_reach);
+                        schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
+                        schedulingholder.btn_start.setEnabled(false);
+                        schedulingholder.btn_reached.setEnabled(false);
+                        try {
+                            ((TaskActivity) context).updateButtons();
+                        } catch (Exception e) {
+                        }
+                    } /*else if (isBothDisable) {
+                        schedulingholder.btn_start.setImageResource(R.drawable.btn_start);
+                        schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
+                        schedulingholder.btn_start.setEnabled(true);
+                        schedulingholder.btn_reached.setEnabled(false);
+                    }*/ else {
+                        schedulingholder.btn_start.setImageResource(R.drawable.btn_d_start);
+                        schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
                         schedulingholder.btn_start.setEnabled(false);
                         schedulingholder.btn_reached.setEnabled(false);
                     }
                 } else {
                     schedulingholder.btn_start.setImageResource(R.drawable.btn_start);
-                    schedulingholder.btn_reached.setImageResource(R.drawable.btn_d_reach);
+                    schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
                     schedulingholder.btn_start.setEnabled(true);
                     schedulingholder.btn_reached.setEnabled(true);
                 }
 
+                if (MyApp.getStatus(mIssueID.get(position) + "RED")) {
+                    schedulingholder.btn_start.setImageResource(R.drawable.btn_d_start);
+                    schedulingholder.btn_reached.setImageResource(R.drawable.btn_stop_grey);
+//                    schedulingholder.btn_start.setEnabled(false);
+//                    schedulingholder.btn_reached.setEnabled(false);
+                }
                 schedulingholder.btn_start.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+//                        if (finalIsFuture1) {
+//                            MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                            return;
+//                        }
+                        MyApp.setStatus("isBothDisable", false);
                         populateStatusStartReach(mIssueID.get(position), position, "", true);
                     }
                 });
@@ -588,14 +615,166 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 schedulingholder.btn_reached.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        MyApp.setStatus("savedCardStatus", false);
-                        MyApp.setSharedPrefString("savedCardId", "");
-                        notifyDataSetChanged();
-                        try {
-                            ((TaskActivity) context).updateButtons();
-                        } catch (Exception e) {
-                        }
-                        goForStartReachStatus(false, position);
+//                        if (finalIsFuture1) {
+//                            MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                            return;
+//                        }
+                        AlertDialog.Builder b = new AlertDialog.Builder(context);
+                        b.setTitle("Change transport?").setMessage("Do you want to change transport mode?")
+                                .setPositiveButton("Change", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                        if (LastTransportMode.equals("0")) {
+                                            Log.e("Transport", "zero");
+                                        } else {
+                                            Log.e("Transport", LastTransportMode);
+                                        }
+                                        Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + LastTransportMode + "'", null);
+                                        if (cquery1.getCount() > 0) {
+                                            cquery1.moveToFirst();
+                                            if (cquery1.getString(0).equals("true")) {
+                                                {
+                                                    android.support.v7.app.AlertDialog.Builder alertDialog = new android.support.v7.app.AlertDialog.Builder(context);
+                                                    alertDialog.setTitle("Transport Expense");
+                                                    alertDialog.setMessage("Enter amount");
+                                                    alertDialog.setCancelable(false);
+                                                    final EditText input = new EditText(context);
+                                                    input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                                                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                                            300,
+                                                            LinearLayout.LayoutParams.MATCH_PARENT);
+                                                    input.setGravity(Gravity.CENTER);
+                                                    lp.setMargins(20, 0, 20, 0);
+                                                    input.setLayoutParams(lp);
+                                                    input.setHint("Amount");
+                                                    alertDialog.setView(input);
+                                                    alertDialog.setIcon(R.mipmap.som);
+
+                                                    alertDialog.setPositiveButton("OK",
+                                                            new DialogInterface.OnClickListener() {
+                                                                public void onClick(DialogInterface dialog, int which) {
+                                                                    String password = input.getText().toString();
+                                                                    if (!password.isEmpty()) {
+                                                                        goForStartReachStatus(false, position, password);
+                                                                        MyApp.setStatus("savedCardStatus", false);
+                                                                        MyApp.setSharedPrefString("savedCardId", "");
+                                                                        notifyDataSetChanged();
+                                                                        try {
+                                                                            ((TaskActivity) context).updateButtons();
+                                                                        } catch (Exception e) {
+                                                                        }
+                                                                    } else {
+                                                                        MyApp.popMessage("Alert!", "Please enter amount.", context);
+                                                                    }
+                                                                }
+                                                            });
+                                                    alertDialog.show();
+                                                }
+                                            } else {
+                                                goForStartReachStatus(false, position, "0");
+                                                MyApp.setStatus("savedCardStatus", false);
+                                                MyApp.setSharedPrefString("savedCardId", "");
+                                                notifyDataSetChanged();
+                                                try {
+                                                    ((TaskActivity) context).updateButtons();
+                                                } catch (Exception e) {
+                                                }
+                                                Log.e("Transport", "no need to show");
+                                            }
+                                        } else {
+                                            goForStartReachStatus(false, position, "0");
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                            notifyDataSetChanged();
+                                            try {
+                                                ((TaskActivity) context).updateButtons();
+                                            } catch (Exception e) {
+                                            }
+                                            Log.e("Transport", "no need to show 610");
+                                        }
+
+                                    }
+                                }).setNegativeButton("Reached", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                                if (LastTransportMode.equals("0")) {
+                                    Log.e("Transport", "zero");
+                                } else {
+                                    Log.e("Transport", LastTransportMode);
+                                }
+                                Cursor cquery1 = sql.rawQuery("select IsPublic from ModeOfTrasportList where TransportId='" + LastTransportMode + "'", null);
+                                if (cquery1.getCount() > 0) {
+                                    cquery1.moveToFirst();
+                                    if (cquery1.getString(0).equals("true")) {
+                                        {
+                                            android.support.v7.app.AlertDialog.Builder alertDialog = new android.support.v7.app.AlertDialog.Builder(context);
+                                            alertDialog.setTitle("Transport Expense");
+                                            alertDialog.setMessage("Enter amount");
+                                            alertDialog.setCancelable(false);
+                                            final EditText input = new EditText(context);
+                                            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                                            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                                    300,
+                                                    LinearLayout.LayoutParams.MATCH_PARENT);
+                                            input.setGravity(Gravity.CENTER);
+                                            lp.setMargins(20, 0, 20, 0);
+                                            input.setLayoutParams(lp);
+                                            input.setHint("Amount");
+                                            alertDialog.setView(input);
+                                            alertDialog.setIcon(R.mipmap.som);
+
+                                            alertDialog.setPositiveButton("OK",
+                                                    new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            String password = input.getText().toString();
+                                                            if (!password.isEmpty()) {
+                                                                goForStartReachStatus(false, position, password);
+                                                                MyApp.setStatus("savedCardStatus", false);
+                                                                MyApp.setStatus("isBothDisable", true);
+//                                                                MyApp.setSharedPrefString("savedCardId", mIssueID.get(position));
+                                                                notifyDataSetChanged();
+                                                                try {
+                                                                    ((TaskActivity) context).updateButtons();
+                                                                } catch (Exception e) {
+                                                                }
+                                                            } else {
+                                                                MyApp.popMessage("Alert!", "Please enter amount.", context);
+                                                            }
+                                                        }
+                                                    });
+                                            alertDialog.show();
+                                        }
+                                    } else {
+                                        goForStartReachStatus(false, position, "0");
+                                        MyApp.setStatus("savedCardStatus", false);
+                                        MyApp.setStatus("isBothDisable", true);
+//                                        MyApp.setSharedPrefString("savedCardId", "");
+                                        notifyDataSetChanged();
+                                        try {
+                                            ((TaskActivity) context).updateButtons();
+                                        } catch (Exception e) {
+                                        }
+                                        Log.e("Transport", "no need to show");
+                                    }
+                                } else {
+                                    MyApp.setStatus("isBothDisable", true);
+                                    goForStartReachStatus(false, position, "0");
+                                    MyApp.setStatus("savedCardStatus", false);
+//                                    MyApp.setSharedPrefString("savedCardId", "");
+                                    notifyDataSetChanged();
+                                    try {
+                                        ((TaskActivity) context).updateButtons();
+                                    } catch (Exception e) {
+                                    }
+                                    Log.e("Transport", "no need to show 610");
+                                }
+
+                            }
+                        }).create().show();
+
+
                     }
                 });
             } catch (Exception e) {
@@ -612,10 +791,31 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.top.setBackgroundResource(mCardColor.get(position));
             schedulingholder.bot.setBackgroundResource(mCardColor.get(position));
             schedulingholder.mbut.setBackgroundResource(mCardColor.get(position));
+
+            schedulingholder.pendinglayout.setBackgroundResource(R.color.white);
+            if (mIssueID.get(position).equals(savedCardId) && isBothDisable) {
+                schedulingholder.pendinglayout.setBackgroundResource(mCardColor.get(position));
+            }
+
+            if (MyApp.getStatus(mIssueID.get(position) + "RED")) {
+                schedulingholder.pendinglayout.setBackgroundResource(R.color.black_overlay);
+            }
+
+
+//            if (isFuture) {
+//                schedulingholder.top.setBackgroundResource(R.color.black_overlay);
+//                schedulingholder.bot.setBackgroundResource(R.color.black_overlay);
+//                schedulingholder.mbut.setBackgroundResource(R.color.black_overlay);
+//            }
+
             schedulingholder.sIssueID.setText(mTicketNumber.get(position));
             schedulingholder.mobile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+//                    if (finalIsFuture1) {
+//                        MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                        return;
+//                    }
                     Intent in = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mMob.get(position)));
                     ctx.startActivity(in);
                 }
@@ -635,11 +835,20 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.stats.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+//                    if (finalIsFuture1) {
+//                        MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                        return;
+//                    }
                     currentStatus = mCardType.get(position);
                     Cursor cqueryIsVerified = sql.rawQuery("select IsVerified,PreviousStatus from Issue_Detail where IssueId='" + mIssueID.get(position) + "'", null);
                     cqueryIsVerified.moveToFirst();
-                    sPreviousId = cqueryIsVerified.getString(1).toString();
-                    if (cqueryIsVerified.getString(0).toString().equals("0")) {
+                    try {
+                        sPreviousId = cqueryIsVerified.getString(1);
+                    } catch (Exception e) {
+                        MyApp.showMassage(context, "Try again or refresh data.");
+                        return;
+                    }
+                    if (cqueryIsVerified.getString(0).equals("0")) {
                         final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
                         Dialog.setTitle("Verify Asset Serial Number");
                         Dialog.setCancelable(false);
@@ -745,7 +954,15 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
+                    if (MyApp.getStatus(mIssueID.get(position) + "RED")) {
+                        return true;
+                    }
+//                    if (finalIsFuture1) {
+//                        MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                        return true;
+//                    }
                     switch (item.getItemId()) {
+
                         case R.id.nroute:
 
                             Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + mLoc.get(position)));
@@ -756,7 +973,13 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(in);
                             return true;
                         case R.id.chStatus:
-                            if (!MyApp.getSharedPrefString("savedCardId").isEmpty()) {
+                            boolean isBothDisable = MyApp.getStatus("isBothDisable");
+                            boolean isEngaged = MyApp.getStatus("savedCardStatus");
+                            String savedCardId = MyApp.getSharedPrefString("savedCardId");
+                            if (!MyApp.getSharedPrefString("savedCardId").isEmpty() && !mIssueID.get(position).equals(savedCardId)) {
+                                MyApp.popMessage("Alert!", "Please finish your journey first.", context);
+                                return true;
+                            } else if (isEngaged && !MyApp.getSharedPrefString("savedCardId").isEmpty()) {
                                 MyApp.popMessage("Alert!", "Please finish your journey first.", context);
                                 return true;
                             }
@@ -811,11 +1034,16 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         case R.id.showDistance:
                             DecimalFormat df = new DecimalFormat("####.00");
                             getLocation();
-                            String sDistance = String.valueOf(df.format(showDistance(latitude, longitude, mLoc.get(position), context)));
+                            Double distance = showDistance(latitude, longitude, mLoc.get(position), mLatLng.get(position), context);
+                            if (distance == -1.0) {
+                                MyApp.showMassage(context, "Location not found, please try again.");
+                                return true;
+                            }
+                            String sDistance = String.valueOf(df.format(distance));
                             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
                             alertDialogBuilder.setTitle("Distance in KM");
                             alertDialogBuilder
-                                    .setMessage("Distance:" + sDistance + " KM")
+                                    .setMessage("Distance:" + sDistance + " KM approx")
                                     .setCancelable(true)
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
@@ -877,6 +1105,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             schedulingholder.mbut.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+//                    if (finalIsFuture1) {
+//                        MyApp.popMessage("Alert!", "You cannot perform action on future ticket or task.", context);
+//                        return;
+//                    }
                     schedulingholder.popup.show();
                 }
             });
@@ -885,7 +1117,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         }
     }
 
-    private void goForStartReachStatus(boolean isStart, int position) {
+    private void goForStartReachStatus(boolean isStart, int position, String expense) {
         MyApp.spinnerStart(context, "Please wait...");
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -911,10 +1143,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         postTktStatus.put("Longitude", String.valueOf(longitude));
         postTktStatus.put("AssetSerialNo", "");
         postTktStatus.put("DeviceId", sDeviceId);
-        postTktStatus.put("Expense", "");
+        postTktStatus.put("Expense", expense);
         postTktStatus.put("SyncStatus", "-1");
         postTktStatus.put("ModeOfTransport", "");
-        postTktStatus.put("Expense", "0");
         postTktStatus.put("AssignedUserId", "0");
         postTktStatus.put("TaskId", "0");
         if (issueDetailsMap.containsKey(mIssueID.get(position)))
@@ -952,8 +1183,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         final TextView txt_transport_lable;
         cquery = sql.rawQuery("select IsAccepted, StatusId from Issue_Detail where IssueId='" + id + "'", null);
         cquery.moveToFirst();
-        String sCardType = cquery.getString(0);
-        sCurrentStatusId = cquery.getString(1);
+//        String sCardType = cquery.getString(0);
+        try {
+            sCurrentStatusId = cquery.getString(1);
+        } catch (Exception e) {
+            return;
+        }
 
         fetchStatus(currentStatus, id, sCurrentStatusId);
         fetchTransportMode();
@@ -966,7 +1201,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         Spinner spinnercategory = dialogView
                 .findViewById(R.id.viewSpin);
         spinnercategory.setVisibility(View.GONE);
-        Spinner spinnerTransport = dialogView
+        final Spinner spinnerTransport = dialogView
                 .findViewById(R.id.id_transportMode);
         final EditText commemt = dialogView.findViewById(R.id.comment);
         txt_transport_lable = dialogView.findViewById(R.id.txt_transport_lable);
@@ -991,15 +1226,17 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             @Override
             public void onClick(View v) {
                 try {
+                    int pos = spinnerTransport.getSelectedItemPosition();
                     cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
+                    cquery.moveToFirst();
+                    sMainStatusId = cquery.getString(0);
                 } catch (Exception e) {
                     MyApp.showMassage(context, "Some problem occurred, Please try again.");
-                    return;
                 }
-                cquery.moveToFirst();
+
                 Date cDate = new Date();
                 currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                sMainStatusId = cquery.getString(0);
+
                 getLocation();
                 MyApp.spinnerStart(context, "Please wait...");
                 try {
@@ -1100,6 +1337,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     poss = arg2;
                     cquery = sql.rawQuery("select CommentRequired,StartingForSite from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
                     cquery.moveToFirst();
+                    sMainStatusId = cquery.getString(0);
                     if (cquery.getCount() > 0) {
                         cquery.moveToFirst();
                         if (cquery.getString(0).equals("true")) {
@@ -1151,7 +1389,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 postTktStatus.put("ModeOfTransport", mtTransportlistIds.get(arg2));
                 postTktStatus.put("Expense", "0");
                 postTktStatus.put("AssignedUserId", nh_userid);
-                MyApp.showMassage(ctx, String.valueOf(arg2 + arg3));
+//                MyApp.showMassage(ctx, String.valueOf(arg2 + arg3));
             }
 
             public void onNothingSelected(AdapterView<?> arg0) {
@@ -1216,7 +1454,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 postTktStatus.put("DeviceId", sDeviceId);
                 postTktStatus.put("ActivityDate", currentTime);
                 postTktStatus.put("DepartmentId", DepartmentId);
-                postTktStatus.put("ticketNumber", mTicketNumber.get(pos));
+                postTktStatus.put("ticketNumber", issueId);
                 postTktStatus.put("RealtimeUpdate", "true");
                 postTktStatus.put("Latitude", String.valueOf(latitude));
                 postTktStatus.put("Latitude", String.valueOf(latitude));
@@ -1395,7 +1633,36 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         return m;
     }
 
-    private Double showDistance(Double lat, Double lon, String sAddress, Context context) {
+    private Double showDistance(Double lat, Double lon, String sAddress, String latLng, Context context) {
+//        Geocoder coder = new Geocoder(context);
+        Double lati, longi;
+        try {
+            lati = Double.parseDouble(latLng.split("##")[0]);
+            longi = Double.parseDouble(latLng.split("##")[1]);
+        } catch (Exception e) {
+            return showDistanceOldWay(lat, lon, sAddress, context);
+        }
+
+        final int R = 6371; // Radious of the earth
+
+        try {
+            Double latDistance = deg2rad(lati - lat);
+            Double lonDistance = deg2rad(longi - lon);
+            Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+                    Math.cos(deg2rad(lat)) * Math.cos(deg2rad(lati)) *
+                            Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+            Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            Double distance = R * c;
+            return distance;
+        } catch (Exception e) {
+            return -1.0;
+        }
+
+
+    }
+
+
+    private Double showDistanceOldWay(Double lat, Double lon, String sAddress, Context context) {
         Geocoder coder = new Geocoder(context);
         Double lati, longi;
         lati = null;
@@ -1404,7 +1671,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
         try {
             address = coder.getFromLocationName(sAddress, 5);
             if (address == null || address.size() == 0) {
-                return 0.0;
+                return -1.0;
             } else {
                 Address location = address.get(0);
                 lati = location.getLatitude();
@@ -1427,7 +1694,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             Double distance = R * c;
             return distance;
         } catch (Exception e) {
-            return 10.0;
+            return -1.0;
         }
 
 
@@ -1442,38 +1709,60 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     }
 
     private void addCard(String sIssueId, String sName, String sTime, String sLoc, String sMob, String sSub, String sStatus, int iColor, int iDatatype, int position, String sTicketNumber) {
+        try {
+            mIssueID.remove(position);
+            mName.remove(position);
+            mTime.remove(position);
+            mLoc.remove(position);
+            mMob.remove(position);
+            mSub.remove(position);
+            mDatasetTypes.remove(position);
+            mCardColor.remove(position);
+            mCardType.remove(position);
+            mTicketNumber.remove(position);
 
-        mIssueID.remove(position);
-        mName.remove(position);
-        mTime.remove(position);
-        mLoc.remove(position);
-        mMob.remove(position);
-        mSub.remove(position);
-        mDatasetTypes.remove(position);
-        mCardColor.remove(position);
-        mCardType.remove(position);
-        mTicketNumber.remove(position);
-
-        mIssueID.add(position, sIssueId);
-        mName.add(position, sName);
-        mTime.add(position, sTime);
-        mLoc.add(position, sLoc);
-        mMob.add(position, sMob);
-        mSub.add(position, sSub);
-        mTicketNumber.add(position, sTicketNumber);
-        mDatasetTypes.add(position, iDatatype);
-        mCardColor.add(position, iColor);
-        mCardType.add(position, sStatus);
+            mIssueID.add(position, sIssueId);
+            mName.add(position, sName);
+            mTime.add(position, sTime);
+            mLoc.add(position, sLoc);
+            mMob.add(position, sMob);
+            mSub.add(position, sSub);
+            mTicketNumber.add(position, sTicketNumber);
+            mDatasetTypes.add(position, iDatatype);
+            mCardColor.add(position, iColor);
+            mCardType.add(position, sStatus);
 
 
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, mDatasetTypes.size());
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, mDatasetTypes.size());
+        } catch (Exception e) {
+            notifyDataSetChanged();
+        }
     }
 
     String[] previousValues;
 
     private void populateStatus(final String id, final int position, final String sAssetVerificationText, final String sPreviousId) {
-        if (!MyApp.getSharedPrefString("savedCardId").isEmpty()) {
+//        MyApp.setStatus(postTktStatus.get("TicketId") + "RED", true);
+        if (MyApp.getStatus(id + "RED")) {
+            return;
+        }
+
+        final String savedCardId = MyApp.getSharedPrefString("savedCardId");
+        final boolean isBothDisable = MyApp.getStatus("isBothDisable");
+        final boolean isEngaged = MyApp.getStatus("savedCardStatus");
+        if (isBothDisable && !mIssueID.get(position).equals(savedCardId)) {
+            MyApp.popMessage("Alert!", "Please finish your journey first.", context);
+            return;
+//            MyApp.setStatus("isBothDisable", false);
+//            MyApp.setSharedPrefString("savedCardId", "");
+//            notifyDataSetChanged();
+        } else if (isEngaged && !MyApp.getSharedPrefString("savedCardId").isEmpty() && !isBothDisable) {
+            MyApp.popMessage("Alert!", "Please finish your journey first.", context);
+            return;
+        }
+
+        if (!isEngaged && !isBothDisable && !MyApp.getSharedPrefString("savedCardId").isEmpty() && !mIssueID.get(position).equals(savedCardId)) {
             MyApp.popMessage("Alert!", "Please finish your journey first.", context);
             return;
         }
@@ -1528,6 +1817,15 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         wantToCloseDialog = false;
                     }
                     if (true) {
+                        if (isBothDisable && mIssueID.get(position).equals(savedCardId)) {
+                            MyApp.setStatus("isBothDisable", false);
+                            MyApp.setSharedPrefString("savedCardId", "");
+                            try {
+                                ((TaskActivity) context).updateButtons();
+                            } catch (Exception e) {
+                            }
+                            notifyDataSetChanged();
+                        }
                         String sSelectedStatus;
                         cquery = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + statusListIds.get(poss) + "'", null);
                         cquery.moveToFirst();
@@ -2076,7 +2374,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             public void run() {
                 MyApp.setStatus("isTicketUpdating", false);
             }
-        }, 30000);
+        }, 10000);
 //        Log.e("TicketStatusTable", "status value " + postTktStatus.get("StatusId"));
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
@@ -2096,7 +2394,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             postTktStatus.get("Longitude"),
                             postTktStatus.get("AssetSerialNo"),
                             postTktStatus.get("DeviceId"),
-                            postTktStatus.get(realTimeUpdate),
+                            realTimeUpdate,
                             postTktStatus.get("ModeOfTransport"),
                             postTktStatus.get("Expense"),
                             postTktStatus.get("AssignedUserId"),
@@ -2116,7 +2414,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             postTktStatus.get("Longitude"),
                             postTktStatus.get("AssetSerialNo"),
                             postTktStatus.get("DeviceId"),
-                            postTktStatus.get(realTimeUpdate),
+                            realTimeUpdate,
                             postTktStatus.get("ModeOfTransport"),
                             postTktStatus.get("Expense"),
                             postTktStatus.get("AssignedUserId"),
@@ -2138,7 +2436,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             postTktStatus.get("Longitude"),
                             postTktStatus.get("AssetSerialNo"),
                             postTktStatus.get("DeviceId"),
-                            postTktStatus.get(realTimeUpdate),
+                            realTimeUpdate,
                             postTktStatus.get("ModeOfTransport"),
                             postTktStatus.get("Expense"),
                             postTktStatus.get("AssignedUserId"),
@@ -2158,7 +2456,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             postTktStatus.get("Longitude"),
                             postTktStatus.get("AssetSerialNo"),
                             postTktStatus.get("DeviceId"),
-                            postTktStatus.get(realTimeUpdate),
+                            realTimeUpdate,
                             postTktStatus.get("ModeOfTransport"),
                             postTktStatus.get("Expense"),
                             postTktStatus.get("AssignedUserId"),
@@ -2220,6 +2518,9 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             savedMap.put(postTktStatus.get("TicketId"), map);
                             MyApp.getApplication().writeTicketsIssueHistory(savedMap);
                         } else {
+                            if (iData.resData.TicketRedirection) {
+                                MyApp.setStatus(postTktStatus.get("TicketId") + "RED", true);
+                            }
                             Log.e("TicketStatusTable", "Success" + " response " + iData.toString());
 
                             if (iData.resData.Status.equals("false")) {
@@ -2335,9 +2636,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Log.d("debuggingStatus", "count " + cTemp.getCount() + " previous " + cTemp.getString(0));
 
                     cTemp.moveToFirst();
-                    Cursor cqueryFetchingChildStatus = sql.rawQuery("select StatusId from Issue_StatusHiererchy where ParentStatus='" + cTemp.getString(0).toString() + "'", null);
-                    Log.d("debuggingStatus", "childStatus " + cqueryFetchingChildStatus.getCount());
-                    if (cqueryFetchingChildStatus.getCount() > 0) {
+                    String parentStatus = cTemp.getString(0);
+//                    if (parentStatus.equals("4102")) {
+//                        parentStatus = "4481";
+//                    }
+                    Cursor cqueryFetchingChildStatus = sql.rawQuery("select StatusId from Issue_StatusHiererchy where ParentStatus='" + parentStatus + "'", null);
+//                    Log.d("debuggingStatus", "childStatus " + cqueryFetchingChildStatus.getCount());
+                    int childStatusCount = cqueryFetchingChildStatus.getCount();
+                    if (childStatusCount > 0) {
 
                         for (cqueryFetchingChildStatus.moveToFirst(); !cqueryFetchingChildStatus.isAfterLast(); cqueryFetchingChildStatus.moveToNext()) {
                             Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0).toString() + "'", null);
@@ -2385,31 +2691,35 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
             isGPSEnabled = locationManager
                     .isProviderEnabled(LocationManager.GPS_PROVIDER);
-            isNetworkEnabled = locationManager
-                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGPSEnabled && !isNetworkEnabled) {
+//            isNetworkEnabled = locationManager
+//                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            if (!isGPSEnabled) {
             } else {
-                if (isNetworkEnabled) {
-                    if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        return;
-                    }
-                    locationManager.requestLocationUpdates(
-                            LocationManager.NETWORK_PROVIDER,
-                            500, 100, this);
-                    Log.e("Network", "Network");
-                    if (locationManager != null) {
-                        location = locationManager
-                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
-                    }
-                }
+//                if (isNetworkEnabled) {
+//                    if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                        // TODO: Consider calling
+//                        return;
+//                    }
+//                    locationManager.requestLocationUpdates(
+//                            LocationManager.NETWORK_PROVIDER,
+//                            500, 100, this);
+//                    Log.e("Network", "Network");
+//                    if (locationManager != null) {
+//                        location = locationManager
+//                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//                        if (location != null) {
+//                            latitude = location.getLatitude();
+//                            longitude = location.getLongitude();
+//                        }
+//                    }
+//                }
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {
                     if (location == null) {
+                        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+                                PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            return;
+                        }
                         locationManager.requestLocationUpdates(
                                 LocationManager.GPS_PROVIDER,
                                 100,

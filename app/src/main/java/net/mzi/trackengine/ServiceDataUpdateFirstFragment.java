@@ -309,9 +309,12 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     t.setType(resData.IssueDetail[i].type);
                                     t.setJourneyStatus(resData.IssueDetail[i].journeyStatus);
                                     scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
-                                    editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
-                                    editor.apply();
-                                    editor.commit();
+                                    String savedCardId = MyApp.getSharedPrefString("savedCardId");
+                                    if (savedCardId.isEmpty()) {
+                                        editor.putString("LastTransport", resData.IssueDetail[0].LastTransportMode);
+                                        editor.apply();
+                                        editor.commit();
+                                    }
                                     Cursor cquery = sql.rawQuery("select Action from FirebaseIssueData where IssueId ='" + t.IssueID + "'", null);
                                     if (cquery.getCount() > 0) {
                                         cquery.moveToFirst();

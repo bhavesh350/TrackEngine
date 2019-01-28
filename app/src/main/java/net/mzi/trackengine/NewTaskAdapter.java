@@ -236,7 +236,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                 ApiResult.IssueDetail iData = response.body();
                                 if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                     try {
-                                        Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                        Toast.makeText(context, "Server response error. Data has been saved to offline, it will be synced after some time.", Toast.LENGTH_LONG).show();
                                     } catch (Exception e) {
                                         e.getMessage();
                                     }
@@ -423,7 +423,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     ApiResult.IssueDetail iData = response.body();
                                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                         try {
-                                            Toast.makeText(context, R.string.internet_error, Toast.LENGTH_LONG).show();
+                                            Toast.makeText(context,"Server response error. Data has been saved to offline, it will be synced after some time.", Toast.LENGTH_LONG).show();
                                         } catch (Exception e) {
                                             e.getMessage();
                                         }

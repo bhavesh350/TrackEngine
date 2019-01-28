@@ -11,11 +11,9 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import net.mzi.trackengine.MainActivity;
 import net.mzi.trackengine.NewTaskActivity;
 import net.mzi.trackengine.R;
 import net.mzi.trackengine.TaskActivity;
-import net.mzi.trackengine.utils.SquareRelativeLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
     public class TaskViewHolder extends ViewHolder {
         TextView task, taskCount;
         //        RelativeLayout r1;
-        SquareRelativeLayout cardview;
+        RelativeLayout cardview;
 
         public TaskViewHolder(View v) {
             super(v);
@@ -78,18 +76,20 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
 //        taskholder.r1.setBackgroundResource(mCardColor.get(position));
         try {
             if (mCardBg.get(position).equals("Purple")) {
-                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.purple));
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.purple));
             } else if (mCardBg.get(position).equals("Orange")) {
-                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.orange));
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.orange));
             } else if (mCardBg.get(position).equals("Blue")) {
-                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.blue));
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.blue));
+            } else if (mCardBg.get(position).equals("Green")) {
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.green));
+            } else if (mCardBg.get(position).equals("Red")) {
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.red));
             } else {
-                taskholder.cardview.setCardBackgroundColor(mContext.getResources().getColor(R.color.green));
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.colorPrimaryDark));
             }
-            if (position < 4) {
-                taskholder.task.setText(mDataSet.get(position));
-                taskholder.taskCount.setText(mDatasetCount.get(position));
-            }
+            taskholder.task.setText(mDataSet.get(position));
+            taskholder.taskCount.setText(mDatasetCount.get(position));
 
 
         } catch (Exception e) {
