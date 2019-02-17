@@ -132,12 +132,12 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
             @Override
             public void onClick(View v) {
                 MyApp.setStatus("isTicketUpdating", true);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        MyApp.setStatus("isTicketUpdating", false);
-                    }
-                }, 30000);
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        MyApp.setStatus("isTicketUpdating", false);
+//                    }
+//                }, 30000);
                 SchedulingAdapter.isAttended = "0";
                 Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + DepartmentId + "' ", null);
                 if (cquery.getCount() > 0) {
@@ -149,7 +149,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                 Date cDate = new Date();
                 String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
                 try {
-                    Log.d("debuggingStatus",mIssueID.get(position));
+                    Log.d("debuggingStatus", mIssueID.get(position));
                     Cursor cqueryTemp = sql.rawQuery("select PreviousStatus from Issue_Detail where IssueId ='" + mIssueID.get(position) + "'", null);
                     cqueryTemp.moveToFirst();
                     ContentValues newValues = new ContentValues();
@@ -157,7 +157,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                     newValues.put("IsAccepted", "1");
                     newValues.put("UpdatedDate", currentDateTimeString);
                     newValues.put("PreviousStatus", cqueryTemp.getString(0));
-                    Log.d("debuggingStatus",cqueryTemp.getString(0));
+                    Log.d("debuggingStatus", cqueryTemp.getString(0));
                     cqueryTemp.close();
                     MyApp.spinnerStart(context, "Please wait...");
                     new Handler().postDelayed(new Runnable() {
@@ -169,7 +169,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 //                    String deletableId = issueDetail.IssueId;
 //                    if (deletableId.equals("0"))
 //                        deletableId = issueDetail.taskId;
-                    Log.d("debuggingStatus",mIssueID.get(position));
+                    Log.d("debuggingStatus", mIssueID.get(position));
                     sql.update("Issue_Detail", newValues, "IssueId=" + mIssueID.get(position), null);
 //                    ((MainActivity) context).updateCounter(context, false);
                     Map<String, Map<String, String>> ticketsMap = MyApp.getApplication().readTicketsIssueHistory();
@@ -285,6 +285,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                         }
                     });
                 } catch (Exception e) {
+                    MyApp.setStatus("isTicketUpdating", false);
                     MyApp.spinnerStop();
                 }
                 // new UpdateTask(context,postTktStatus,"0",sColumnId).execute();
@@ -296,12 +297,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
             @Override
             public void onClick(View v) {
                 MyApp.setStatus("isTicketUpdating", true);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        MyApp.setStatus("isTicketUpdating", false);
-                    }
-                }, 30000);
+
                 SchedulingAdapter.isAttended = "0";
                 final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
                 Dialog.setTitle("Rejection Reason: ");
@@ -407,7 +403,12 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 
                             if (cqueryTemp.getCount() > 0) {
                                 cqueryTemp.moveToFirst();
-                                ref.child(MainActivity.LOGINID).child(deletableId).child("Action").setValue("Delete");
+                                try {
+                                    if (!MainActivity.LOGINID.isEmpty() || MainActivity.LOGINID != null || deletableId != null
+                                            || !deletableId.equals("null"))
+                                        ref.child(MainActivity.LOGINID).child(deletableId).child("Action").setValue("Delete");
+                                } catch (Exception e) {
+                                }
                             }
 
                             sql.delete("Issue_Detail", "IssueId" + "=" + deletableId, null);
@@ -423,7 +424,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                                     ApiResult.IssueDetail iData = response.body();
                                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
                                         try {
-                                            Toast.makeText(context,"Server response error. Data has been saved to offline, it will be synced after some time.", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(context, "Server response error. Data has been saved to offline, it will be synced after some time.", Toast.LENGTH_LONG).show();
                                         } catch (Exception e) {
                                             e.getMessage();
                                         }
@@ -527,15 +528,15 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
             notifyItemRangeChanged(position, mDatasetTypes.size());
 
             if (mDatasetTypes.size() == 0) {
-               new Handler().postDelayed(new Runnable() {
-                   @Override
-                   public void run() {
-                       try {
-                           ((NewTaskActivity) context).finish();
-                       } catch (Exception e) {
-                       }
-                   }
-               },3000);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ((NewTaskActivity) context).finish();
+                        } catch (Exception e) {
+                        }
+                    }
+                }, 3000);
             }
         } catch (Exception e) {
             e.printStackTrace();

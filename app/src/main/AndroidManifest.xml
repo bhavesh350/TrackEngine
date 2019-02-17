@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <!--<uses-permission android:name="android.permission.READ_SMS" />-->
 
     <application
@@ -189,6 +190,7 @@
             <!--android:action="android.settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"-->
             <!--android:targetPackage="com.android.settings"-->
             <!--android:data="package:net.mzi.trackengine" />-->
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
     </application>
 

@@ -84,7 +84,7 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
             } else if (mCardBg.get(position).equals("Green")) {
                 taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.green));
             } else if (mCardBg.get(position).equals("Red")) {
-                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.red));
+                taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.colorBackgroundEnd));
             } else {
                 taskholder.cardview.setBackgroundColor(mContext.getResources().getColor(R.color.colorPrimaryDark));
             }
@@ -124,7 +124,7 @@ public class MainActivityAdapter extends RecyclerView.Adapter<MainActivityAdapte
                     } else {
                         Intent i = new Intent(view.getContext(), TaskActivity.class);
                         i.putExtra("cardpos", String.valueOf(pos));
-                        if (pos == 1 || pos == 2) {
+                        if (pos == 1 || pos == 2 || pos == 5) {
                             i.putExtra("isShowExtra", true);
                         }
                         i.putExtra("address", ""/*((MainActivity) mContext).tv_location.getText().toString()*/);

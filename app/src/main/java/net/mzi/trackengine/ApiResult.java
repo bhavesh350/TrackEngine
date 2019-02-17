@@ -300,11 +300,11 @@ public class ApiResult {
             this.UserId = Userid;
             this.ParentCompanyId = ParentCompanyId;
             this.IssueId = IsuueId;
-            Map<String,TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
+            Map<String, TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
             if (issueDetailsMap.containsKey(IssueId)) {
-                if(issueDetailsMap.get(IssueId).getType().equals("Ticket")){
+                if (issueDetailsMap.get(IssueId).getType().equals("Ticket")) {
                     this.taskId = "0";
-                }else {
+                } else {
                     this.taskId = IssueId;
                     this.IssueId = "0";
                 }
@@ -406,6 +406,15 @@ public class ApiResult {
             @SerializedName("OEMTicketId")
             public String OEMTicketId;
 
+            @SerializedName("Priority")
+            public String priority;
+
+            @SerializedName("CallMode")
+            public String callMode;
+
+            @SerializedName("SLAName")
+            public String slaName;
+
             @SerializedName("AssetDetail")
             public String AssetDetail;
 
@@ -484,6 +493,9 @@ public class ApiResult {
 
             @SerializedName("IsMobileStatus")
             public String IsMobileStatus;
+
+            @SerializedName("HoldTat")
+            public boolean holdTat;
 
         }
 

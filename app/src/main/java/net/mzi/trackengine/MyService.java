@@ -9,7 +9,6 @@ import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
 import android.app.job.JobService;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,7 +24,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.firebase.FirebaseApp;
@@ -166,19 +164,14 @@ public class MyService extends JobService {
             localDate = Updatedate.parse(strUpdatedDate);
             long different = liveDate.getTime() - localDate.getTime();
             long m = different;
-            long elapsedMinutes = different / minutesInMilli;
-            if (elapsedMinutes >= 2) {
-//                try {
-//                    mLocationManager.requestLocationUpdates(
-//                            LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-//                            mLocationListeners[1]);
-//                } catch (SecurityException ex) {
-//                    Log.i(TAG, "fail to request location update, ignore", ex);
-//                    showSettingsAlert();
-//                } catch (IllegalArgumentException ex) {
-//                    showSettingsAlert();
-//                    Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-//                }
+//            long elapsedMinutes = different / minutesInMilli;
+            long lastLocTimee = MyApp.getSharedPrefLong("LOC");
+            if (lastLocTimee == 0) {
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
+            }
+            long differLocc = System.currentTimeMillis() - lastLocTimee;
+            if (differLocc >= (2 * 58 * 1000)) {
+                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
                 try {
                     mLocationManager.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
@@ -274,22 +267,12 @@ public class MyService extends JobService {
                             locationInfo.put("Provider", "NA");
 
                             try {
-                                //Date cDate = new Date();
-                                //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                                Log.e("onReceive: USERID", nh_userid);
-                                //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                                sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                        "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                Log.e("Location insertion", "Inserted by MyService at 283");
-                                //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
 
-                                LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.put(currentDateTimeString, locationInfo);
+                                MyApp.getApplication().writeLocationData(locMap);
+
+                                LocationOperation(locationInfo, getApplicationContext(), currentDateTimeString);
                             } catch (Exception e) {
                             }
                         }
@@ -362,22 +345,11 @@ public class MyService extends JobService {
                         locationInfo.put("Provider", "NA");
 
                         try {
-                            //Date cDate = new Date();
-                            //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                            Log.e("onReceive: USERID", nh_userid);
-                            //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                            sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                    "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                            Log.e("Location insertion", "Inserted by MyService at 371");
-                            //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                            Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                            String sColumnId = null;
-                            if (cquery.getCount() > 0) {
-                                cquery.moveToLast();
-                                sColumnId = cquery.getString(0).toString();
-                            }
+                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                            locMap.put(currentDateTimeString, locationInfo);
+                            MyApp.getApplication().readLocationData();
 
-                            LocationOperation(locationInfo, getApplicationContext(), sColumnId);
+                            LocationOperation(locationInfo, getApplicationContext(), currentDateTimeString);
                         } catch (Exception e) {
                         }
                     }
@@ -390,37 +362,12 @@ public class MyService extends JobService {
                 editor.commit();
             }
 
-           /* if (localDate.getTime() > liveDate.getTime()) {
-
-                t.UpdatedDate = strUpdatedDate;
-                t.StatusId = cqueryTempForLatestStatusId.getString(0).toString();
-            } else {
-                t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
-                t.StatusId = resData.IssueDetail[i].StatusId;
-            }*/
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Create google api instance
-     */
-//    private void createGoogleApi() {
-//        //Log.d(TAG, "createGoogleApi()");
-//        if (googleApiClient == null) {
-//            googleApiClient = new GoogleApiClient.Builder(this)
-//                    .addConnectionCallbacks(this)
-//                    .addOnConnectionFailedListener(this)
-//                    .addApi(LocationServices.API)
-//                    .build();
-//        }
-//
-//        //connect google api
-//        googleApiClient.connect();
-//
-//    }
 
     /**
      * disconnect google api
@@ -452,22 +399,21 @@ public class MyService extends JobService {
     }
 
 
-    public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
+    public void LocationOperation(Map locationInfo, final Context ctx, final String key) {
         boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
         if (sCheckInStatus) {
-            long lastLocTime = MyApp.getSharedPrefLong("LOC");
-            if (lastLocTime == 0) {
-                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
-            }
-            long differLoc = System.currentTimeMillis() - lastLocTime;
-            if (differLoc < (2 * 58 * 1000)) {
-                return;
-            }
+
             Log.e("LocationOperation: ", "Method called LocationOperation");
             MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
+            if (locationInfo.get("Latitude").toString().length() <= 3) {
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                locMap.remove(key);
+                MyApp.getApplication().writeLocationData(locMap);
+                return;
+            }
 
-            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+//            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -501,7 +447,7 @@ public class MyService extends JobService {
                             locationInfo.get("KnownName").toString(), "NA");
                     call1 = apiInterface.PostCoordinates(user_location);
                 }
-                final String finalColumnId = sColumnId;
+//                final String finalColumnId = sColumnId;
                 call1.enqueue(new Callback<ApiResult.User_Location>() {
                     @Override
                     public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
@@ -509,15 +455,13 @@ public class MyService extends JobService {
                             ApiResult.User_Location iData = response.body();
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
 
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                                sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                                sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             }
                         } catch (Exception e) {
                         }
@@ -532,6 +476,10 @@ public class MyService extends JobService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else {
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            locMap.remove(key);
+            MyApp.getApplication().writeLocationData(locMap);
         }
     }
 
@@ -663,25 +611,11 @@ public class MyService extends JobService {
                     locationInfo.put("Provider", "NA");
 
                     try {
-                        //Date cDate = new Date();
-                        //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                        Log.e("onReceive: USERID", nh_userid);
-                        //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                        Log.e("Location insertion", "Inserted by MyService at 670");
-                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                        String sColumnId = null;
-                        if (cquery.getCount() > 0) {
-                            cquery.moveToLast();
-                            sColumnId = cquery.getString(0).toString();
-                        }
+                        Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                        locMap.put(currentDateTimeString, locationInfo);
                         ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId, false);
+                        m.LocationOperationOffline(locationInfo, getApplicationContext(), currentDateTimeString, false, true);
                     } catch (Exception e) {
-                        ServiceLocation m = new ServiceLocation();
-                        m.LocationOperationOffline(locationInfo, getApplicationContext(), "", false);
                     }
                 }
             } else {

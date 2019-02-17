@@ -13,6 +13,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -49,7 +50,8 @@ public class ServiceDataUpdateFirstFragment extends Service {
 
     public ServiceDataUpdateFirstFragment() {
     }
-
+    private Handler h = new Handler();
+    boolean isFirebaseCalled = false;
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
     SharedPreferences.Editor editor;
@@ -118,15 +120,18 @@ public class ServiceDataUpdateFirstFragment extends Service {
                         Pi = postSnapshot.getValue(FirebaseTicketData.class);
                         //firebaseIssueData.add(P);
                         Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                        if (cquery.getCount() > 0) {
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("Action", Pi.getAction());
-                            newValues.put("IssueId", postSnapshot.getKey());
-                            sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                        } else {
-                            sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                    "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
+                        try {
+                            if (cquery.getCount() > 0) {
+                                ContentValues newValues = new ContentValues();
+                                newValues.put("Action", Pi.getAction());
+                                newValues.put("IssueId", postSnapshot.getKey());
+                                sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                            } else {
+                                sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                        "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
+                            }
+                        } catch (Exception e) {
                         }
                         cquery.close();
                         sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
@@ -173,7 +178,20 @@ public class ServiceDataUpdateFirstFragment extends Service {
                             if (!(nh_userid.equals("0"))) {
                                 int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
                                 if (issuesCount == 0)
-                                    NewTicketsInfo(mTicketIdList);
+                                    if (!isFirebaseCalled) {
+                                        isFirebaseCalled = true;
+
+
+                                        if (issuesCount == 0)
+                                            NewTicketsInfo(mTicketIdList);
+
+                                        h.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                isFirebaseCalled = false;
+                                            }
+                                        }, 5000);
+                                    }
                             }
 
                         }
@@ -236,8 +254,10 @@ public class ServiceDataUpdateFirstFragment extends Service {
                         } else {
 //                        sql.execSQL("delete from FirebaseIssueData");
                             if (MyApp.getApplication().readTicketsIssueHistory().keySet().size() == 0)
-                                sql.execSQL("delete from Issue_Detail");
-//                        sql.execSQL("delete from Issue_Status");
+                                try {
+                                    sql.execSQL("delete from Issue_Detail");
+                                } catch (Exception e) {
+                                }//                        sql.execSQL("delete from Issue_Status");
 
                             try {
                                 Map<String, String> scheduleMap = MyApp.getApplication().readTicketCaptureSchedule();
@@ -308,6 +328,42 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
                                     t.setType(resData.IssueDetail[i].type);
                                     t.setJourneyStatus(resData.IssueDetail[i].journeyStatus);
+                                    if (t.getJourneyStatus().equals("2")) {
+                                        MyApp.setStatus("isBothDisable", false);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setStatus("isTransportChange", false);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    } else if (t.getJourneyStatus().equals("4")) {
+                                        MyApp.setStatus("isTransportChange", true);
+                                        MyApp.setStatus("isBothDisable", false);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    } else if (t.getJourneyStatus().equals("3")) {
+                                        MyApp.setStatus("isTransportChange", true);
+                                        MyApp.setStatus("isBothDisable", true);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    }
+
                                     scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
                                     String savedCardId = MyApp.getSharedPrefString("savedCardId");
                                     if (savedCardId.isEmpty()) {
@@ -331,16 +387,23 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                             if (forMainTable.getCount() > 0) {
                                                 sql.delete("Issue_Detail", "IssueId" + "=" + t.IssueID, null);
                                                 try {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-//                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
+                                                    if (MyApp.isSmallDate(t.getScheduleDate())) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','4','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }
                                             } else {
                                                 try {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    if (MyApp.isSmallDate(t.getScheduleDate())) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','4','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
 //                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
@@ -405,7 +468,10 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                                 int counter = cursorIssuesWhichComplete.getCount();
                                                 if (counter > 0) {
                                                     cursorIssuesWhichComplete.moveToFirst();
-                                                    if (cursorIssuesWhichComplete.getString(0).equals("4")) {
+                                                    if (MyApp.isSmallDate(t.getScheduleDate())) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','5','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else if (cursorIssuesWhichComplete.getString(0).equals("4")) {
                                                         sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                                 "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','3','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                     } else if (cursorIssuesWhichComplete.getString(0).equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
@@ -606,4 +672,21 @@ public class ServiceDataUpdateFirstFragment extends Service {
         }
 
     }
+
+    private boolean getMainStatusId(String id) {
+        ApiResult.IssueStatus.lstDetails[] list = MyApp.getApplication().readIssuesStatusList();
+        boolean isClosed = false;
+        for (int i = 0; i < list.length; i++) {
+            Log.d("maineStatusId", list[i].MainStatusId);
+            if (list[i].Id.equals(id)) {
+                if (list[i].MainStatusId.equals("4")) {
+
+                    isClosed = true;
+                }
+            }
+        }
+        return isClosed;
+    }
+
+
 }

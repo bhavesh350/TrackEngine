@@ -90,7 +90,7 @@
                         android:layout_alignParentLeft="true"
                         android:layout_marginTop="10dp"
                         android:background="#cfe9f5"
-                        android:padding="@dimen/_2sdp"></RelativeLayout>
+                        android:padding="2dp"></RelativeLayout>
 
 
                     <TextView
@@ -99,7 +99,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentTop="true"
                         android:layout_centerHorizontal="true"
-                        android:layout_marginBottom="@dimen/_10sdp"
+                        android:layout_marginBottom="10dp"
                         android:text="My Session "
                         android:textColor="#000"
                         android:textSize="15sp"
@@ -134,10 +134,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:layout_marginLeft="@dimen/_5sdp"
+                        android:layout_marginLeft="5dp"
                         android:background="@color/colorPrimary"
                         android:gravity="center"
-                        android:padding="@dimen/_2sdp"
+                        android:padding="2dp"
                         android:text="Please Wait, fetching ticket info!!!"
                         android:textColor="#fff"
                         android:textStyle="bold"
@@ -171,7 +171,7 @@
                             android:layout_alignParentTop="true"
                             android:layout_centerHorizontal="true"
                             android:text="00:00:00"
-                            android:textSize="@dimen/_60ssp" />
+                            android:textSize="60sp" />
 
                         <TextView
                             android:id="@+id/textView4"
@@ -270,8 +270,8 @@
 
                 <View
                     android:layout_width="fill_parent"
-                    android:layout_height="@dimen/_2sdp"
-                    android:layout_marginBottom="@dimen/_20sdp"
+                    android:layout_height="2dp"
+                    android:layout_marginBottom="20dp"
                     android:background="@color/colorPrimary" />
 
 
@@ -304,7 +304,7 @@
             android:padding="10dp"
             android:text="My Tickets "
             android:textColor="#fff"
-            android:textSize="@dimen/_12ssp"
+            android:textSize="12sp"
             android:typeface="serif" />
     </RelativeLayout>
 

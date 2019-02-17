@@ -297,52 +297,55 @@ public class Firstfrag extends Fragment implements CardStackListener {
     }
 
     private void fetchDataFromLocal() {
-        captureAllNow();
-        newTickets.clear();
-        testData.clear();
-        Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
-        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-            TicketInfoClass t = new TicketInfoClass();
-            t.IssueID = cquery.getString(1);
-            t.CategoryName = cquery.getString(2);
-            t.Subject = cquery.getString(3);
-            t.IssueText = cquery.getString(4);
-            t.ServiceItemNumber = cquery.getString(5);
-            t.AssetSerialNumber = cquery.getString(6);
-            t.CreatedDate = cquery.getString(7);
-            t.SLADate = cquery.getString(8);
-            t.CorporateName = cquery.getString(9);
-            t.Address = cquery.getString(10);
-            t.PhoneNo = cquery.getString(11);
-            t.StatusId = cquery.getString(12);
-            t.TicketNumber = cquery.getString(20);
-            newTickets.add(t);
-        }
-        cquery.close();
-        if (newTickets.size() == 0) {
-            MainActivity.removeTkt();
-            MyApp.getApplication().writeNotifMap(new HashMap<String, String>());
-        } else {
-            MainActivity m = new MainActivity();
-            m.updateCounter(ctx, false);
-            HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
-            for (int i = 0; i < newTickets.size(); i++) {
-                sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
-                if (!map.containsKey(newTickets.get(i).IssueID)) {
-                    map.put(newTickets.get(i).IssueID, newTickets.get(i));
-                }
-            }
-            MyApp.getApplication().writeTicketCapture(map);
+        try {
             captureAllNow();
+            newTickets.clear();
+            testData.clear();
+            Cursor cquery = sql.rawQuery("select * from Issue_Detail where IsAccepted = -1", null);
+            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                TicketInfoClass t = new TicketInfoClass();
+                t.IssueID = cquery.getString(1);
+                t.CategoryName = cquery.getString(2);
+                t.Subject = cquery.getString(3);
+                t.IssueText = cquery.getString(4);
+                t.ServiceItemNumber = cquery.getString(5);
+                t.AssetSerialNumber = cquery.getString(6);
+                t.CreatedDate = cquery.getString(7);
+                t.SLADate = cquery.getString(8);
+                t.CorporateName = cquery.getString(9);
+                t.Address = cquery.getString(10);
+                t.PhoneNo = cquery.getString(11);
+                t.StatusId = cquery.getString(12);
+                t.TicketNumber = cquery.getString(20);
+                newTickets.add(t);
+            }
+            cquery.close();
+            if (newTickets.size() == 0) {
+                MainActivity.removeTkt();
+                MyApp.getApplication().writeNotifMap(new HashMap<String, String>());
+            } else {
+                MainActivity m = new MainActivity();
+                m.updateCounter(ctx, false);
+                HashMap<String, TicketInfoClass> map = MyApp.getApplication().readTicketCapture();
+                for (int i = 0; i < newTickets.size(); i++) {
+                    sendNotification("New Ticket: " + newTickets.get(i).TicketNumber, ctx, newTickets.get(i).TicketNumber);
+                    if (!map.containsKey(newTickets.get(i).IssueID)) {
+                        map.put(newTickets.get(i).IssueID, newTickets.get(i));
+                    }
+                }
+                MyApp.getApplication().writeTicketCapture(map);
+                captureAllNow();
 
-            if (!MyApp.getStatus("isNewTaskOpen")) {
-                int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
-                if (issuesCount == 0)
-                    startActivity(new Intent(getActivity(), NewTaskActivity.class));
+                if (!MyApp.getStatus("isNewTaskOpen")) {
+                    int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+                    if (issuesCount == 0)
+                        startActivity(new Intent(getActivity(), NewTaskActivity.class));
+                }
+
             }
 
+        } catch (Exception ee) {
         }
-
     }
 
     private void captureAllNow() {
@@ -521,7 +524,7 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                     t.CreatedDate = resData.IssueDetail[i].CreatedOn;
                                     //t.UpdatedDate = object.getString("UpdatedOn");
                                     t.PhoneNo = resData.IssueDetail[i].MobileNumber;
-                                    t.OtherDepartment = resData.IssueDetail[1].otherDepartment;
+                                    t.OtherDepartment = resData.IssueDetail[i].otherDepartment;
                                     try {
                                         if (t.OtherDepartment.isEmpty()) {
                                             MyApp.setStatus(t.IssueID + "RED", false);
@@ -546,14 +549,54 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                     t.TicketHolder = resData.IssueDetail[i].TicketHolder;
                                     t.TicketNumber = resData.IssueDetail[i].TicketNumber;
                                     t.OEMNumber = resData.IssueDetail[i].OEMTicketId;
+                                    t.priority = resData.IssueDetail[i].priority;
+                                    t.slaName = resData.IssueDetail[i].slaName;
+                                    t.callMode = resData.IssueDetail[i].callMode;
                                     t.AssetDetail = resData.IssueDetail[i].AssetDetail;
                                     t.ContractSubTypeName = resData.IssueDetail[i].ContractSubTypeName;
                                     t.ContractName = resData.IssueDetail[i].ContractName;
                                     t.IsVerified = resData.IssueDetail[i].IsAssetVerified;
                                     t.PreviousStatus = resData.IssueDetail[i].PreviousStatusId;
                                     t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
+                                    if (t.ScheduleDate.contains("2019-01-30"))
+                                        t.ScheduleDate = t.ScheduleDate.replace("2019-01-30", "2019-01-31");
                                     t.setType(resData.IssueDetail[i].type);
                                     t.setJourneyStatus(resData.IssueDetail[i].journeyStatus);
+                                    if (t.getJourneyStatus().equals("2")) {
+                                        MyApp.setStatus("isBothDisable", false);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setStatus("isTransportChange", false);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    } else if (t.getJourneyStatus().equals("4")) {
+                                        MyApp.setStatus("isTransportChange", true);
+                                        MyApp.setStatus("isBothDisable", false);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    } else if (t.getJourneyStatus().equals("3")) {
+                                        MyApp.setStatus("isTransportChange", true);
+                                        MyApp.setStatus("isBothDisable", true);
+                                        MyApp.setStatus("savedCardStatus", true);
+                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
+                                        if (getMainStatusId(t.getStatusId())) {
+                                            MyApp.setStatus("isBothDisable", false);
+                                            MyApp.setStatus("savedCardStatus", false);
+                                            MyApp.setStatus("isTransportChange", false);
+                                            MyApp.setSharedPrefString("savedCardId", "");
+                                        }
+                                    }
                                     scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
                                     String savedCardId = MyApp.getSharedPrefString("savedCardId");
                                     if (savedCardId.isEmpty()) {
@@ -589,8 +632,12 @@ public class Firstfrag extends Fragment implements CardStackListener {
                                                 }
                                             } else {
                                                 try {
-                                                    sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
-                                                            "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    if (MyApp.isSmallDate(t.getScheduleDate())) {
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','4','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
+                                                    } else
+                                                        sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
+                                                                "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','-1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
 //                                                sendNotification("New Ticket: " + t.TicketNumber, ctx, t.TicketNumber);
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
@@ -738,95 +785,92 @@ public class Firstfrag extends Fragment implements CardStackListener {
                     drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
                         @Override
                         public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
-                            sTicketIds = "";
-                            for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                                Pi = postSnapshot.getValue(FirebaseTicketData.class);
-                                //firebaseIssueData.add(P);
-                                Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                                if (cquery.getCount() > 0) {
-                                    ContentValues newValues = new ContentValues();
-                                    newValues.put("Action", Pi.getAction());
-                                    newValues.put("IssueId", postSnapshot.getKey());
-                                    sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                                } else {
-                                    sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                            "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
+                            try {
+                                sTicketIds = "";
+                                for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                    Pi = postSnapshot.getValue(FirebaseTicketData.class);
+                                    //firebaseIssueData.add(P);
+                                    Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                                    if (cquery.getCount() > 0) {
+                                        ContentValues newValues = new ContentValues();
+                                        newValues.put("Action", Pi.getAction());
+                                        newValues.put("IssueId", postSnapshot.getKey());
+                                        sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                                    } else {
+                                        sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                                "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
-                                }
-                                cquery.close();
-                                sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
-                                //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
-                                //}
-                            }
-                            drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRefTask).child(nh_userid);
-                            drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
-                                @Override
-                                public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
-                                    sTaskIds = "";
-                                    for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                                        Pi = postSnapshot.getValue(FirebaseTicketData.class);
-                                        //firebaseIssueData.add(P);
-                                        Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
-                                        if (cquery.getCount() > 0) {
-                                            ContentValues newValues = new ContentValues();
-                                            newValues.put("Action", Pi.getAction());
-                                            newValues.put("IssueId", postSnapshot.getKey());
-                                            sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
-                                        } else {
-                                            sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
-                                                    "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
-
-                                        }
-                                        cquery.close();
-                                        sTaskIds = sTaskIds + postSnapshot.getKey() + ",";
-                                        //ref.child(nh_userid).child(P.IssueId).child("Flag").setValue(0);
-                                        //}
                                     }
-                                    String sAsset;
-                                    if (sIsAssetVerification)
-                                        sAsset = "true";
-                                    else
-                                        sAsset = "false";
+                                    cquery.close();
+                                    sTicketIds = sTicketIds + postSnapshot.getKey() + ",";
+                                }
+                                drRef = databaseFirebase.getReference().child(PostUrl.sFirebaseRefTask).child(nh_userid);
+                                drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(com.google.firebase.database.DataSnapshot dataSnapshot) {
+                                        try {
+                                            sTaskIds = "";
+                                            for (com.google.firebase.database.DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                                Pi = postSnapshot.getValue(FirebaseTicketData.class);
+                                                //firebaseIssueData.add(P);
+                                                Cursor cquery = sql.rawQuery("select IssueId from FirebaseIssueData where IssueId ='" + postSnapshot.getKey() + "'", null);
+                                                if (cquery.getCount() > 0) {
+                                                    ContentValues newValues = new ContentValues();
+                                                    newValues.put("Action", Pi.getAction());
+                                                    newValues.put("IssueId", postSnapshot.getKey());
+                                                    sql.update("FirebaseIssueData", newValues, "IssueId=" + postSnapshot.getKey(), null);
+                                                } else {
+                                                    sql.execSQL("INSERT INTO FirebaseIssueData(Action,IssueId)VALUES" +
+                                                            "('" + Pi.getAction() + "','" + postSnapshot.getKey() + "')");
 
-                                    mTicketIdList.put("IssueIds", sTicketIds);
-                                    mTicketIdList.put("TaskIds", sTaskIds);
-                                    mTicketIdList.put("UserId", nh_userid);
-                                    mTicketIdList.put("IsAssetVerificationEnable", sAsset);
-                                    mTicketIdList.put("DepartmentId", DepartmentId);
-                                    mTicketIdList.put("LastAction", sLastAction);
-
-                                    if (!(nh_userid.equals("0"))) {
-                                        String sTktInJson = new Gson().toJson(mTicketIdList);
-//                                        if (!cardStackView.isShown() && cardStackView.getChildCount() < 2) {
-//                                            NewTicketsInfo(mTicketIdList);
-//                                        }
-
-                                        if (!isFirebaseCalled) {
-                                            isFirebaseCalled = true;
-                                            int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
-
-                                            if (issuesCount == 0)
-                                                NewTicketsInfo(mTicketIdList);
-
-                                            h.postDelayed(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    isFirebaseCalled = false;
                                                 }
-                                            }, 2000);
-                                        }
+                                                cquery.close();
+                                                sTaskIds = sTaskIds + postSnapshot.getKey() + ",";
+                                            }
+                                            String sAsset;
+                                            if (sIsAssetVerification)
+                                                sAsset = "true";
+                                            else
+                                                sAsset = "false";
 
-//                                        Log.e("?????????????????", cardStackView.isShown() + " " + cardStackView.getChildCount());
+                                            mTicketIdList.put("IssueIds", sTicketIds);
+                                            mTicketIdList.put("TaskIds", sTaskIds);
+                                            mTicketIdList.put("UserId", nh_userid);
+                                            mTicketIdList.put("IsAssetVerificationEnable", sAsset);
+                                            mTicketIdList.put("DepartmentId", DepartmentId);
+                                            mTicketIdList.put("LastAction", sLastAction);
+
+                                            if (!(nh_userid.equals("0"))) {
+                                                String sTktInJson = new Gson().toJson(mTicketIdList);
+                                                if (!isFirebaseCalled) {
+                                                    isFirebaseCalled = true;
+                                                    int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+
+                                                    if (issuesCount == 0)
+                                                        NewTicketsInfo(mTicketIdList);
+
+                                                    h.postDelayed(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            isFirebaseCalled = false;
+                                                        }
+                                                    }, 2000);
+                                                }
+                                            }
+
+                                        } catch (Exception e) {
+                                        }
                                     }
 
-                                }
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        Log.e("onCancelled: ", "firebase issue");
+                                    }
+                                });
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    Log.e("onCancelled: ", "firebase issue");
-                                }
-                            });
+                            } catch (Exception e) {
 
+                            }
                         }
 
                         @Override
@@ -865,4 +909,21 @@ public class Firstfrag extends Fragment implements CardStackListener {
         super.onResume();
 //        sendNotification("test",getActivity());
     }
+
+    private boolean getMainStatusId(String id) {
+        ApiResult.IssueStatus.lstDetails[] list = MyApp.getApplication().readIssuesStatusList();
+        boolean isClosed = false;
+        for (int i = 0; i < list.length; i++) {
+            Log.d("maineStatusId", list[i].MainStatusId);
+            if (list[i].Id.equals(id)) {
+                if (list[i].MainStatusId.equals("4")) {
+
+                    isClosed = true;
+                }
+            }
+        }
+        return isClosed;
+    }
+
+
 }

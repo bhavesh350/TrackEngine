@@ -29,6 +29,9 @@ public class TicketInfoClass implements Serializable {
     public String UpdatedDate;
     public String TicketNumber;
     public String OEMNumber;
+    public String priority;
+    public String slaName;
+    public String callMode;
     public String AssetDetail;
     public String ContractSubTypeName;
     public String ContractName;
@@ -42,6 +45,30 @@ public class TicketInfoClass implements Serializable {
     public String journeyStatus;
     public String OtherDepartment;
     public boolean isCaptured = false;
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public String getSlaName() {
+        return slaName;
+    }
+
+    public void setSlaName(String slaName) {
+        this.slaName = slaName;
+    }
+
+    public String getCallMode() {
+        return callMode;
+    }
+
+    public void setCallMode(String callMode) {
+        this.callMode = callMode;
+    }
 
     public String getType() {
         return type;

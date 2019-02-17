@@ -3,6 +3,7 @@ package net.mzi.trackengine;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -16,6 +17,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -38,9 +40,10 @@ import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -108,8 +111,8 @@ public class TicketInfo extends AppCompatActivity {
     public Uri fileUri;
     LinearLayout lyServiceItem, lyAssetSerial;
     String selectedPath;
-    static String sFinalImagePath;
-    TextView tCname, tMNumber, tTIssue, tCAdrs, tTStatus, tExpectedTime, tCreatedDate, tUpdatedDate, tCAssetName, tCAssetType, tCAssetSubtype, tCAssetSerialNumber, tCorporateName, tidOEMInfo, tAssetDescription, tServiceType, tServiceSubType, tIssueText;
+    static String sFinalImagePath = "";
+    TextView tCname, txt_sla_name, txt_call_mode, idPriority, tMNumber, tTIssue, tCAdrs, tTStatus, tExpectedTime, tCreatedDate, tUpdatedDate, tCAssetName, tCAssetType, tCAssetSubtype, tCAssetSerialNumber, tCorporateName, tidOEMInfo, tAssetDescription, tServiceType, tServiceSubType, tIssueText;
     RadioButton vCamera, vGallery;
     TextView txt_alternate_number, txt_email;
     EditText comment;
@@ -139,6 +142,9 @@ public class TicketInfo extends AppCompatActivity {
         setContentView(R.layout.activity_ticket_info);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
+        idPriority = findViewById(R.id.idPriority);
+        txt_call_mode = findViewById(R.id.txt_call_mode);
+        txt_sla_name = findViewById(R.id.txt_sla_name);
         chk_external = findViewById(R.id.chk_external);
         app = findViewById(R.id.app_bar);
         iImageIcon = findViewById(R.id.imageuplaodicon);
@@ -279,6 +285,10 @@ public class TicketInfo extends AppCompatActivity {
         tAssetDescription.setText(sAssetDesc);
         tTStatus.setText(tStatus);
         tIssueText.setText(sIssueText);
+        Map<String, TicketInfoClass> ticketsMap = MyApp.getApplication().readIssueDetailsHistory();
+        idPriority.setText(ticketsMap.get(ID).priority);
+        txt_sla_name.setText(ticketsMap.get(ID).slaName);
+        txt_call_mode.setText(ticketsMap.get(ID).callMode);
         //tExpectedTime.setText(expectedTime);
 
         if (expectedTime.equals(""))
@@ -394,37 +404,43 @@ public class TicketInfo extends AppCompatActivity {
 
 
                     if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
-                        if (sFinalImagePath == null) {
-                            String currentTime;
-                            Date cDate = new Date();
-                            currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
-                            ContentValues newValues = new ContentValues();
-                            newValues.put("UpdatedDate", currentTime);
-                            sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
+                        try {
+                            {
+                                if (sFinalImagePath == null && !sFinalImagePath.isEmpty()) {
+                                    String currentTime;
+                                    Date cDate = new Date();
+                                    currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
+                                    ContentValues newValues = new ContentValues();
+                                    newValues.put("UpdatedDate", currentTime);
+                                    sql.update("Issue_Detail", newValues, "IssueId=" + ID, null);
 
-                            postTktStatus.put("UserId", nh_userid);
-                            postTktStatus.put("ParentCompanyId", sParentComapnyId);
-                            postTktStatus.put("TicketId", ID);
+                                    postTktStatus.put("UserId", nh_userid);
+                                    postTktStatus.put("ParentCompanyId", sParentComapnyId);
+                                    postTktStatus.put("TicketId", ID);
 //                            postTktStatus.put("StatusId", sStatusId);//cquery.getString(0).toString();
-                            postTktStatus.put("Comment", comment.getText().toString());
-                            postTktStatus.put("ActivityDate", currentTime);
+                                    postTktStatus.put("Comment", comment.getText().toString());
+                                    postTktStatus.put("ActivityDate", currentTime);
 //                            postTktStatus.put("DepartmentId", DepartmentId);
-                            postTktStatus.put("RealtimeUpdate", "true");
-                            postTktStatus.put("SendMail", chk_external.isChecked() + "");
-                            Map<String, TicketInfoClass> ticketsMap = MyApp.getApplication().readIssueDetailsHistory();
-                            if (ticketsMap.containsKey(ID)) {
-                                if (ticketsMap.get(ID).getType().equals("Ticket")) {
-                                    postTktStatus.put("TaskId", "0");
+                                    postTktStatus.put("RealtimeUpdate", "true");
+                                    postTktStatus.put("SendMail", chk_external.isChecked() + "");
+                                    Map<String, TicketInfoClass> ticketsMap = MyApp.getApplication().readIssueDetailsHistory();
+                                    if (ticketsMap.containsKey(ID)) {
+                                        if (ticketsMap.get(ID).getType().equals("Ticket")) {
+                                            postTktStatus.put("TaskId", "0");
+                                        } else {
+                                            postTktStatus.put("TicketId", "0");
+                                            postTktStatus.put("TaskId", ID);
+                                        }
+                                    }
+
+
+                                    String tktStatus = new Gson().toJson(postTktStatus);
+                                    new UpdateTask(TicketInfo.this, tktStatus).execute();
                                 } else {
-                                    postTktStatus.put("TicketId", "0");
-                                    postTktStatus.put("TaskId", ID);
+                                    new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                             }
-
-
-                            String tktStatus = new Gson().toJson(postTktStatus);
-                            new UpdateTask(TicketInfo.this, tktStatus).execute();
-                        } else {
+                        } catch (Exception e) {
                             new UploadFileToServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         }
                     } else {
@@ -797,65 +813,61 @@ public class TicketInfo extends AppCompatActivity {
         return cursor.getString(column_index);*//*
     }*/
     private void launchUploadActivity(final String sImagePath) {
-
-        final AlertDialog.Builder Dialog = new AlertDialog.Builder(TicketInfo.this);
-        Dialog.setTitle("Image Selector ");
-        Dialog.setCancelable(false);
-        LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View dialogView = li.inflate(R.layout.imagedialogue, null);
-        final ImageView upImage = dialogView.findViewById(R.id.imagedia);
-        Dialog.setView(dialogView);
-//        File sourceFile = new File(sImagePath);
-//        int file_size = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
-//        Log.d("File size", file_size + "");
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#00ffffff")));
+        dialog.setCancelable(false);
+        dialog.setContentView(R.layout.imagedialogue);
+        final ImageView upImage = dialog.findViewById(R.id.imagedia);
         BitmapFactory.Options options = new BitmapFactory.Options();
-
-        // down sizing image as it throws OutOfMemory Exception for larger
-        // images
         options.inSampleSize = 8;
-
         final Bitmap bitmap = BitmapFactory.decodeFile(sImagePath, options);
-
         upImage.setImageBitmap(bitmap);
-        Dialog.setPositiveButton("Ok",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        sFinalImagePath = sImagePath;
+
+        Button btn_cancel = dialog.findViewById(R.id.btn_cancel);
+        Button btn_ok = dialog.findViewById(R.id.btn_ok);
+
+        btn_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+                try {
+                    sFinalImagePath = sImagePath;
+                    File sourceFile = new File(sFinalImagePath);
+                    int file_size = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
+                    Log.d("File size", file_size + "");
+
+                    try {
+                        sourceFile = new Compressor(TicketInfo.this).compressToFile(sourceFile);
+                        int file_sizee = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
+                        Log.d("File size", file_sizee + "");
+                        sFinalImagePath = sourceFile.getPath();
                         Log.e("file path >>>>>>>>", sFinalImagePath);
-                        File sourceFile = new File(sFinalImagePath);
-                        int file_size = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
-                        Log.d("File size", file_size + "");
-
-                        try {
-                            sourceFile = new Compressor(TicketInfo.this).compressToFile(sourceFile);
-                            int file_sizee = Integer.parseInt(String.valueOf(sourceFile.length() / 1024));
-                            Log.d("File size", file_sizee + "");
-                            sFinalImagePath = sourceFile.getPath();
-                            Log.e("file path >>>>>>>>", sFinalImagePath);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        iImageIcon.setVisibility(View.VISIBLE);
-                        try {
-                            Toast.makeText(getApplicationContext(), "Image attached successfully!!!", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                });
+                    iImageIcon.setVisibility(View.VISIBLE);
 
-        Dialog.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        sFinalImagePath = "";
-                        dialog.dismiss();
-                    }
-                });
-        final AlertDialog dialog = Dialog.create();
+                    Toast.makeText(getApplicationContext(), "Image attached successfully!!!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "Try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                sFinalImagePath = "";
+                dialog.dismiss();
+            }
+        });
+
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         dialog.show();
-        /*Intent i = new Intent(MainActivity.this, UploadActivity.class);
-        i.putExtra("filePath", fileUri.getPath());
-        i.putExtra("isImage", isImage);
-        startActivity(i);*/
+
+
     }
 
 
@@ -969,7 +981,7 @@ public class TicketInfo extends AppCompatActivity {
                 responseString = e.toString();
             } catch (IOException e) {
                 responseString = e.toString();
-            } catch (Exception e){
+            } catch (Exception e) {
                 responseString = "Request Failed, Please try again later.";
             }
 

@@ -14,6 +14,8 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -30,6 +32,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -472,44 +476,41 @@ public class RaiseTicket extends AppCompatActivity {
 
     private void launchUploadActivity(final String sImagePath) {
 
-        final AlertDialog.Builder Dialog = new AlertDialog.Builder(RaiseTicket.this);
-        Dialog.setTitle("Image Selector ");
-        Dialog.setCancelable(false);
-        LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View dialogView = li.inflate(R.layout.imagedialogue, null);
-        final ImageView upImage = (ImageView) dialogView.findViewById(R.id.imagedia);
-        Dialog.setView(dialogView);
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#00ffffff")));
+        dialog.setCancelable(false);
+        dialog.setContentView(R.layout.imagedialogue);
+        final ImageView upImage = dialog.findViewById(R.id.imagedia);
         BitmapFactory.Options options = new BitmapFactory.Options();
-
-        // down sizing image as it throws OutOfMemory Exception for larger
-        // images
         options.inSampleSize = 8;
-
         final Bitmap bitmap = BitmapFactory.decodeFile(sImagePath, options);
-
         upImage.setImageBitmap(bitmap);
-        Dialog.setPositiveButton("Ok",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        sFinalImagePath_create = sImagePath;
-                        iImageIcon.setVisibility(View.VISIBLE);
-                        MyApp.showMassage(getApplicationContext(), "Image uploaded successfully!!!");
-//                        Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
-                    }
-                });
 
-        Dialog.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        dialog.dismiss();
-                    }
-                });
-        final AlertDialog dialog = Dialog.create();
+        Button btn_cancel = dialog.findViewById(R.id.btn_cancel);
+        Button btn_ok = dialog.findViewById(R.id.btn_ok);
+
+        btn_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sFinalImagePath_create = sImagePath;
+                iImageIcon.setVisibility(View.VISIBLE);
+                try {
+                    Toast.makeText(getApplicationContext(), "Image uploaded successfully!!!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         dialog.show();
-        /*Intent i = new Intent(MainActivity.this, UploadActivity.class);
-        i.putExtra("filePath", fileUri.getPath());
-        i.putExtra("isImage", isImage);
-        startActivity(i);*/
     }
 
     @Override

@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -266,18 +265,11 @@ public class ServiceLocation extends Service {
                             locationInfo.put("Provider", "NA");
 
                             try {
-                                sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                        "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                cquery.close();
-                                LocationOperation(locationInfo, getApplicationContext(), sColumnId, false);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.put(currentDateTimeString, locationInfo);
+                                MyApp.getApplication().writeLocationData(locMap);
+                                LocationOperation(locationInfo, getApplicationContext(), currentDateTimeString, false);
                             } catch (Exception e) {
-                                LocationOperation(locationInfo, getApplicationContext(), "", false);
                             }
                         }
                     } else {
@@ -349,20 +341,11 @@ public class ServiceLocation extends Service {
                         locationInfo.put("Provider", "NA");
 
                         try {
-                            Log.e("onReceive: USERID", nh_userid);
-                            sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                    "('" + nh_userid + "','" + latitude + "','" + longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                            Log.e("Location insertion", "Inserted by ServiceLocation at 490");
-                            Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                            String sColumnId = null;
-                            if (cquery.getCount() > 0) {
-                                cquery.moveToLast();
-                                sColumnId = cquery.getString(0).toString();
-                            }
-                            cquery.close();
-                            LocationOperation(locationInfo, getApplicationContext(), sColumnId, false);
+                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                            locMap.put(currentDateTimeString, locationInfo);
+                            MyApp.getApplication().writeLocationData(locMap);
+                            LocationOperation(locationInfo, getApplicationContext(), currentDateTimeString, false);
                         } catch (Exception e) {
-                            LocationOperation(locationInfo, getApplicationContext(), "", false);
                         }
                     }
                 } else {
@@ -391,7 +374,7 @@ public class ServiceLocation extends Service {
     }
 
 
-    public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId, boolean isOffline) {
+    public void LocationOperation(Map locationInfo, final Context ctx, final String key, boolean isOffline) {
 
         Map<String, String> mMobileDataInfo = new HashMap<>();
         if (!isOffline) {
@@ -447,10 +430,13 @@ public class ServiceLocation extends Service {
             Log.e("LocationOperation: ", "Method called LocationOperation");
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-            try {
-                sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
-            } catch (Exception e) {
+            if (locationInfo.get("Latitude").toString().length() <= 3) {
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                locMap.remove(key);
+                MyApp.getApplication().writeLocationData(locMap);
+                return;
             }
+
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -488,23 +474,19 @@ public class ServiceLocation extends Service {
                     call1 = apiInterface.PostCoordinates(user_location);
                 }
 
-                final String finalColumnId = sColumnId;
                 call1.enqueue(new Callback<ApiResult.User_Location>() {
                     @Override
                     public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
                         try {
                             ApiResult.User_Location iData = response.body();
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "false");
-                                if (!finalColumnId.isEmpty())
-                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                if (!finalColumnId.isEmpty())
-                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             }
                         } catch (Exception e) {
                         }
@@ -549,6 +531,10 @@ public class ServiceLocation extends Service {
                     }
                 }
             }
+        } else {
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            locMap.remove(key);
+            MyApp.getApplication().writeLocationData(locMap);
         }
     }
 
@@ -579,7 +565,7 @@ public class ServiceLocation extends Service {
         });
     }
 
-    public void LocationOperationOffline(Map locationInfo, final Context ctx, final String sColumnId, final boolean showToast) {
+    public void LocationOperationOffline(final Map locationInfo, final Context ctx, final String key, final boolean showToast, boolean realtimeupdate) {
 
         pref = ctx.getSharedPreferences("login", 0);
         editor = pref.edit();
@@ -596,10 +582,15 @@ public class ServiceLocation extends Service {
                 return;
             }
             Log.e("LocationOperation: ", "Method called LocationOperation");
+            if (locationInfo.get("Latitude").toString().length() <= 3) {
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                locMap.remove(key);
+                MyApp.getApplication().writeLocationData(locMap);
+                return;
+            }
 
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -624,7 +615,7 @@ public class ServiceLocation extends Service {
 
                     call1 = apiInterface.PostCoordinatesShorten(user_location);
                 } else {
-                    user_location = apiResult.new User_Location("true",
+                    user_location = apiResult.new User_Location(realtimeupdate ? "true" : "false",
                             locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
                             locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
                             locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(),
@@ -634,26 +625,20 @@ public class ServiceLocation extends Service {
                     call1 = apiInterface.PostCoordinates(user_location);
                 }
 
-                final String finalColumnId = sColumnId;
                 call1.enqueue(new Callback<ApiResult.User_Location>() {
                     @Override
                     public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
                         try {
                             ApiResult.User_Location iData = response.body();
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                if (!finalColumnId.isEmpty())
-                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
-//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                if (!finalColumnId.isEmpty())
-                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
-//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
-                                int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
+                                int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
                                 ((MainActivity) ctx).txt_locations_count.setText(locationsCount + "");
 
                             }
@@ -700,6 +685,10 @@ public class ServiceLocation extends Service {
                     }
                 }
             }
+        }else{
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            locMap.remove(key);
+            MyApp.getApplication().writeLocationData(locMap);
         }
     }
 

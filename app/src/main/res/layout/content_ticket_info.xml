@@ -14,9 +14,9 @@
         android:layout_height="fill_parent"
         android:background="#eff4f5"
         android:orientation="vertical"
-        android:paddingBottom="1dp"
         android:paddingLeft="15dp"
-        android:paddingRight="15dp">
+        android:paddingRight="15dp"
+        android:paddingBottom="1dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -32,8 +32,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:orientation="horizontal">
 
             <TextView
@@ -110,9 +110,9 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:visibility="visible"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="10dp"
+            android:visibility="visible">
 
             <TextView
                 android:layout_width="0dp"
@@ -405,8 +405,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:background="#aba7a8"
             android:padding="5dp"
             android:text="Asset Details"
@@ -621,8 +621,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:background="#aba7a8"
             android:padding="5dp"
             android:text="Additional Details!!"
@@ -733,6 +733,80 @@
 
             <TextView
                 android:id="@+id/idPriority"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:typeface="serif" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="SLA Name"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/txt_sla_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_weight="5"
+                android:text=""
+                android:textColor="#000"
+                android:typeface="serif" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="Call Mode"
+                android:textColor="#000"
+                android:textStyle="bold"
+                android:typeface="serif" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight=".5"
+                android:gravity="center"
+                android:text=":"
+                android:textColor="#000"
+                android:textSize="@dimen/_12ssp"
+                android:typeface="serif" />
+
+            <TextView
+                android:id="@+id/txt_call_mode"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
@@ -941,11 +1015,11 @@
         <CheckBox
             android:id="@+id/chk_external"
             android:layout_width="match_parent"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:layout_marginBottom="15dp"
             android:layout_height="wrap_content"
-            android:text="External"/>
+            android:layout_marginBottom="15dp"
+            android:text="External"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"

@@ -2,7 +2,6 @@ package net.mzi.trackengine;
 
 
 import android.content.BroadcastReceiver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -101,6 +100,14 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                         long different = liveDate.getTime() - localDate.getTime();
                         long m = different;
                         long elapsedMinutes = different / minutesInMilli;
+                        long lastLocTimee = MyApp.getSharedPrefLong("LOC");
+                        if (lastLocTimee == 0) {
+                            MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
+                        }
+                        long differLocc = System.currentTimeMillis() - lastLocTimee;
+                        if (differLocc < (2 * 58 * 1000)) {
+                            return;
+                        }
                         {
                             cDate = new Date();
                             currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cDate);
@@ -185,23 +192,11 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                     locationInfo.put("Provider", "NA");
 
                                     try {
-                                        //Date cDate = new Date();
-                                        //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                                        Log.e("onReceive: USERID", nh_userid);
-                                        //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
-                                        sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                                "('" + nh_userid + "','" + locations.get(0).getLatitude()
-                                                + "','" + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                        Log.e("Location insertion", "Inserted by LocationUpdateBoradcastReceiver at 195");
-                                        //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                                        Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                        String sColumnId = null;
-                                        if (cquery.getCount() > 0) {
-                                            cquery.moveToLast();
-                                            sColumnId = cquery.getString(0).toString();
-                                        }
+                                        Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                        locMap.put(currentDateTimeString, locationInfo);
+                                        MyApp.getApplication().writeLocationData(locMap);
 
-                                        LocationOperation(locationInfo, context, sColumnId);
+                                        LocationOperation(locationInfo, context, currentDateTimeString);
                                     } catch (Exception e) {
                                         LocationOperation(locationInfo, context, "");
                                         e.printStackTrace();
@@ -277,24 +272,11 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                                 locationInfo.put("Provider", "NA");
 
                                 try {
-                                    //Date cDate = new Date();
-                                    //currentDateTimeString = new SimpleDateFormat("MMM-dd-yyyy hh:mm:ss").format(cDate);
-                                    Log.e("onReceive: USERID", nh_userid);
-                                    //mDatabase.child("User_Location").child(nh_userid).setValue(user_location);
+                                    Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                    locMap.put(currentDateTimeString, locationInfo);
+                                    MyApp.getApplication().writeLocationData(locMap);
 
-                                    sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                            "('" + nh_userid + "','" + locations.get(0).getLatitude() + "','"
-                                            + locations.get(0).getLongitude() + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                    Log.e("Location insertion", "Inserted by LocationUpdateBoradcastReceiver at 288");
-                                    //sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActionDate,SyncStatus)VALUES("+nh_userid+",'"+latitude+"','"+longitude+"',0,'"+currentDateTimeString+"','-1')");
-                                    Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                    String sColumnId = null;
-                                    if (cquery.getCount() > 0) {
-                                        cquery.moveToLast();
-                                        sColumnId = cquery.getString(0).toString();
-                                    }
-
-                                    LocationOperation(locationInfo, context, sColumnId);
+                                    LocationOperation(locationInfo, context, currentDateTimeString);
                                 } catch (Exception e) {
                                     LocationOperation(locationInfo, context, "");
                                     e.printStackTrace();
@@ -314,18 +296,11 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void LocationOperation(Map locationInfo, final Context ctx, final String sColumnId) {
+    public void LocationOperation(Map locationInfo, final Context ctx, final String key) {
         boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
         if (sCheckInStatus) {
 
-            long lastLocTime = MyApp.getSharedPrefLong("LOC");
-            if (lastLocTime == 0) {
-                MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
-            }
-            long differLoc = System.currentTimeMillis() - lastLocTime;
-            if (differLoc < (2 * 58 * 1000)) {
-                return;
-            }
+
             MyApp.setSharedPrefLong("LOC", System.currentTimeMillis());
             try {
                 if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
@@ -338,10 +313,15 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                 return;
             }
             Log.e("LocationOperation: ", "Method called LocationUpdatesBroadCastReceiver");
+            if (locationInfo.get("Latitude").toString().length() <= 3) {
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                locMap.remove(key);
+                MyApp.getApplication().writeLocationData(locMap);
+                return;
+            }
 
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
 
-            sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
             final ApiResult apiResult = new ApiResult();
             try {
                 Log.e("LocationOperation: ", locationInfo.toString());
@@ -375,25 +355,19 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                             locationInfo.get("KnownName").toString(), "NA");
                     call1 = apiInterface.PostCoordinates(user_location);
                 }
-                final String finalColumnId = sColumnId;
                 call1.enqueue(new Callback<ApiResult.User_Location>() {
                     @Override
                     public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
                         try {
                             ApiResult.User_Location iData = response.body();
                             if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                if (!finalColumnId.isEmpty())
-                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
-//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             } else {
-                                ContentValues newValues = new ContentValues();
-                                newValues.put("SyncStatus", "true");
-                                if (!finalColumnId.isEmpty())
-                                    sql.delete("User_Location", "Id" + "=" + finalColumnId, null);
-//                                    sql.update("User_Location", newValues, "Id=" + finalColumnId, null);
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.remove(key);
+                                MyApp.getApplication().writeLocationData(locMap);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -438,6 +412,10 @@ public class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
                     }
                 }
             }
+        }else{
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            locMap.remove(key);
+            MyApp.getApplication().writeLocationData(locMap);
         }
     }
 

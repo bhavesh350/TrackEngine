@@ -208,6 +208,8 @@ public class LoginActivity extends AppCompatActivity {
                                                 sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
                                                         "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "" + "')");
                                                 String sAllParentStatuses = user.data.dataStatus[i].ParentStatuses;
+                                                boolean holdTat = user.data.dataStatus[i].holdTat;
+                                                MyApp.setStatus("HOLDTAT"+user.data.dataStatus[i].Id, holdTat);
                                                 List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
                                                 for (int j = 0; j < listsAllParentStatuses.size(); j++) {
                                                     sql.execSQL("INSERT INTO Issue_StatusHiererchy(StatusId,ParentStatus,WaitForEntry,ActionDate,RedirectToStatus)VALUES" +
@@ -316,7 +318,7 @@ public class LoginActivity extends AppCompatActivity {
                 MyApp.getApplication().writeMobileData(new HashMap<Long, Map<String, String>>());
                 MyApp.getApplication().writeGPSData(new HashMap<Long, Map<String, String>>());
                 sql.execSQL("delete from Issue_StatusHiererchy");
-                sql.execSQL("delete from User_Location");
+                MyApp.getApplication().writeLocationData(new HashMap<String, Map<String, String>>());
                 sql.execSQL("delete from User_Login");
                 sql.execSQL("delete from ModeOfTrasportList");
                 sql.execSQL("delete from Issue_Status");

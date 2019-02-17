@@ -52,10 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.bmartel.speedtest.SpeedTestReport;
-import fr.bmartel.speedtest.SpeedTestSocket;
-import fr.bmartel.speedtest.inter.ISpeedTestListener;
-import fr.bmartel.speedtest.model.SpeedTestError;
 import io.fabric.sdk.android.Fabric;
 
 /**
@@ -185,62 +181,62 @@ public class MyApp extends MultiDexApplication {
 //        }
 
 
-        speedTestSocket = new SpeedTestSocket();
+//        speedTestSocket = new SpeedTestSocket();
 
 // add a listener to wait for speedtest completion and progress
-        speedTestSocket.addSpeedTestListener(new ISpeedTestListener() {
-
-            @Override
-            public void onCompletion(SpeedTestReport report) {
-                System.out.println("speedTest complete in octet/s : " + report.getTransferRateOctet().intValue() / 100000);
-            }
-
-            @Override
-            public void onError(SpeedTestError speedTestError, String errorMessage) {
-                // called when a download/upload error occur
-            }
-
-            @Override
-            public void onProgress(float percent, SpeedTestReport report) {
-                // called to notify download/upload progress
-                System.out.println("speedTest progress : " + percent + "%");
-                int speed = report.getTransferRateOctet().intValue() / 100000;
-                System.out.println("speedTest rate in kb/s : " + speed);
-                if (currentSpeed != 0) {
-                    if (speed < currentSpeed)
-                        currentSpeed = speed;
-                } else {
-                    currentSpeed = speed;
-                }
-//                System.out.println("speedTest rate in bit/s   : " + report.getTransferRateBit());
-            }
-        });
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 100000);
-            }
-        }).start();
-        new Handler().postDelayed(taskToCheckSpeed, 10000);
+//        speedTestSocket.addSpeedTestListener(new ISpeedTestListener() {
+//
+//            @Override
+//            public void onCompletion(SpeedTestReport report) {
+//                System.out.println("speedTest complete in octet/s : " + report.getTransferRateOctet().intValue() / 100000);
+//            }
+//
+//            @Override
+//            public void onError(SpeedTestError speedTestError, String errorMessage) {
+//                // called when a download/upload error occur
+//            }
+//
+//            @Override
+//            public void onProgress(float percent, SpeedTestReport report) {
+//                // called to notify download/upload progress
+//                System.out.println("speedTest progress : " + percent + "%");
+//                int speed = report.getTransferRateOctet().intValue() / 100000;
+//                System.out.println("speedTest rate in kb/s : " + speed);
+//                if (currentSpeed != 0) {
+//                    if (speed < currentSpeed)
+//                        currentSpeed = speed;
+//                } else {
+//                    currentSpeed = speed;
+//                }
+////                System.out.println("speedTest rate in bit/s   : " + report.getTransferRateBit());
+//            }
+//        });
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 100000);
+//            }
+//        }).start();
+//        new Handler().postDelayed(taskToCheckSpeed, 10000);
 
         Firebase.setAndroidContext(this);
     }
 
 
-    SpeedTestSocket speedTestSocket;
-    private Runnable taskToCheckSpeed = new Runnable() {
-        @Override
-        public void run() {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    currentSpeed = -1;
-                    speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 5000);
-                }
-            }).start();
-            new Handler().postDelayed(taskToCheckSpeed, 10000);
-        }
-    };
+//    SpeedTestSocket speedTestSocket;
+//    private Runnable taskToCheckSpeed = new Runnable() {
+//        @Override
+//        public void run() {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    currentSpeed = -1;
+//                    speedTestSocket.startUpload("http://ipv4.ikoula.testdebit.info/", 5000);
+//                }
+//            }).start();
+//            new Handler().postDelayed(taskToCheckSpeed, 10000);
+//        }
+//    };
 
     public static int currentSpeed = -1;
 
@@ -525,14 +521,16 @@ public class MyApp extends MultiDexApplication {
     }
 
     public static boolean isSmallDate(String date) {
-//        2018-05-11T11:17:00Z
         date = date.replace("T", " ").replace("Z", "");
+        String[] ddd = date.split(" ");
+        date = ddd[0] + " " + "00:00:00";
+
         String inputPattern = "yyyy-MM-dd HH:mm:ss";
         SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern);
         try {
             Date d = inputFormat.parse(date);
             Date dd = new Date();
-            if (d.getTime() > dd.getTime()) {
+            if (d.getTime() >= (dd.getTime() - (1000 * 60))) {
                 return true;
             } else
                 return false;
@@ -1261,6 +1259,56 @@ public class MyApp extends MultiDexApplication {
                 FileInputStream fileIn = new FileInputStream(path);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
                 map = (Map<Long, Map<String, String>>) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (StreamCorruptedException e) {
+                e.printStackTrace();
+            } catch (OptionalDataException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
+
+    public void writeLocationData(Map<String, Map<String, String>> map) {
+        try {
+            String path = "/data/data/" + c.getPackageName()
+                    + "/locationData.ser";
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+
+            FileOutputStream fileOut = new FileOutputStream(path);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(map);
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Map<String, String>> readLocationData() {
+        String path = "/data/data/" + c.getPackageName()
+                + "/locationData.ser";
+        File f = new File(path);
+        Map<String, Map<String, String>> map = new HashMap<>();
+        if (f.exists()) {
+            try {
+                System.gc();
+                FileInputStream fileIn = new FileInputStream(path);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                map = (Map<String, Map<String, String>>) in.readObject();
                 in.close();
                 fileIn.close();
             } catch (StreamCorruptedException e) {

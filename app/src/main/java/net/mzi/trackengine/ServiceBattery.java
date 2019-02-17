@@ -215,53 +215,54 @@ public class ServiceBattery extends Service {
     public void BatteryOffline(final Map<String, String> batteryInfo, final Context ctx, boolean realTimeUpdate) {
         final Map<String, Map<String, String>> batMap = MyApp.getApplication().readBatteryHistory();
         if (true) {
-//            try {
+            try {
 //                startService(new Intent(getApplicationContext(), ServiceLocation.class));
-//            } catch (Exception e) {
-//            }
+//
 //            MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
 
-            apiInterface = ApiClient.getClient().create(ApiInterface.class);
-            final ApiResult apiResult = new ApiResult();
+                apiInterface = ApiClient.getClient().create(ApiInterface.class);
+                final ApiResult apiResult = new ApiResult();
 
-            final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
-            Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
-            call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
-                @Override
-                public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
-                    try {
-                        ApiResult.User_BatteryLevel iData = response.body();
-                        if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                            Map<String, String> bMap = batMap.get(batteryInfo.get("ActivityDate"));
-                            bMap.put("syncStatus", "false");
-                            batMap.put(batteryInfo.get("ActivityDate"), bMap);
-                            MyApp.getApplication().writeBatteryHistory(batMap);
+                final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
+                Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
+                call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
+                    @Override
+                    public void onResponse(Call<ApiResult.User_BatteryLevel> call, Response<ApiResult.User_BatteryLevel> response) {
+                        try {
+                            ApiResult.User_BatteryLevel iData = response.body();
+                            if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                                Map<String, String> bMap = batMap.get(batteryInfo.get("ActivityDate"));
+                                bMap.put("syncStatus", "false");
+                                batMap.put(batteryInfo.get("ActivityDate"), bMap);
+                                MyApp.getApplication().writeBatteryHistory(batMap);
 //                        ContentValues newValues = new ContentValues();
 //                        newValues.put("SyncStatus", "false");
 //                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
-                        } else {
-                            final Map<String, Map<String, String>> batMap1 = MyApp.getApplication().readBatteryHistory();
+                            } else {
+                                final Map<String, Map<String, String>> batMap1 = MyApp.getApplication().readBatteryHistory();
 
-                            batMap1.remove(batteryInfo.get("ActivityDate"));
-                            MyApp.getApplication().writeBatteryHistory(batMap1);
-                            int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
+                                batMap1.remove(batteryInfo.get("ActivityDate"));
+                                MyApp.getApplication().writeBatteryHistory(batMap1);
+                                int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
 
-                            ((MainActivity) ctx).txt_battery_count.setText(batteryCount + "");
+                                ((MainActivity) ctx).txt_battery_count.setText(batteryCount + "");
 //                        ContentValues newValues = new ContentValues();
 //                        newValues.put("SyncStatus", "true");
 //                        sql.update("User_BatteryLevel", newValues, "Id=" + sColumnId, null);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }
 
-                @Override
-                public void onFailure(Call<ApiResult.User_BatteryLevel> call, Throwable t) {
-                    call.cancel();
-                    Log.d("battery>>>>>>>>>>>", "api failure");
-                }
-            });
+                    @Override
+                    public void onFailure(Call<ApiResult.User_BatteryLevel> call, Throwable t) {
+                        call.cancel();
+                        Log.d("battery>>>>>>>>>>>", "api failure");
+                    }
+                });
+            } catch (Exception e) {
+            }
         }
     }
 }

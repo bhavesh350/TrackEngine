@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity
     static SQLiteDatabase sql;
     Cursor cquery;
     String sDeviceId, sDepartment;
-    static String LOGINID;
+    static String LOGINID = "";
     //    private RecyclerView.LayoutManager mLayoutManager;
     static MainActivityAdapter mAdapter = null;
     public static final int TASK = 0;
@@ -401,12 +401,13 @@ public class MainActivity extends AppCompatActivity
                     }, 10000);
                     syncCheckInOut();
                     syncLocations();
-                    try {
-                        if (!stringIterator.hasNext())
+                    if (!MyApp.getStatus("isTicketUpdating"))
+                        try {
+                            if (!stringIterator.hasNext())
+                                syncIssues();
+                        } catch (Exception ee) {
                             syncIssues();
-                    } catch (Exception ee) {
-                        syncIssues();
-                    }
+                        }
                     syncBattery();
                 }
 
@@ -427,12 +428,13 @@ public class MainActivity extends AppCompatActivity
         rl_sync_issue_status.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    if (!stringIterator.hasNext())
+                if (!MyApp.getStatus("isTicketUpdating"))
+                    try {
+                        if (!stringIterator.hasNext())
+                            syncIssues();
+                    } catch (Exception ee) {
                         syncIssues();
-                } catch (Exception ee) {
-                    syncIssues();
-                }
+                    }
             }
         });
         rl_sync_battery.setOnClickListener(new View.OnClickListener() {
@@ -905,7 +907,7 @@ public class MainActivity extends AppCompatActivity
         MyApp.setStatus("isNewTaskOpen", false);
 
         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
-        int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+        int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
         int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
         int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
 
@@ -1878,7 +1880,7 @@ public class MainActivity extends AppCompatActivity
         mDataset.add("New");
         mDataset.add("Accepted");
         mDataset.add("Attended");
-        mDataset.add("Schedule");
+        mDataset.add("Scheduled");
         mDataset.add("Resolved");
         mDataset.add("Pending Scheduled");
 
@@ -1999,15 +2001,7 @@ public class MainActivity extends AppCompatActivity
                     currTime.setText("CheckedIN: " + currentDateTimeStringCheckIN);
                     appCheckInInfo.put("ActivityDate", currentDateTimeStringCheckIN);
                     isCheckIn = "true";
-                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                    if (cquery.getCount() > 0) {
-
-                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_Location", "Id" + "=" + id, null);
-                        }
-                    }
-                    cquery.close();
+//                    MyApp.getApplication().writeLocationData(new HashMap<String, Map<String, String>>());
                     setData();
                     checkInOutClickEvent();
                 } else {
@@ -2053,17 +2047,7 @@ public class MainActivity extends AppCompatActivity
 
                                     NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                                     nMgr.cancel(12345);
-                                    try {
-                                        Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                                        if (cquery.getCount() > 0) {
-                                            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                                                String id = cquery.getString(0).toString();
-                                                sql.delete("User_Location", "Id" + "=" + id, null);
-                                            }
-                                        }
-                                        cquery.close();
-                                    } catch (Exception e) {
-                                    }
+
 
                                     try {
                                         stopService(new Intent(getApplicationContext(), ServiceLocation.class));
@@ -2088,9 +2072,7 @@ public class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mSwipeRefreshLayout.setProgressViewOffset(false, 0, 200);
         }
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
-
-        {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 //handling swipe refresh
@@ -2195,19 +2177,11 @@ public class MainActivity extends AppCompatActivity
                                 locationInfo.put("Provider", "NA");
                                 String jsonString = new Gson().toJson(locationInfo);
                                 Log.e(TAG, "run: " + jsonString);
-                                try {
-                                    sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                                            "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                                } catch (Exception e) {
-                                }
+                                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                locMap.put(currentDateTimeString, locationInfo);
+                                MyApp.getApplication().writeLocationData(locMap);
                                 Log.e("Location insertion", "Inserted by MainActivity at 863");
-                                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                                String sColumnId = null;
-                                if (cquery.getCount() > 0) {
-                                    cquery.moveToLast();
-                                    sColumnId = cquery.getString(0).toString();
-                                }
-                                cquery.close();
+
                                 if (user_location.Latitude == 0.0 || user_location.Longitude == 0) {
 //                                    Toast.makeText(getApplicationContext(), "Location could not captured, check your GPS!!!", Toast.LENGTH_LONG).show();
                                     MyApp.showMassage(MainActivity.this, "Location could not captured, check your GPS!!!");
@@ -2216,15 +2190,10 @@ public class MainActivity extends AppCompatActivity
                                         user_location.Longitude = Double.parseDouble(MyApp.getSharedPrefString("lng"));
                                     } catch (Exception e) {
                                     }
-                                    ServiceLocation m = new ServiceLocation();
-                                    Log.d("postcoordinat", "from main activity at 836");
-                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId, false);
+                                    LocationOperationOffline(locationInfo, getApplicationContext(), currentDateTimeString, false, true);
                                 } else {
                                     MyApp.showMassage(MainActivity.this, "Location sent successfully!!!");
-//                                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
-                                    ServiceLocation m = new ServiceLocation();
-                                    Log.d("postcoordinat", "from main activity at 841");
-                                    m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId, false);
+                                    LocationOperationOffline(locationInfo, getApplicationContext(), currentDateTimeString, false, true);
                                 }
                                 //MainActivity.this.registerReceiver(broadcastreceiver,intentfilter);
                             }
@@ -2237,9 +2206,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener()
-
-        {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, TicketCreation.class);
@@ -2342,26 +2309,17 @@ public class MainActivity extends AppCompatActivity
             Log.e(TAG, "run:" + jsonString);
 
             try {
-                sql.execSQL("INSERT INTO User_Location(UserId,Latitude,Longitude,AutoCaptured,ActivityDate,AddressLine,City,State,Country,PostalCode,KnownName,Premises,SubLocality,SubAdminArea,SyncStatus)VALUES" +
-                        "('" + LOGINID + "','" + user_location.Latitude + "','" + user_location.Longitude + "','true','" + currentDateTimeString + "','" + sAddressLine + "','" + sCity + "','" + sState + "','" + sCountry + "','" + sPostalCode + "','" + sKnownName + "','" + sPremises + "','" + sSubLocality + "','" + sSubAdminArea + "','-1')");
-                Log.e("Location insertion", "Inserted by MainActivity at 682");
-                Cursor cquery = sql.rawQuery("select * from User_Location ", null);
-                String sColumnId = null;
-                if (cquery.getCount() > 0) {
-                    cquery.moveToLast();
-                    sColumnId = cquery.getString(0).toString();
-                }
-                cquery.close();
-                ServiceLocation m = new ServiceLocation();
-                Log.d("postcoordinat", "from main activity at 663");
-                m.LocationOperationOffline(locationInfo, getApplicationContext(), sColumnId, true);
+                Map<String, Map<String, String>> map = MyApp.getApplication().readCheckInOutData();
+                map.put(currentDateTimeString, locationInfo);
+                MyApp.getApplication().writeLocationData(map);
+                LocationOperationOffline(locationInfo, getApplicationContext(), currentDateTimeString, true, true);
             } catch (Exception e) {
-                ServiceLocation m = new ServiceLocation();
-                Log.d("postcoordinat", "from main activity at 663");
-                m.LocationOperationOffline(locationInfo, getApplicationContext(), "", true);
+                LocationOperationOffline(locationInfo, getApplicationContext(), currentDateTimeString, true, true);
             }
 //                    Toast.makeText(getApplicationContext(), "Location sent successfully!!!", Toast.LENGTH_LONG).show();
 
+        } else {
+            MyApp.popMessage("Alert!", "Location not captured, make sure your phone has GPS enabled.", this);
         }
 
         String jsonString = new Gson().toJson(locationInfo);
@@ -2634,7 +2592,11 @@ public class MainActivity extends AppCompatActivity
         Utils.getLocationUpdatesResult(this);
 
         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
-        int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+        int locationsCount = 0;
+        try {
+            locationsCount = MyApp.getApplication().readLocationData().keySet().size();
+        } catch (Exception e) {
+        }
         int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
         int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
 
@@ -2732,8 +2694,8 @@ public class MainActivity extends AppCompatActivity
                     progress_sync_locations.setVisibility(View.GONE);
                 }
             }, 5000);
-            cquery = sql.rawQuery("select * from User_Location", null);
-            int count = cquery.getCount();
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            int count = locMap.keySet().size();
             if (count <= 0) {
                 txt_locations_count.setText("0");
                 return;
@@ -2748,78 +2710,70 @@ public class MainActivity extends AppCompatActivity
                     txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
                 }
             }, 4000);
-            if (cquery.getCount() > 0) {
-                boolean sCheckInStatus = MyApp.getStatus("CheckedInStatus");
-                if (sCheckInStatus) {
 
-                } else {
-                    Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                    if (cquery.getCount() > 0) {
+            List<String> keysList = new ArrayList<>();
 
-                        for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                            String id = cquery.getString(0).toString();
-                            sql.delete("User_Location", "Id" + "=" + id, null);
-                        }
-                    }
-                    return;
+            if (locMap.keySet().size() > 0) {
+
+                for (String key : locMap.keySet()) {
+                    keysList.add(key);
                 }
 
-                int counter = 0;
-                for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                    ++counter;
-                    if (counter >= 50) {
-                        cquery.moveToLast();
-                        break;
-                    }
-                    if (cquery.getString(15).toString().equals("true")) {
-                        String id = cquery.getString(0).toString();
-                        sql.delete("User_Location", "Id" + "=" + id, null);
-                    } else {
-                        HashMap<String, String> locationInfo = new HashMap<>();
-                        if (cquery.getString(15).toString().equals("-1")
-                                || cquery.getString(15).toString().equals("false")) {
-                            locationInfo.put("RealTimeUpdate", "false");
-                        }
-                        locationInfo.put("UserId", cquery.getString(1).toString());
-                        locationInfo.put("DeviceId", sDeviceId);
-                        locationInfo.put("Latitude", cquery.getString(2).toString());
-                        locationInfo.put("Longitude", cquery.getString(3).toString());
-                        locationInfo.put("AutoCaptured", cquery.getString(4).toString());
-                        locationInfo.put("ActivityDate", cquery.getString(5).toString());
-                        locationInfo.put("AddressLine", "NA");
-                        locationInfo.put("Premises", "NA");
-                        locationInfo.put("SubLocality", "NA");
-                        locationInfo.put("SubAdminArea", "NA");
-                        locationInfo.put("PostalCode", "NA");
-                        locationInfo.put("City", "NA");
-                        locationInfo.put("State", "NA");
-                        locationInfo.put("Country", "NA");
-                        locationInfo.put("KnownName", "NA");
-                        locationInfo.put("Provider", "NA");
-                        ServiceLocation m = new ServiceLocation(MainActivity.this);
-
-                        m.LocationOperationOffline(locationInfo, MainActivity.this, cquery.getString(0).toString(), true);
-                        String id = cquery.getString(0).toString();
-                        Log.d("postcoordinat", "offline syncing with id = " + id);
-                        sql.delete("User_Location", "Id" + "=" + id, null);
-                    }
-                    if (counter >= 50) {
-                        break;
-                    }
-                }
-
-                Cursor cquery = sql.rawQuery("select * from User_Location", null);
-                if (cquery.getCount() > 0) {
-                    for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                        String id = cquery.getString(0).toString();
-                        sql.delete("User_Location", "Id" + "=" + id, null);
-                    }
-                }
+                locIterator = keysList.iterator();
+                startLocationSync();
 
             }
 
         }
     }
+
+    private void startLocationSync() {
+        try {
+            if (locIterator.hasNext()) {
+                txt_locations_count.setBackground(null);
+                progress_sync_locations.setVisibility(View.VISIBLE);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        callableLocation = true;
+                        progress_sync_locations.setVisibility(View.GONE);
+                        txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+                    }
+                }, 5000);
+
+                String key = locIterator.next();
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                HashMap<String, String> locationInfo = new HashMap<>();
+                if (locMap.get(key).get("UserId").equals("0")) {
+                    locMap.remove(key);
+                    MyApp.getApplication().writeLocationData(locMap);
+                    startLocationSync();
+
+                }
+                locationInfo.put("RealTimeUpdate", "false");
+                locationInfo.put("UserId", locMap.get(key).get("UserId"));
+                locationInfo.put("DeviceId", sDeviceId);
+                locationInfo.put("Latitude", locMap.get(key).get("Latitude"));
+                locationInfo.put("Longitude", locMap.get(key).get("Longitude"));
+                locationInfo.put("AutoCaptured", locMap.get(key).get("AutoCaptured"));
+                locationInfo.put("ActivityDate", key);
+                locationInfo.put("AddressLine", locMap.get(key).get("AddressLine"));
+                locationInfo.put("Premises", locMap.get(key).get("Premises"));
+                locationInfo.put("SubLocality", locMap.get(key).get("SubLocality"));
+                locationInfo.put("SubAdminArea", locMap.get(key).get("SubAdminArea"));
+                locationInfo.put("PostalCode", locMap.get(key).get("PostalCode"));
+                locationInfo.put("City", locMap.get(key).get("City"));
+                locationInfo.put("State", locMap.get(key).get("State"));
+                locationInfo.put("Country", locMap.get(key).get("Country"));
+                locationInfo.put("KnownName", locMap.get(key).get("KnownName"));
+                locationInfo.put("Provider", locMap.get(key).get("Provider"));
+                LocationOperationOffline(locationInfo, MainActivity.this, key, false, false);
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private Iterator<String> locIterator = null;
 
     private void syncIssues() {
 
@@ -3011,16 +2965,15 @@ public class MainActivity extends AppCompatActivity
             if (issueDetail.taskId.equals("0") && issueDetail.IssueId.equals("0") &&
                     !(issueDetail.Status.equals("2") || issueDetail.Status.equals("3"))) {
                 Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-                String removableKey = "";
-                for (String keyValue : savedMap.keySet()) {
-                    if (keyValue.contains(postTktStatus.get("TicketId"))) {
-                        removableKey = keyValue;
-                    } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
-                        removableKey = keyValue;
-                    }
-                }
+
                 savedMap.remove(keyToDelete);
-//                savedMap.remove(postTktStatus.get("ActivityDate"));
+
+                try {
+                    savedMap.remove(postTktStatus.get("TicketId"));
+                    savedMap.remove(postTktStatus.get("ActivityDate"));
+                    savedMap.remove(postTktStatus.get("TaskId"));
+                } catch (Exception e) {
+                }
                 MyApp.getApplication().writeTicketsIssueHistory(savedMap);
                 int issuesCount = savedMap.keySet().size();
                 try {
@@ -3098,14 +3051,14 @@ public class MainActivity extends AppCompatActivity
                                 MyApp.popMessage("Error", iData.resData.Message, MainActivity.this);
                             }
                             Map<String, Map<String, String>> savedMap = MyApp.getApplication().readTicketsIssueHistory();
-                            String removableKey = "";
-                            for (String keyValue : savedMap.keySet()) {
-                                if (keyValue.contains(postTktStatus.get("TicketId"))) {
-                                    removableKey = keyValue;
-                                } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
-                                    removableKey = keyValue;
-                                }
-                            }
+//                            String removableKey = "";
+//                            for (String keyValue : savedMap.keySet()) {
+//                                if (keyValue.contains(postTktStatus.get("TicketId"))) {
+//                                    removableKey = keyValue;
+//                                } else if (keyValue.contains(postTktStatus.get("TaskId"))) {
+//                                    removableKey = keyValue;
+//                                }
+//                            }
                             savedMap.remove(keyToDelete);
 //                            savedMap.remove(postTktStatus.get("ActivityDate"));
                             MyApp.getApplication().writeTicketsIssueHistory(savedMap);
@@ -3219,7 +3172,7 @@ public class MainActivity extends AppCompatActivity
                         MyApp.getApplication().writeMobileData(mobileData);
                         PushMobileData(mMobileDataInfo, getApplicationContext(), keyDelete);
                         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
-                        int locationsCount = sql.rawQuery("select * from User_Location", null).getCount();
+                        int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
                         int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
                         int batteryCount = MyApp.getApplication().readBatteryHistory().keySet().size();
                         txt_battery_count.setText(batteryCount + "");
@@ -3270,6 +3223,100 @@ public class MainActivity extends AppCompatActivity
                 showAlert.setText("Internet is not Working");
                 return false;
             }
+        }
+    }
+
+    public void LocationOperationOffline(Map locationInfo, final Context ctx, final String key, final boolean showToast, boolean realtimeupdate) {
+
+        try {
+            if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
+                    || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
+                Log.e("LocationOperation: ", "Not executed dut to wrong user id");
+                return;
+            }
+        } catch (Exception e) {
+            Log.e("LocationOperation: ", "Not executed dut to wrong user id");
+            return;
+        }
+        Log.e("LocationOperation: ", "Method called LocationOperation");
+
+        apiInterface = ApiClient.getClient().create(ApiInterface.class);
+
+        final ApiResult apiResult = new ApiResult();
+        try {
+            Log.e("LocationOperation: ", locationInfo.toString());
+            String sublocalityString = "";
+            try {
+                sublocalityString = locationInfo.get("SubLocality").toString();
+                if (sublocalityString.length() == 0 || sublocalityString.isEmpty()) {
+                    sublocalityString = "NA";
+                }
+            } catch (Exception eee) {
+                sublocalityString = "NA";
+            }
+
+            if (locationInfo.get("Latitude").toString().length() <= 3) {
+                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                locMap.remove(key);
+                MyApp.getApplication().writeLocationData(locMap);
+                int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
+                txt_locations_count.setText(locationsCount + "");
+                return;
+            }
+
+            final ApiResult.User_Location user_location;
+            Call<ApiResult.User_Location> call1;
+            if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
+                user_location = apiResult.new User_Location("true",
+                        locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                        locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                        locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString());
+
+                call1 = apiInterface.PostCoordinatesShorten(user_location);
+            } else {
+                user_location = apiResult.new User_Location(realtimeupdate ? "true" : "false",
+                        locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                        locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                        locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(),
+                        locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(),
+                        locationInfo.get("City").toString(), locationInfo.get("State").toString(),
+                        locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
+                call1 = apiInterface.PostCoordinates(user_location);
+            }
+
+            call1.enqueue(new Callback<ApiResult.User_Location>() {
+                @Override
+                public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
+                    try {
+                        ApiResult.User_Location iData = response.body();
+                        if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                            locMap.remove(key);
+                            MyApp.getApplication().writeLocationData(locMap);
+                        } else {
+                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                            locMap.remove(key);
+                            MyApp.getApplication().writeLocationData(locMap);
+                            int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
+                            txt_locations_count.setText(locationsCount + "");
+
+                        }
+                        if (showToast)
+                            MyApp.showMassage(getApplicationContext(), "Location sent successfully!!!");
+                    } catch (Exception e) {
+                    }
+                    startLocationSync();
+                }
+
+                @Override
+                public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
+                    call.cancel();
+                    startLocationSync();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            startLocationSync();
         }
     }
 }
