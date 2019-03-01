@@ -28,7 +28,7 @@ public class InternetConnector {
     SQLiteDatabase sql;
 
     public void offlineSyncing(final Context context, int Flag) {
-        sql = context.openOrCreateDatabase("MZI.sqlite", context.MODE_PRIVATE, null);
+        sql = context.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         pref = context.getSharedPreferences("login", 0);
         sDeviceId = pref.getString("DeviceId", "0");
         try {
@@ -37,7 +37,7 @@ public class InternetConnector {
                 if (mobileData.keySet().size() > 0) {
                     for (long key : mobileData.keySet()) {
                         MainActivity m = new MainActivity();
-                        m.PushMobileData(mobileData.get(key), context, key);
+                        m.PushMobileData(mobileData.get(key), context, key,"false");
                     }
                 }
 

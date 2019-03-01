@@ -59,7 +59,7 @@ public class History_Battery extends Fragment {
         rl_progress = view.findViewById(R.id.rl_progress);
         rl_progress.setVisibility(View.VISIBLE);
         API_URL = PostUrl.sUrl + "GetBetteryLevelHistory?iUserId=" + MainActivity.LOGINID;
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
+        mRecyclerView = view.findViewById(R.id.history_view);
         new UserBattery().execute();
         return view;
     }

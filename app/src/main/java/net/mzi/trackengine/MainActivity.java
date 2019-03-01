@@ -65,15 +65,10 @@ import android.widget.TextView;
 import com.firebase.client.Firebase;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -85,6 +80,13 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.gson.Gson;
+import com.transistorsoft.locationmanager.adapter.BackgroundGeolocation;
+import com.transistorsoft.locationmanager.adapter.TSConfig;
+import com.transistorsoft.locationmanager.adapter.callback.TSCallback;
+import com.transistorsoft.locationmanager.adapter.callback.TSHeartbeatCallback;
+import com.transistorsoft.locationmanager.adapter.callback.TSLocationCallback;
+import com.transistorsoft.locationmanager.event.HeartbeatEvent;
+import com.transistorsoft.locationmanager.location.TSLocation;
 
 import net.mzi.trackengine.adapter.MainActivityAdapter;
 import net.mzi.trackengine.model.PostUrl;
@@ -105,6 +107,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -125,6 +128,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static net.mzi.trackengine.SessionManager.KEY_USERID;
+
+//import com.google.android.gms.location.places.PlaceLikelihood;
+//import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
+//import com.google.android.gms.location.places.Places;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -234,7 +241,7 @@ public class MainActivity extends AppCompatActivity
         nh_uname = pref.getString("name", "0");
         sCompanyId = pref.getString("ParentCompanyId", "0");
         sDeviceId = pref.getString("DeviceId", "0");
-        databaseFirebase.getInstance();
+        FirebaseDatabase.getInstance();
         drRef = databaseFirebase.getReference().child("UserLoginInfo").child(LOGINID);
         drRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -279,7 +286,9 @@ public class MainActivity extends AppCompatActivity
 
                         Intent i = new Intent(MainActivity.this, LoginActivity.class);
                         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
+                        try{
+                            bgGeo.stop();
+                        }catch (Exception e){}
                         // Add new Flag to start new Activity
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         finish();
@@ -335,7 +344,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         checkInOutTime = MyApp.getSharedPrefString("CheckedInTime");
         sCheckInStatus = MyApp.getStatus("CheckedInStatus");
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -537,7 +546,84 @@ public class MainActivity extends AppCompatActivity
         registerReceiver(gpsLocationReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
 
 //        new FetchStatus().execute();
+
+        // Get a reference to the SDK
+        bgGeo = BackgroundGeolocation.getInstance(getApplicationContext(), getIntent());
+        final TSConfig config = TSConfig.getInstance(getApplicationContext());
+
+        // Configure the SDK
+        config.updateWithBuilder()
+                .setDebug(true) // Sound Fx / notifications during development
+                .setLogLevel(5) // Verbose logging during development
+                .setDesiredAccuracy(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setDistanceFilter(100F)
+                .setLocationUpdateInterval(60000l)
+                .setStopTimeout(1L)
+                .setAllowIdenticalLocations(false)
+                .setHeartbeatInterval(60)
+                .setStopOnTerminate(false)
+                .setForegroundService(true)
+                .setStartOnBoot(true)
+//                .setNotificationTitle("Track Engine")
+//                .setEnableHeadless(true)
+                .setUrl("http://your.server.com/locations")
+                .commit();
+
+        // Listen events
+        bgGeo.onLocation(new TSLocationCallback() {
+            @Override
+            public void onLocation(TSLocation location) {
+                Log.i(TAG, "[location] " + location.toJson());
+                user_location.Latitude = location.toJson().optJSONObject("coords").optDouble("latitude");
+                user_location.Longitude = location.toJson().optJSONObject("coords").optDouble("longitude");
+                locationChangeOperation();
+            }
+
+            @Override
+            public void onError(Integer code) {
+                Log.i(TAG, "[location] ERROR: " + code);
+            }
+        });
+
+        bgGeo.onMotionChange(new TSLocationCallback() {
+            @Override
+            public void onLocation(TSLocation tsLocation) {
+                Log.i(TAG, "[motionchange] " + tsLocation.toJson());
+            }
+
+            @Override
+            public void onError(Integer error) {
+                Log.i(TAG, "[motionchange] ERROR: " + error);
+            }
+        });
+
+        bgGeo.onHeartbeat(new TSHeartbeatCallback() {
+            @Override
+            public void onHeartbeat(HeartbeatEvent heartbeatEvent) {
+//                Log.i(TAG, "[heartbeat] " + heartbeatEvent.toJson());
+            }
+        });
+        // Finally, signal #ready to the SDK.
+        bgGeo.ready(new TSCallback() {
+            @Override
+            public void onSuccess() {
+                Log.i(TAG, "[ready] success");
+                if (!config.getEnabled()) {
+                    // Start tracking immediately (if not already).
+                    try{
+                        bgGeo.start();
+                    }catch (Exception e){}
+                }
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.i(TAG, "[ready] FAILURE: " + error);
+            }
+        });
     }
+
+    private BackgroundGeolocation bgGeo;
 
     private boolean isOnline(Context context) {
         try {
@@ -690,38 +776,38 @@ public class MainActivity extends AppCompatActivity
                 // TODO: Consider calling
                 return;
             }
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
+//            mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
 //           if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-            locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
-            locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
-            locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
+//            locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
+//            locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
+//            locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
 //           }
         } else {
-            locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
-            locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
-            locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
+//            locationIntent = new Intent(MainActivity.this, ServiceLocation.class);
+//            locationPendingIntent = PendingIntent.getService(MainActivity.this, 1, locationIntent, 0);
+//            locationAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//            locationAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, locationTime, 60 * 1000, locationPendingIntent);
         }
 
         try {
-            startService(new Intent(getApplicationContext(), ServiceLocation.class));
+//            startService(new Intent(getApplicationContext(), ServiceLocation.class));
         } catch (Exception e) {
         }
     }
 
-    private PendingIntent getPendingIntent() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
-            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
-            return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        } else {
-            Intent intent = new Intent(this, LocationUpdatesIntentService.class);
-            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
-            return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        }
-
-    }
+//    private PendingIntent getPendingIntent() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
+//            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
+//            return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        } else {
+//            Intent intent = new Intent(this, LocationUpdatesIntentService.class);
+//            intent.setAction(LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES);
+//            return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        }
+//
+//    }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -863,17 +949,20 @@ public class MainActivity extends AppCompatActivity
             editor.commit();
 
             Intent i = new Intent(MainActivity.this, LoginActivity.class);
+            try{
+                bgGeo.stop();
+            }catch (Exception e){}
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             editor.putString(KEY_USERID, "0");
-            try {
-                ServiceLocation serviceLocation = new ServiceLocation(this);
-                Intent intent = new Intent(this, serviceLocation.getClass());
-                if (!isMyServiceRunning(serviceLocation.getClass())) {
-                    stopService(intent);
-                }
-            } catch (Exception e) {
-            }
+//            try {
+//                ServiceLocation serviceLocation = new ServiceLocation(this);
+//                Intent intent = new Intent(this, serviceLocation.getClass());
+//                if (!isMyServiceRunning(serviceLocation.getClass())) {
+//                    stopService(intent);
+//                }
+//            } catch (Exception e) {
+//            }
             try {
                 ServiceDataUpdateFirstFragment serviceDataUpdateFirstFragment = new ServiceDataUpdateFirstFragment(this);
                 Intent intent = new Intent(this, serviceDataUpdateFirstFragment.getClass());
@@ -1039,7 +1128,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -1111,7 +1200,7 @@ public class MainActivity extends AppCompatActivity
             List<Address> addresses = geocoder.getFromLocation(LATITUDE, LONGITUDE, 1);
             if (addresses != null) {
                 Address returnedAddress = addresses.get(0);
-                StringBuilder strReturnedAddress = new StringBuilder("");
+                StringBuilder strReturnedAddress = new StringBuilder();
 
                 for (int i = 0; i <= returnedAddress.getMaxAddressLineIndex(); i++) {
                     strReturnedAddress.append(returnedAddress.getAddressLine(i)).append("\n");
@@ -1190,8 +1279,8 @@ public class MainActivity extends AppCompatActivity
                         this /* OnConnectionFailedListener */)
                 .addConnectionCallbacks(this)
                 .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
+//                .addApi(Places.GEO_DATA_API)
+//                .addApi(Places.PLACE_DETECTION_API)
                 .build();
         createLocationRequest();
     }
@@ -1280,31 +1369,31 @@ public class MainActivity extends AppCompatActivity
         if (mMap == null) {
             return;
         }
-        if (mLocationPermissionGranted) {
-            // Get the businesses and other points of interest located
-            // nearest to the device's current location.
-            @SuppressWarnings("MissingPermission")
-            PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi
-                    .getCurrentPlace(mGoogleApiClient, null);
-            result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
-                @Override
-                public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
-                    for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                        // Add a marker for each place near the device's current location, with an
-                        // info window showing place information.
-                        String attributions = (String) placeLikelihood.getPlace().getAttributions();
-                        String snippet = (String) placeLikelihood.getPlace().getAddress();
-                        if (attributions != null) {
-                            snippet = snippet + "\n" + attributions;
-                        }
-
-                    }
-                    // Release the place likelihood buffer.
-                    likelyPlaces.release();
-                }
-            });
-        } else {
-        }
+//        if (mLocationPermissionGranted) {
+//            // Get the businesses and other points of interest located
+//            // nearest to the device's current location.
+//            @SuppressWarnings("MissingPermission")
+//            PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi
+//                    .getCurrentPlace(mGoogleApiClient, null);
+//            result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
+//                @Override
+//                public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
+//                    for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+//                        // Add a marker for each place near the device's current location, with an
+//                        // info window showing place information.
+//                        String attributions = (String) placeLikelihood.getPlace().getAttributions();
+//                        String snippet = (String) placeLikelihood.getPlace().getAddress();
+//                        if (attributions != null) {
+//                            snippet = snippet + "\n" + attributions;
+//                        }
+//
+//                    }
+//                    // Release the place likelihood buffer.
+//                    likelyPlaces.release();
+//                }
+//            });
+//        } else {
+//        }
     }
 
     @SuppressWarnings("MissingPermission")
@@ -1353,7 +1442,7 @@ public class MainActivity extends AppCompatActivity
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
+//        mFusedLocationClient.requestLocationUpdates(mLocationRequest, getPendingIntent());
     }
 
     private class FetchStatus extends AsyncTask<String, Void, String> {
@@ -1460,7 +1549,7 @@ public class MainActivity extends AppCompatActivity
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
@@ -1468,7 +1557,7 @@ public class MainActivity extends AppCompatActivity
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
@@ -1507,9 +1596,9 @@ public class MainActivity extends AppCompatActivity
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         final ApiResult apiResult = new ApiResult();
         final ApiResult.UserCheckInOut userCheckInOut = apiResult.new
-                UserCheckInOut(realtimeUpdate, appCheckInInfo.get("UserId").toString(),
-                appCheckInInfo.get("DeviceId").toString(), appCheckInInfo.get("IsCheckedIn").toString(),
-                appCheckInInfo.get("ActivityDate").toString());
+                UserCheckInOut(realtimeUpdate, appCheckInInfo.get("UserId"),
+                appCheckInInfo.get("DeviceId"), appCheckInInfo.get("IsCheckedIn"),
+                appCheckInInfo.get("ActivityDate"));
         Call<ApiResult.UserCheckInOut> call1 = apiInterface.PostCheckIn(userCheckInOut);
         call1.enqueue(new Callback<ApiResult.UserCheckInOut>() {
             @Override
@@ -1660,10 +1749,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void PushMobileData(Map mMobileDataInfo, final Context ctx, final long key) {
+    public void PushMobileData(Map mMobileDataInfo, final Context ctx, final long key, String realTimeUpdate) {
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         final ApiResult apiResult = new ApiResult();
-        final ApiResult.User_MobileData user_MobileData = apiResult.new User_MobileData("true", mMobileDataInfo.get("UserId").toString(), mMobileDataInfo.get("DeviceId").toString(), mMobileDataInfo.get("Enabled").toString(), mMobileDataInfo.get("ActionDate").toString());
+        final ApiResult.User_MobileData user_MobileData = apiResult.new User_MobileData(realTimeUpdate, mMobileDataInfo.get("UserId").toString(), mMobileDataInfo.get("DeviceId").toString(), mMobileDataInfo.get("Enabled").toString(), mMobileDataInfo.get("ActionDate").toString());
         Call<ApiResult.User_MobileData> call1 = apiInterface.PostMobileData(user_MobileData);
         call1.enqueue(new Callback<ApiResult.User_MobileData>() {
             @Override
@@ -1671,7 +1760,12 @@ public class MainActivity extends AppCompatActivity
                 try {
                     ApiResult.User_MobileData iData = response.body();
                     if (iData.resData.Status == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-
+                        Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                        try {
+                            mobileData.remove(key);
+                            MyApp.getApplication().writeMobileData(mobileData);
+                        } catch (Exception e) {
+                        }
                     } else {
                         Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
                         try {
@@ -1681,13 +1775,24 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 } catch (Exception e) {
+                    Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                    try {
+                        mobileData.remove(key);
+                        MyApp.getApplication().writeMobileData(mobileData);
+                    } catch (Exception ee) {
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResult.User_MobileData> call, Throwable t) {
                 call.cancel();
-
+                Map<Long, Map<String, String>> mobileData = MyApp.getApplication().readMobileData();
+                try {
+                    mobileData.remove(key);
+                    MyApp.getApplication().writeMobileData(mobileData);
+                } catch (Exception e) {
+                }
             }
         });
     }
@@ -1799,7 +1904,10 @@ public class MainActivity extends AppCompatActivity
         if (isRefresh) {
             setShowAlert();
             Firstfrag fragment = (Firstfrag) getSupportFragmentManager().findFragmentById(R.id.fragment);
-            fragment.NewTicketsInfo(fragment.mTicketIdList);
+            int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
+
+            if (issuesCount == 0)
+                fragment.NewTicketsInfo(fragment.mTicketIdList);
         }
 
         checkInOutTime = MyApp.getSharedPrefString("CheckedInTime");
@@ -1848,6 +1956,9 @@ public class MainActivity extends AppCompatActivity
             editor.commit();
             setData();
         } else {
+            try{
+                bgGeo.stop();
+            }catch (Exception e){}
             btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2004,6 +2115,10 @@ public class MainActivity extends AppCompatActivity
 //                    MyApp.getApplication().writeLocationData(new HashMap<String, Map<String, String>>());
                     setData();
                     checkInOutClickEvent();
+                    try {
+                        bgGeo.start();
+                    } catch (Exception e) {
+                    }
                 } else {
 
                     AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
@@ -2049,13 +2164,17 @@ public class MainActivity extends AppCompatActivity
                                     nMgr.cancel(12345);
 
 
-                                    try {
-                                        stopService(new Intent(getApplicationContext(), ServiceLocation.class));
-                                    } catch (Exception e) {
-                                    }
+//                                    try {
+//                                        stopService(new Intent(getApplicationContext(), ServiceLocation.class));
+//                                    } catch (Exception e) {
+//                                    }
 
                                     //tAt.setTextColor(getResources().getColor(R.color.red));
                                     checkInOutClickEvent();
+                                    try {
+                                        bgGeo.stop();
+                                    } catch (Exception e) {
+                                    }
                                 }
                             }).setNegativeButton("No", new DialogInterface.OnClickListener() {
                         @Override
@@ -2205,7 +2324,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -2434,6 +2553,7 @@ public class MainActivity extends AppCompatActivity
             try {
                 if (s == null) {
                     if (sCheckInStatus) {
+//                        bgGeo.start();
                         btn_check_in_out.setText("Checked-IN\n" + checkInOutTime);
                         btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
 
@@ -2457,6 +2577,9 @@ public class MainActivity extends AppCompatActivity
                         editor.commit();
                         setData();
                     } else {
+                        try{
+                            bgGeo.stop();
+                        }catch (Exception e){}
                         btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
                         btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
                         NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2485,6 +2608,9 @@ public class MainActivity extends AppCompatActivity
                             btn_check_in_out.setText("Checked-IN\n" + checkInOutTime);
                             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.green));
                         } else {
+                            try{
+                                bgGeo.stop();
+                            }catch (Exception e){}
                             btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
                             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
                             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2517,6 +2643,9 @@ public class MainActivity extends AppCompatActivity
                             editor.commit();
                             setData();
                         } else {
+                            try{
+                                bgGeo.stop();
+                            }catch (Exception ee){}
                             btn_check_in_out.setText("Checked-OUT\n" + checkInOutTime);
                             btn_check_in_out.setBackgroundColor(getResources().getColor(R.color.red));
                             NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2728,49 +2857,41 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startLocationSync() {
-        try {
-            if (locIterator.hasNext()) {
-                txt_locations_count.setBackground(null);
-                progress_sync_locations.setVisibility(View.VISIBLE);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        callableLocation = true;
-                        progress_sync_locations.setVisibility(View.GONE);
-                        txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+       try{
+           if (locIterator.hasNext()) {
+               txt_locations_count.setBackground(null);
+               progress_sync_locations.setVisibility(View.VISIBLE);
+           } else {
+               callableLocation = true;
+               progress_sync_locations.setVisibility(View.GONE);
+               txt_locations_count.setBackground(getResources().getDrawable(R.drawable.sync_orange));
+           }
+       }catch (Exception e){}
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (locIterator.hasNext()) {
+                        String key = locIterator.next();
+                        Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                        Map<String, String> locationInfo1 = locMap.get(key);
+                        if (locMap.get(key).get("UserId").equals("0")) {
+                            locMap.remove(key);
+                            MyApp.getApplication().writeLocationData(locMap);
+                            startLocationSync();
+
+                        }
+                        locationInfo1.put("RealTimeUpdate", "false");
+                        locationInfo1.put("DeviceId", sDeviceId);
+                        LocationOperationOffline(locationInfo1, MainActivity.this, key, false, false);
+                    } else {
+
                     }
-                }, 5000);
-
-                String key = locIterator.next();
-                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
-                HashMap<String, String> locationInfo = new HashMap<>();
-                if (locMap.get(key).get("UserId").equals("0")) {
-                    locMap.remove(key);
-                    MyApp.getApplication().writeLocationData(locMap);
-                    startLocationSync();
-
+                } catch (Exception e) {
                 }
-                locationInfo.put("RealTimeUpdate", "false");
-                locationInfo.put("UserId", locMap.get(key).get("UserId"));
-                locationInfo.put("DeviceId", sDeviceId);
-                locationInfo.put("Latitude", locMap.get(key).get("Latitude"));
-                locationInfo.put("Longitude", locMap.get(key).get("Longitude"));
-                locationInfo.put("AutoCaptured", locMap.get(key).get("AutoCaptured"));
-                locationInfo.put("ActivityDate", key);
-                locationInfo.put("AddressLine", locMap.get(key).get("AddressLine"));
-                locationInfo.put("Premises", locMap.get(key).get("Premises"));
-                locationInfo.put("SubLocality", locMap.get(key).get("SubLocality"));
-                locationInfo.put("SubAdminArea", locMap.get(key).get("SubAdminArea"));
-                locationInfo.put("PostalCode", locMap.get(key).get("PostalCode"));
-                locationInfo.put("City", locMap.get(key).get("City"));
-                locationInfo.put("State", locMap.get(key).get("State"));
-                locationInfo.put("Country", locMap.get(key).get("Country"));
-                locationInfo.put("KnownName", locMap.get(key).get("KnownName"));
-                locationInfo.put("Provider", locMap.get(key).get("Provider"));
-                LocationOperationOffline(locationInfo, MainActivity.this, key, false, false);
             }
-        } catch (Exception e) {
-        }
+        }).start();
+
     }
 
     private Iterator<String> locIterator = null;
@@ -3170,7 +3291,7 @@ public class MainActivity extends AppCompatActivity
                         long keyDelete = System.currentTimeMillis();
                         mobileData.put(keyDelete, mMobileDataInfo);
                         MyApp.getApplication().writeMobileData(mobileData);
-                        PushMobileData(mMobileDataInfo, getApplicationContext(), keyDelete);
+                        PushMobileData(mMobileDataInfo, getApplicationContext(), keyDelete, "true");
                         int checkInOutCount = MyApp.getApplication().readCheckInOutData().keySet().size();
                         int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
                         int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
@@ -3205,7 +3326,7 @@ public class MainActivity extends AppCompatActivity
                     long key = System.currentTimeMillis();
                     mobileData.put(key, mMobileDataInfo);
                     MyApp.getApplication().writeMobileData(mobileData);
-                    PushMobileData(mMobileDataInfo, getApplicationContext(), key);
+                    PushMobileData(mMobileDataInfo, getApplicationContext(), key, "true");
                 }
             } catch (NullPointerException e) {
                 e.printStackTrace();
@@ -3226,97 +3347,203 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void LocationOperationOffline(Map locationInfo, final Context ctx, final String key, final boolean showToast, boolean realtimeupdate) {
+    public void LocationOperationOffline(final Map locationInfo, final Context ctx, final String key, final boolean showToast, final boolean realtimeupdate) {
 
-        try {
-            if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
-                    || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
-                Log.e("LocationOperation: ", "Not executed dut to wrong user id");
-                return;
-            }
-        } catch (Exception e) {
-            Log.e("LocationOperation: ", "Not executed dut to wrong user id");
-            return;
-        }
-        Log.e("LocationOperation: ", "Method called LocationOperation");
-
-        apiInterface = ApiClient.getClient().create(ApiInterface.class);
-
-        final ApiResult apiResult = new ApiResult();
-        try {
-            Log.e("LocationOperation: ", locationInfo.toString());
-            String sublocalityString = "";
-            try {
-                sublocalityString = locationInfo.get("SubLocality").toString();
-                if (sublocalityString.length() == 0 || sublocalityString.isEmpty()) {
-                    sublocalityString = "NA";
-                }
-            } catch (Exception eee) {
-                sublocalityString = "NA";
-            }
-
-            if (locationInfo.get("Latitude").toString().length() <= 3) {
-                Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
-                locMap.remove(key);
-                MyApp.getApplication().writeLocationData(locMap);
-                int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
-                txt_locations_count.setText(locationsCount + "");
-                return;
-            }
-
-            final ApiResult.User_Location user_location;
-            Call<ApiResult.User_Location> call1;
-            if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
-                user_location = apiResult.new User_Location("true",
-                        locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
-                        locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
-                        locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString());
-
-                call1 = apiInterface.PostCoordinatesShorten(user_location);
-            } else {
-                user_location = apiResult.new User_Location(realtimeupdate ? "true" : "false",
-                        locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
-                        locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
-                        locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(),
-                        locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(),
-                        locationInfo.get("City").toString(), locationInfo.get("State").toString(),
-                        locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
-                call1 = apiInterface.PostCoordinates(user_location);
-            }
-
-            call1.enqueue(new Callback<ApiResult.User_Location>() {
-                @Override
-                public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
-                    try {
-                        ApiResult.User_Location iData = response.body();
-                        if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
-                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
-                            locMap.remove(key);
-                            MyApp.getApplication().writeLocationData(locMap);
-                        } else {
-                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
-                            locMap.remove(key);
-                            MyApp.getApplication().writeLocationData(locMap);
-                            int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
-                            txt_locations_count.setText(locationsCount + "");
-
-                        }
-                        if (showToast)
-                            MyApp.showMassage(getApplicationContext(), "Location sent successfully!!!");
-                    } catch (Exception e) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (locationInfo.get("UserId").toString().isEmpty() || locationInfo.get("UserId").toString().equals("0")
+                            || locationInfo.get("DeviceId").toString().isEmpty() || locationInfo.get("DeviceId").toString().equals("0")) {
+                        Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                        locMap.remove(key);
+                        MyApp.getApplication().writeLocationData(locMap);
+                        Log.e("LocationOperation: ", "Not executed dut to wrong user id");
+                        return;
                     }
-                    startLocationSync();
+                } catch (Exception e) {
+                    Log.e("LocationOperation: ", "Not executed dut to wrong user id");
+                    Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                    locMap.remove(key);
+                    MyApp.getApplication().writeLocationData(locMap);
+                    return;
                 }
+                Log.e("LocationOperation: ", "Method called LocationOperation");
 
-                @Override
-                public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
-                    call.cancel();
+                apiInterface = ApiClient.getClient().create(ApiInterface.class);
+
+                final ApiResult apiResult = new ApiResult();
+                try {
+                    Log.e("LocationOperation: ", locationInfo.toString());
+                    String sublocalityString = "";
+                    try {
+                        sublocalityString = locationInfo.get("SubLocality").toString();
+                        if (sublocalityString.length() == 0 || sublocalityString.isEmpty()) {
+                            sublocalityString = "NA";
+                        }
+                    } catch (Exception eee) {
+                        sublocalityString = "NA";
+                    }
+
+                    if (locationInfo.get("Latitude").toString().length() <= 3) {
+                        Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                        locMap.remove(key);
+                        MyApp.getApplication().writeLocationData(locMap);
+                        int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
+                        txt_locations_count.setText(locationsCount + "");
+                        return;
+                    }
+
+                    final ApiResult.User_Location user_location;
+                    Call<ApiResult.User_Location> call1;
+                    if (locationInfo.get("City").equals("NA") || locationInfo.get("State").equals("NA")) {
+                        user_location = apiResult.new User_Location(realtimeupdate ? "true" : "false",
+                                locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                                locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                                locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString());
+
+                        call1 = apiInterface.PostCoordinatesShorten(user_location);
+                    } else {
+                        user_location = apiResult.new User_Location(realtimeupdate ? "true" : "false",
+                                locationInfo.get("UserId").toString(), locationInfo.get("DeviceId").toString(),
+                                locationInfo.get("Latitude").toString(), locationInfo.get("Longitude").toString(),
+                                locationInfo.get("ActivityDate").toString(), locationInfo.get("AutoCaptured").toString(),
+                                locationInfo.get("AddressLine").toString(), sublocalityString, locationInfo.get("PostalCode").toString(),
+                                locationInfo.get("City").toString(), locationInfo.get("State").toString(),
+                                locationInfo.get("Country").toString(), locationInfo.get("KnownName").toString(), "NA");
+                        call1 = apiInterface.PostCoordinates(user_location);
+                    }
+
+                    call1.enqueue(new Callback<ApiResult.User_Location>() {
+                        @Override
+                        public void onResponse(Call<ApiResult.User_Location> call, Response<ApiResult.User_Location> response) {
+                            try {
+                                ApiResult.User_Location iData = response.body();
+                                if (iData.resData == null || iData.resData.Status.equals("") || iData.resData.Status.equals("0")) {
+                                    Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                    locMap.remove(key);
+                                    MyApp.getApplication().writeLocationData(locMap);
+                                } else {
+                                    Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                                    locMap.remove(key);
+                                    MyApp.getApplication().writeLocationData(locMap);
+
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            int locationsCount = MyApp.getApplication().readLocationData().keySet().size();
+                                            txt_locations_count.setText(locationsCount + "");
+                                            if (showToast)
+                                                MyApp.showMassage(getApplicationContext(), "Location sent successfully!!!");
+                                        }
+                                    });
+
+
+                                }
+
+                            } catch (Exception e) {
+                            }
+                            startLocationSync();
+                        }
+
+                        @Override
+                        public void onFailure(Call<ApiResult.User_Location> call, Throwable t) {
+                            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                            locMap.remove(key);
+                            MyApp.getApplication().writeLocationData(locMap);
+                            call.cancel();
+                            startLocationSync();
+                        }
+                    });
+                } catch (Exception e) {
+                    Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+                    locMap.remove(key);
+                    MyApp.getApplication().writeLocationData(locMap);
+                    e.printStackTrace();
                     startLocationSync();
                 }
-            });
+            }
+        }).start();
+    }
+
+    private void locationChangeOperation() {
+        Geocoder geocoder = null;
+        currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        Map<String, String> locationInfo = new HashMap<>();
+        List<Address> addresses;
+        long lastLocTime = MyApp.getSharedPrefLong("GEO");
+        if (lastLocTime == 0) {
+            MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
+
+        }
+        long differLoc = System.currentTimeMillis() - lastLocTime;
+        if (differLoc > (10 * 60 * 1000)) {
+            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+            MyApp.setSharedPrefLong("GEO", System.currentTimeMillis());
+        }
+
+
+        try {
+            sAddressLine = sCity = sState = sCountry = sPostalCode = sKnownName = sPremises = sSubLocality = sSubAdminArea = "NA";
+            addresses = geocoder.getFromLocation(user_location.Latitude, user_location.Longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+            if (addresses.size() > 0) {
+                sAddressLine = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                sCity = addresses.get(0).getLocality();
+                sState = addresses.get(0).getAdminArea();
+                sCountry = addresses.get(0).getCountryName();
+                sPostalCode = addresses.get(0).getPostalCode();
+                sKnownName = addresses.get(0).getFeatureName();
+                sPremises = addresses.get(0).getPremises();
+                sSubLocality = addresses.get(0).getSubLocality();
+                sSubAdminArea = addresses.get(0).getSubAdminArea();
+            } else {
+                sAddressLine = "NA";
+                sCity = "NA";
+                sState = "NA";
+                sCountry = "NA";
+                sPostalCode = "NA";
+                sKnownName = "NA";
+                sPremises = "NA";
+                sSubLocality = "NA";
+                sSubAdminArea = "NA";
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            startLocationSync();
+            sAddressLine = "NA";
+            sCity = "NA";
+            sState = "NA";
+            sCountry = "NA";
+            sPostalCode = "NA";
+            sKnownName = "NA";
+            sPremises = "NA";
+            sSubLocality = "NA";
+            sSubAdminArea = "NA";
+        }
+        locationInfo.put("RealTimeUpdate", "false");
+        locationInfo.put("UserId", LOGINID);
+        locationInfo.put("DeviceId", sDeviceId);
+        locationInfo.put("Latitude", String.valueOf(user_location.Latitude));
+        locationInfo.put("Longitude", String.valueOf(user_location.Longitude));
+        locationInfo.put("ActivityDate", currentDateTimeString);
+        locationInfo.put("AutoCaptured", "true");
+        locationInfo.put("AddressLine", sAddressLine);
+        locationInfo.put("Premises", sPremises);
+        locationInfo.put("SubLocality", sSubLocality);
+        locationInfo.put("SubAdminArea", sSubAdminArea);
+        locationInfo.put("PostalCode", sPostalCode);
+        locationInfo.put("City", sCity);
+        locationInfo.put("State", sState);
+        locationInfo.put("Country", sCountry);
+        locationInfo.put("KnownName", sKnownName);
+        locationInfo.put("Provider", "NA");
+
+        try {
+            Map<String, Map<String, String>> locMap = MyApp.getApplication().readLocationData();
+            locMap.put(currentDateTimeString, locationInfo);
+            MyApp.getApplication().writeLocationData(locMap);
+            LocationOperationOffline(locationInfo, this, currentDateTimeString, false, false);
+        } catch (Exception e) {
         }
     }
 }

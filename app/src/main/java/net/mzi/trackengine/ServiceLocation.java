@@ -55,7 +55,7 @@ public class ServiceLocation extends Service {
     }
 
     Map<String, String> batteryInfo = new HashMap<String, String>();
-    Map<String, String> locationInfo = new HashMap<String, String>();
+    Map<String, String> locationInfo = new HashMap<>();
     ApiInterface apiInterface;
     Gps gps;
     Cursor cquery;
@@ -367,10 +367,10 @@ public class ServiceLocation extends Service {
 
     @Override
     public void onDestroy() {
-        try {
-            startService(new Intent(getApplicationContext(), ServiceLocation.class));
-        } catch (Exception E) {
-        }
+//        try {
+//            startService(new Intent(getApplicationContext(), ServiceLocation.class));
+//        } catch (Exception E) {
+//        }
     }
 
 
@@ -757,7 +757,7 @@ public class ServiceLocation extends Service {
         Log.e("BatteryOperation: ", batteryInfo.toString());
         final ApiResult apiResult = new ApiResult();
 
-        final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
+        final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel("false", batteryInfo.get("UserId"), batteryInfo.get("DeviceId"), batteryInfo.get("Battery"), batteryInfo.get("ActivityDate"), batteryInfo.get("AutoCaptured"));
         Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
         call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
             @Override
@@ -784,9 +784,9 @@ public class ServiceLocation extends Service {
             }
         });
 
-        try {
-            startService(new Intent(getApplicationContext(), ServiceLocation.class));
-        } catch (Exception e) {
-        }
+//        try {
+//            startService(new Intent(getApplicationContext(), ServiceLocation.class));
+//        } catch (Exception e) {
+//        }
     }
 }

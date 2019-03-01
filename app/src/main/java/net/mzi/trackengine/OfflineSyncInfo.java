@@ -25,7 +25,7 @@ public class OfflineSyncInfo extends AppCompatActivity implements ActionBar.TabL
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
 
-        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager = findViewById(R.id.pager);
         actionBar = getSupportActionBar();
         mAdapter = new OfflneTabsPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(mAdapter);

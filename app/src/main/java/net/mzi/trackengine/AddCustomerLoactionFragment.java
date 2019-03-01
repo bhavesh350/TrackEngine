@@ -40,6 +40,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,17 +98,17 @@ public class AddCustomerLoactionFragment extends Fragment {
         pref = getContext().getSharedPreferences("login", 0);
         sCompanyId=pref.getString("CompanyId","CompanyId");
         //mCustomerCreationInfo.put("CompanyId",pref.getString("CompanyId","CompanyId"));
-        spState=(Spinner)view.findViewById(R.id.stateSpinner);
-        etCustomername=(EditText)view.findViewById(R.id.addCustomerEditText);
-        spCity=(Spinner)view.findViewById(R.id.citySpinner);
-        tvPincode=(TextView) view.findViewById(R.id.pincodeTextView);
-        spArea=(Spinner)view.findViewById(R.id.areaSpinner);
-        spLocationType=(Spinner)view.findViewById(R.id.locationTypeSpinner);
-        spAssociatedWith=(Spinner)view.findViewById(R.id.associatedWithSpinner);
-        etAL1=(EditText)view.findViewById(R.id.addressline1EditText);
-        etAL2=(EditText)view.findViewById(R.id.addressline2EditText);
-        etAL3=(EditText)view.findViewById(R.id.addressline3EditText);
-        bAddcustomer=(Button)view.findViewById(R.id.addCustomerButton);
+        spState= view.findViewById(R.id.stateSpinner);
+        etCustomername= view.findViewById(R.id.addCustomerEditText);
+        spCity= view.findViewById(R.id.citySpinner);
+        tvPincode= view.findViewById(R.id.pincodeTextView);
+        spArea= view.findViewById(R.id.areaSpinner);
+        spLocationType= view.findViewById(R.id.locationTypeSpinner);
+        spAssociatedWith= view.findViewById(R.id.associatedWithSpinner);
+        etAL1= view.findViewById(R.id.addressline1EditText);
+        etAL2= view.findViewById(R.id.addressline2EditText);
+        etAL3= view.findViewById(R.id.addressline3EditText);
+        bAddcustomer= view.findViewById(R.id.addCustomerButton);
 
         bAddcustomer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -232,7 +233,7 @@ public class AddCustomerLoactionFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if(!((Activity) getActivity()).isFinishing()) {
+            if(!getActivity().isFinishing()) {
                 progress = ProgressDialog.show(getActivity(),
                         "Loading data", "Please wait...");
             }
@@ -255,13 +256,13 @@ public class AddCustomerLoactionFragment extends Fragment {
                 urlConnection.connect();
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {

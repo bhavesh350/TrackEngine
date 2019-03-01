@@ -79,6 +79,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -175,36 +176,36 @@ public class TicketCreation extends AppCompatActivity {
         new fetchCorporateName().execute();
         new fetchCategoryName().execute();
         new FetchEngineerList(nh_userid).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        vCamera = (RadioButton) findViewById(R.id.vCam);
-        iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
-        vGallery = (RadioButton) findViewById(R.id.vGal);
-        locationSp = (Spinner) findViewById(R.id.locationSpinner);
-        oemLayout = (TextInputLayout) findViewById(R.id.oemTicketTIL);
-        OEMticketEditText = (EditText) findViewById(R.id.oemEditText);
-        callTypeSpinner = (Spinner) findViewById(R.id.callypeSpinner);
-        corporateName = (Spinner) findViewById(R.id.corporateSpinner);
-        categoryName = (Spinner) findViewById(R.id.categorySpinner);
-        assetSp = (Spinner) findViewById(R.id.assetSpinner);
-        assetSerialNumber = (AutoCompleteTextView) findViewById(R.id.assetSerialNumberAutoComplete);
-        employeeAutoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.employeeAutoComplete);
-        subjectEditText = (EditText) findViewById(R.id.subjectEditText);
-        descEditText = (EditText) findViewById(R.id.descEditText);
-        assetText = (TextView) findViewById(R.id.assetTextView);
-        ivAddCustomer = (ImageView) findViewById(R.id.addCustomerId);
-        ivAddLocation = (ImageView) findViewById(R.id.addLocationId);
-        submit = (Button) findViewById(R.id.submitButton);
-        subCategorySp = (Spinner) findViewById(R.id.subCategorySpinner);
-        departmentSp = (Spinner) findViewById(R.id.deparmentSpinner);
-        employeeContactAutoCompleteTeaxtView = (AutoCompleteTextView) findViewById(R.id.ContactAutoComplete);
-        main = (LinearLayout) findViewById(R.id.linearMain);
-        locationText = (TextView) findViewById(R.id.locationTextId);
+        vCamera = findViewById(R.id.vCam);
+        iImageIcon = findViewById(R.id.imageuplaodicon);
+        vGallery = findViewById(R.id.vGal);
+        locationSp = findViewById(R.id.locationSpinner);
+        oemLayout = findViewById(R.id.oemTicketTIL);
+        OEMticketEditText = findViewById(R.id.oemEditText);
+        callTypeSpinner = findViewById(R.id.callypeSpinner);
+        corporateName = findViewById(R.id.corporateSpinner);
+        categoryName = findViewById(R.id.categorySpinner);
+        assetSp = findViewById(R.id.assetSpinner);
+        assetSerialNumber = findViewById(R.id.assetSerialNumberAutoComplete);
+        employeeAutoCompleteTextView = findViewById(R.id.employeeAutoComplete);
+        subjectEditText = findViewById(R.id.subjectEditText);
+        descEditText = findViewById(R.id.descEditText);
+        assetText = findViewById(R.id.assetTextView);
+        ivAddCustomer = findViewById(R.id.addCustomerId);
+        ivAddLocation = findViewById(R.id.addLocationId);
+        submit = findViewById(R.id.submitButton);
+        subCategorySp = findViewById(R.id.subCategorySpinner);
+        departmentSp = findViewById(R.id.deparmentSpinner);
+        employeeContactAutoCompleteTeaxtView = findViewById(R.id.ContactAutoComplete);
+        main = findViewById(R.id.linearMain);
+        locationText = findViewById(R.id.locationTextId);
 
         ivAddCustomer.setOnClickListener(new View.OnClickListener() {
             @Override
 
             public void onClick(View v) {
                 Fragment hello = new AddCustomerFragment();
-                FragmentManager fragmentManager = ((AppCompatActivity) TicketCreation.this).getSupportFragmentManager();
+                FragmentManager fragmentManager = TicketCreation.this.getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.add(R.id.activity_ticket_creation, hello);
                 fragmentTransaction.commit();
@@ -222,7 +223,7 @@ public class TicketCreation extends AppCompatActivity {
                     }
                 } else {
                     Fragment hello = new AddCustomerLoactionFragment();
-                    FragmentManager fragmentManager = ((AppCompatActivity) TicketCreation.this).getSupportFragmentManager();
+                    FragmentManager fragmentManager = TicketCreation.this.getSupportFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     fragmentTransaction.add(R.id.activity_ticket_creation, hello);
                     fragmentTransaction.commit();
@@ -591,9 +592,9 @@ public class TicketCreation extends AppCompatActivity {
                 Dialog.setCancelable(false);
                 LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View dialogView = li.inflate(R.layout.option, null);
-                Spinner spinnercategory = (Spinner) dialogView
+                Spinner spinnercategory = dialogView
                         .findViewById(R.id.viewSpin);
-                final EditText commemt = (EditText) dialogView.findViewById(R.id.comment);
+                final EditText commemt = dialogView.findViewById(R.id.comment);
                 commemt.setVisibility(View.GONE);
                 Dialog.setView(dialogView);
                 Dialog.setPositiveButton("Ok",
@@ -939,14 +940,10 @@ public class TicketCreation extends AppCompatActivity {
     }
 
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     public void openGallery(int req_code) {
@@ -1502,7 +1499,7 @@ public class TicketCreation extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if (!((Activity) TicketCreation.this).isFinishing()) {
+            if (!TicketCreation.this.isFinishing()) {
                 progress = ProgressDialog.show(TicketCreation.this, "Loading data", "Please wait...");
             }
         }
@@ -1523,13 +1520,13 @@ public class TicketCreation extends AppCompatActivity {
                 urlConnection.connect();
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {

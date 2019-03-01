@@ -46,7 +46,7 @@ public class FullScreenMap extends FragmentActivity implements GoogleMap.OnMarke
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_screen_map);
         gps = new Gps(getApplicationContext());
-        exit = (Button) findViewById(R.id.exitFromMap);
+        exit = findViewById(R.id.exitFromMap);
         exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -60,15 +60,15 @@ public class FullScreenMap extends FragmentActivity implements GoogleMap.OnMarke
                 cquery = sql.rawQuery("select IssueId,Address,Latitude,Longitude,CorporateName from Issue_Detail", null);
                 for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
 
-                    issueId.add(cquery.getString(0).toString());
-                    corporatename.add(cquery.getString(4).toString());
-                    issueAddress.add(cquery.getString(1).toString());
+                    issueId.add(cquery.getString(0));
+                    corporatename.add(cquery.getString(4));
+                    issueAddress.add(cquery.getString(1));
                     if (cquery.getDouble(2) == 0.0) {
                         Geocoder coder = new Geocoder(FullScreenMap.this);
                         List<Address> address;
 
                         try {
-                            address = coder.getFromLocationName(cquery.getString(1).toString(), 5);
+                            address = coder.getFromLocationName(cquery.getString(1), 5);
                             if (address == null) {
                             }
                             Address location = address.get(0);
@@ -115,7 +115,7 @@ public class FullScreenMap extends FragmentActivity implements GoogleMap.OnMarke
         mMap = googleMap;
         // Add some markers to the map, and add a data object to each marker.
         for (int i = 0; i < listLatLng.size(); i++) {
-            Log.e("TAG", "onMapReady: " + i + listLatLng.get(i).toString());
+//            Log.e("TAG", "onMapReady: " + i + listLatLng.get(i).toString());
             mLoc = mMap.addMarker(new MarkerOptions()
                     .position(listLatLng.get(i))
                     .title("Ticket:" + issueId.get(i))

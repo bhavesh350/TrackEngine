@@ -60,12 +60,12 @@ public class FilterListFragment extends Fragment {
         lMainStatusName.add("Resolved");
 
         for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-            lStatusName.add(cquery.getString(0).toString());
+            lStatusName.add(cquery.getString(0));
         }
-        ivRemoveFragment=(ImageView) view.findViewById(R.id.removeFragementID);
-        listView = (ListView) view.findViewById(R.id.list);
-        listViewSecond = (ListView) view.findViewById(R.id.listsecond);
-        ivFilter = (ImageView) view.findViewById(R.id.filterImage);
+        ivRemoveFragment= view.findViewById(R.id.removeFragementID);
+        listView = view.findViewById(R.id.list);
+        listViewSecond = view.findViewById(R.id.listsecond);
+        ivFilter = view.findViewById(R.id.filterImage);
         adapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_list_item_multiple_choice, lStatusName);
         adapterSecond = new ArrayAdapter<String>(getActivity(),
@@ -145,7 +145,7 @@ public class FilterListFragment extends Fragment {
         return view;
     }
     public interface OnDataPass {
-        public void onDataPass(List<String> data, String sIsAccepted);
+        void onDataPass(List<String> data, String sIsAccepted);
     }
 
     @Override

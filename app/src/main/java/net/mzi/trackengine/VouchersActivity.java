@@ -27,14 +27,14 @@ public class VouchersActivity extends AppCompatActivity  implements ActionBar.Ta
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vouchers);
-        bFromDate=(Button)findViewById(R.id.IdFromdate);
-        bToDate=(Button)findViewById(R.id.idToDate);
-        bProceed=(Button)findViewById(R.id.idProceed);
+        bFromDate= findViewById(R.id.IdFromdate);
+        bToDate= findViewById(R.id.idToDate);
+        bProceed= findViewById(R.id.idProceed);
 
         getSupportActionBar().setTitle("Voucher Info");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        viewPager = (ViewPager) findViewById(R.id.Voucherpager);
+        viewPager = findViewById(R.id.Voucherpager);
         bFromDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

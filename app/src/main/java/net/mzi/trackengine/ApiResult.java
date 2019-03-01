@@ -460,6 +460,9 @@ public class ApiResult {
             @SerializedName("OtherDepartment")
             public String otherDepartment;
 
+            @SerializedName("StatusChangeDate")
+            public String statusChangeDate;
+
         }
     }
 
@@ -496,6 +499,9 @@ public class ApiResult {
 
             @SerializedName("HoldTat")
             public boolean holdTat;
+
+            @SerializedName("UserChangeable")
+            public boolean userChangeable;
 
         }
 
@@ -782,28 +788,28 @@ public class ApiResult {
 
     public class User_Location {
         @SerializedName("Result")
-        public ApiResult.Result resData;
+        public  ApiResult.Result resData;
 
         @SerializedName("Id")
-        public String Id;
+        public  String Id;
 
         @SerializedName("UserId")
-        public String UserId;
+        public  String UserId;
 
         @SerializedName("DeviceId")
-        public String DeviceId;
+        public  String DeviceId;
 
         @SerializedName("AutoCaptured")
-        public String AutoCaptured;
+        public  String AutoCaptured;
 
         @SerializedName("Address")
-        public String Address;
+        public  String Address;
 
         @SerializedName("ActionDate")
-        public String ActionDate;
+        public  String ActionDate;
 
         @SerializedName("ActionTime")
-        public String ActionTime;
+        public  String ActionTime;
         /*
                 @SerializedName("UserId")
                 public String UserId;
@@ -811,7 +817,7 @@ public class ApiResult {
                 @SerializedName("DeviceId")
                 public String DeviceId;*/
         @SerializedName("Latitude")
-        public String Latitude;
+        public  String Latitude;
 
         @SerializedName("Longitude")
         public String Longitude;

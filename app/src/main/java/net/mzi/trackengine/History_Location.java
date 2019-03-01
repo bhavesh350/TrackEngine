@@ -58,7 +58,7 @@ public class History_Location extends Fragment {
         View view = inflater.inflate(R.layout.historylocation, container, false);
         rl_progress = view.findViewById(R.id.rl_progress);
         API_URL = PostUrl.sUrl + "GetLocationHistory?iUserId=" + MainActivity.LOGINID;
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
+        mRecyclerView = view.findViewById(R.id.history_view);
         rl_progress.setVisibility(View.VISIBLE);
         new History_Location.UserLocation().execute();
         return view;

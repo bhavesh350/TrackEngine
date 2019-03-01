@@ -50,8 +50,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
 
     public ServiceDataUpdateFirstFragment() {
     }
-    private Handler h = new Handler();
-    boolean isFirebaseCalled = false;
+
     String DepartmentId, sLastAction;
     ApiInterface apiInterface;
     SharedPreferences.Editor editor;
@@ -90,7 +89,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
         } catch (Exception e) {
         }
         Firebase.setAndroidContext(getApplicationContext());
-        databaseFirebase.getInstance();
+        FirebaseDatabase.getInstance();
         pref = getApplicationContext().getSharedPreferences("login", 0);
         editor = pref.edit();
 
@@ -178,17 +177,17 @@ public class ServiceDataUpdateFirstFragment extends Service {
                             if (!(nh_userid.equals("0"))) {
                                 int issuesCount = MyApp.getApplication().readTicketsIssueHistory().keySet().size();
                                 if (issuesCount == 0)
-                                    if (!isFirebaseCalled) {
-                                        isFirebaseCalled = true;
+                                    if (!MyApp.getStatus("isFirebaseCalled")) {
+                                        MyApp.setStatus("isFirebaseCalled", true);
 
 
                                         if (issuesCount == 0)
                                             NewTicketsInfo(mTicketIdList);
 
-                                        h.postDelayed(new Runnable() {
+                                        new Handler().postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
-                                                isFirebaseCalled = false;
+                                                MyApp.setStatus("isFirebaseCalled", false);
                                             }
                                         }, 5000);
                                     }
@@ -274,7 +273,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                         if (cqueryTempForLatestStatusId.getString(1) == null) {
                                             strUpdatedDate = resData.IssueDetail[i].UpdatedOn;
                                         } else {
-                                            strUpdatedDate = cqueryTempForLatestStatusId.getString(1).toString();
+                                            strUpdatedDate = cqueryTempForLatestStatusId.getString(1);
                                         }
 
                                         //SimpleDateFormat liveUpdatedate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -283,7 +282,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                             liveDate = Updatedate.parse(resData.IssueDetail[i].UpdatedOn);
                                             if (localDate.getTime() > liveDate.getTime()) {
                                                 t.UpdatedDate = strUpdatedDate;
-                                                t.StatusId = cqueryTempForLatestStatusId.getString(0).toString();
+                                                t.StatusId = cqueryTempForLatestStatusId.getString(0);
                                             } else {
                                                 t.UpdatedDate = resData.IssueDetail[i].UpdatedOn;
                                                 t.StatusId = resData.IssueDetail[i].StatusId;
@@ -328,41 +327,6 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     t.ScheduleDate = resData.IssueDetail[i].scheduleDate;
                                     t.setType(resData.IssueDetail[i].type);
                                     t.setJourneyStatus(resData.IssueDetail[i].journeyStatus);
-                                    if (t.getJourneyStatus().equals("2")) {
-                                        MyApp.setStatus("isBothDisable", false);
-                                        MyApp.setStatus("savedCardStatus", true);
-                                        MyApp.setStatus("isTransportChange", false);
-                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
-
-                                        if (getMainStatusId(t.getStatusId())) {
-                                            MyApp.setStatus("isBothDisable", false);
-                                            MyApp.setStatus("savedCardStatus", false);
-                                            MyApp.setStatus("isTransportChange", false);
-                                            MyApp.setSharedPrefString("savedCardId", "");
-                                        }
-                                    } else if (t.getJourneyStatus().equals("4")) {
-                                        MyApp.setStatus("isTransportChange", true);
-                                        MyApp.setStatus("isBothDisable", false);
-                                        MyApp.setStatus("savedCardStatus", true);
-                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
-                                        if (getMainStatusId(t.getStatusId())) {
-                                            MyApp.setStatus("isBothDisable", false);
-                                            MyApp.setStatus("savedCardStatus", false);
-                                            MyApp.setStatus("isTransportChange", false);
-                                            MyApp.setSharedPrefString("savedCardId", "");
-                                        }
-                                    } else if (t.getJourneyStatus().equals("3")) {
-                                        MyApp.setStatus("isTransportChange", true);
-                                        MyApp.setStatus("isBothDisable", true);
-                                        MyApp.setStatus("savedCardStatus", true);
-                                        MyApp.setSharedPrefString("savedCardId", t.getIssueID());
-                                        if (getMainStatusId(t.getStatusId())) {
-                                            MyApp.setStatus("isBothDisable", false);
-                                            MyApp.setStatus("savedCardStatus", false);
-                                            MyApp.setStatus("isTransportChange", false);
-                                            MyApp.setSharedPrefString("savedCardId", "");
-                                        }
-                                    }
 
                                     scheduleMap.put(t.TicketNumber, MyApp.parseDateTime(t.ScheduleDate).replace(" 12:00 AM", ""));
                                     String savedCardId = MyApp.getSharedPrefString("savedCardId");
@@ -474,7 +438,7 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                                     } else if (cursorIssuesWhichComplete.getString(0).equals("4")) {
                                                         sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                                 "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','3','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
-                                                    } else if (cursorIssuesWhichComplete.getString(0).equals("1") || cursorIssuesWhichComplete.getString(0).toString().equals("5") || cursorIssuesWhichComplete.getString(0).toString().equals("6")) {
+                                                    } else if (cursorIssuesWhichComplete.getString(0).equals("1") || cursorIssuesWhichComplete.getString(0).equals("5") || cursorIssuesWhichComplete.getString(0).equals("6")) {
                                                         sql.execSQL("INSERT INTO Issue_Detail(IssueId ,CategoryName,Subject,IssueText,ServiceItemNumber,AssetSerialNumber,CreatedDate,SLADate,CorporateName,Address,Latitude,Longitude,PhoneNo,IsAccepted,StatusId,AssetType,AssetSubType,UpdatedDate,TicketHolder,TicketNumber,IsVerified,OEMNumber,AssetDetail,ContractSubTypeName,ContractName,PreviousStatus)VALUES" +
                                                                 "('" + t.IssueID + "','" + t.CategoryName + "','" + t.Subject + "','" + t.IssueText + "','" + t.ServiceItemNumber + "','" + t.AssetSerialNumber + "','" + t.CreatedDate + "','" + t.SLADate + "','" + t.CorporateName + "','" + t.Address + "','" + t.Latitude + "','" + t.Longitude + "','" + t.PhoneNo + "','1','" + t.StatusId + "','" + t.AssetType + "','" + t.AssetSubType + "','" + t.UpdatedDate + "','" + t.TicketHolder + "','" + t.TicketNumber + "','" + t.IsVerified + "','" + t.OEMNumber + "','" + t.AssetDetail + "','" + t.ContractSubTypeName + "','" + t.ContractName + "','" + t.PreviousStatus + "')");
                                                     } else {
@@ -489,6 +453,53 @@ public class ServiceDataUpdateFirstFragment extends Service {
                                     }
                                     issueDetailsHistory.put(t.getIssueID(), t);
                                 }
+
+
+//                                boolean isStatusHaveValue = false;
+//
+//                                for (String key : issueDetailsHistory.keySet()) {
+//                                    try {
+//                                        if (!issueDetailsHistory.get(key).getJourneyStatus().equals("0")) {
+//                                            isStatusHaveValue = true;
+//                                        }
+//                                    } catch (Exception e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                }
+//                                if (isStatusHaveValue) {
+                                MyApp.setStatus("isBothDisable", false);
+                                MyApp.setStatus("savedCardStatus", false);
+                                MyApp.setStatus("isTransportChange", false);
+                                MyApp.setSharedPrefString("savedCardId", "");
+//                                }
+                                for (String key : issueDetailsHistory.keySet()) {
+
+                                    if (MyApp.getSharedPrefString("savedCardId").isEmpty())
+                                        if (issueDetailsHistory.get(key).getJourneyStatus().equals("2")) {
+                                            if (!getMainStatusId(issueDetailsHistory.get(key).getStatusId())) {
+                                                MyApp.setStatus("isBothDisable", false);
+                                                MyApp.setStatus("savedCardStatus", true);
+                                                MyApp.setStatus("isTransportChange", false);
+                                                MyApp.setSharedPrefString("savedCardId", issueDetailsHistory.get(key).getIssueID());
+                                            }
+                                        } else if (issueDetailsHistory.get(key).getJourneyStatus().equals("4")) {
+                                            if (!getMainStatusId(issueDetailsHistory.get(key).getStatusId())) {
+                                                MyApp.setStatus("isTransportChange", true);
+                                                MyApp.setStatus("isBothDisable", false);
+                                                MyApp.setStatus("savedCardStatus", true);
+                                                MyApp.setSharedPrefString("savedCardId", issueDetailsHistory.get(key).getIssueID());
+                                            }
+                                        } else if (issueDetailsHistory.get(key).getJourneyStatus().equals("3")) {
+                                            if (!getMainStatusId(issueDetailsHistory.get(key).getStatusId())) {
+                                                MyApp.setStatus("isTransportChange", true);
+                                                MyApp.setStatus("isBothDisable", true);
+                                                MyApp.setStatus("savedCardStatus", true);
+                                                MyApp.setSharedPrefString("savedCardId", issueDetailsHistory.get(key).getIssueID());
+                                            }
+                                        }
+                                }
+
+
                                 obj.setHideAlert();
                                 MainActivity m = new MainActivity();
                                 m.updateCounter(getApplicationContext(), false);
@@ -523,17 +534,17 @@ public class ServiceDataUpdateFirstFragment extends Service {
             for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
 
                 TicketInfoClass t = new TicketInfoClass();
-                t.IssueID = cquery.getString(1).toString();
-                t.CategoryName = cquery.getString(2).toString();
-                t.Subject = cquery.getString(3).toString();
-                t.IssueText = cquery.getString(4).toString();
-                t.ServiceItemNumber = cquery.getString(5).toString();
-                t.AssetSerialNumber = cquery.getString(6).toString();
-                t.CreatedDate = cquery.getString(7).toString();
-                t.SLADate = cquery.getString(8).toString();
-                t.CorporateName = cquery.getString(9).toString();
-                t.Address = cquery.getString(10).toString();
-                t.PhoneNo = cquery.getString(11).toString();
+                t.IssueID = cquery.getString(1);
+                t.CategoryName = cquery.getString(2);
+                t.Subject = cquery.getString(3);
+                t.IssueText = cquery.getString(4);
+                t.ServiceItemNumber = cquery.getString(5);
+                t.AssetSerialNumber = cquery.getString(6);
+                t.CreatedDate = cquery.getString(7);
+                t.SLADate = cquery.getString(8);
+                t.CorporateName = cquery.getString(9);
+                t.Address = cquery.getString(10);
+                t.PhoneNo = cquery.getString(11);
                 t.StatusId = cquery.getString(12);
                 t.TicketNumber = cquery.getString(20);
                 newTickets.add(t);

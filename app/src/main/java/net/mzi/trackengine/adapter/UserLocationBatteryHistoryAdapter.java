@@ -61,10 +61,10 @@ public class UserLocationBatteryHistoryAdapter extends RecyclerView.Adapter<User
 
         public HistoryHolder(View itemView) {
             super(itemView);
-            this.DeviceId = (TextView) itemView.findViewById(R.id.deveiceidHistory);
-            this.Batterylevel = (TextView) itemView.findViewById(R.id.batteryHistory);
-            this.Autocaptured = (TextView) itemView.findViewById(R.id.autoCapruredHistory);
-            this.UpdatedDate = (TextView) itemView.findViewById(R.id.dateHistory);
+            this.DeviceId = itemView.findViewById(R.id.deveiceidHistory);
+            this.Batterylevel = itemView.findViewById(R.id.batteryHistory);
+            this.Autocaptured = itemView.findViewById(R.id.autoCapruredHistory);
+            this.UpdatedDate = itemView.findViewById(R.id.dateHistory);
         }
     }
 

@@ -48,7 +48,7 @@ public class Paid_Vouchers extends Fragment {
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         pref = getContext().getSharedPreferences("login", 0);
         sUserId = pref.getString("userid", "userid");
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.voucher_view);
+        mRecyclerView = view.findViewById(R.id.voucher_view);
         sql = getContext().openOrCreateDatabase("MZI.sqlite",getContext().MODE_PRIVATE,null);
         getData();
         return view;

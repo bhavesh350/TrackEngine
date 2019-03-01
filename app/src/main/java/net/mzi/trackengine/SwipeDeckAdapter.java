@@ -111,7 +111,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                 Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + sDepartmentId + "' ", null);
                 if (cquery.getCount() > 0) {
                     cquery.moveToFirst();
-                    sAcceptStatus = cquery.getString(0).toString();
+                    sAcceptStatus = cquery.getString(0);
                 } else
                     sAcceptStatus = "0";
                 cquery.close();
@@ -135,7 +135,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                 if (cqueryTemp.getCount() > 0) {
                     cqueryTemp.moveToFirst();
                     ContentValues newValues = new ContentValues();
-                    newValues.put("PreviousStatus", cqueryTemp.getString(0).toString());
+                    newValues.put("PreviousStatus", cqueryTemp.getString(0));
                     newValues.put("IsAccepted", "1");
                     newValues.put("StatusId", sAcceptStatus);
                     newValues.put("UpdatedDate", currentDateTimeString);
@@ -237,7 +237,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                             Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 0 and DepartmentId = '" + sDepartmentId + "'", null);
                             if (cquery.getCount() > 0) {
                                 cquery.moveToFirst();
-                                sAcceptStatus = cquery.getString(0).toString();
+                                sAcceptStatus = cquery.getString(0);
                             } else
                                 sAcceptStatus = "0";
                             Date cDate = new Date();
@@ -336,7 +336,7 @@ public class SwipeDeckAdapter extends RecyclerView.Adapter<SwipeDeckAdapter.View
                 android.Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            sDeviceId = telephonyManager.getDeviceId().toString();
+            sDeviceId = telephonyManager.getDeviceId();
         }
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
         String sDateUI;

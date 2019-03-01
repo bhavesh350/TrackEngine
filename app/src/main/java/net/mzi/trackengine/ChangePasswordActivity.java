@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +50,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         pref = getSharedPreferences("login", 0);
         nh_userid=pref.getString("userid","userid");
-        existingPwdEditText=(EditText)findViewById(R.id.existPwdId);
-        newPwdEditText=(EditText)findViewById(R.id.newPwdId);
-        confrimPwdEfitText=(EditText)findViewById(R.id.confirmPwdId);
-        changePwdButton=(Button)findViewById(R.id.changePwd);
+        existingPwdEditText= findViewById(R.id.existPwdId);
+        newPwdEditText= findViewById(R.id.newPwdId);
+        confrimPwdEfitText= findViewById(R.id.confirmPwdId);
+        changePwdButton= findViewById(R.id.changePwd);
         changePwdButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -99,7 +100,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
@@ -107,7 +108,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {

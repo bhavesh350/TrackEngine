@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!--<uses-permission android:name="android.permission.RECEIVE_SMS" />-->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!--<uses-permission android:name="android.permission.READ_SMS" />-->
@@ -72,12 +72,12 @@
             android:exported="true"
             android:process=":battery_service"
             android:stopWithTask="false" />
-        <service
-            android:name=".ServiceLocation"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":location_service"
-            android:stopWithTask="false" />
+        <!--<service-->
+            <!--android:name=".ServiceLocation"-->
+            <!--android:enabled="true"-->
+            <!--android:exported="true"-->
+            <!--android:process=":location_service"-->
+            <!--android:stopWithTask="false" />-->
         <service
             android:name=".ServiceDataUpdateFirstFragment"
             android:enabled="true" />
@@ -159,17 +159,17 @@
         </receiver>
 
 
-        <service
-            android:name=".LocationUpdatesIntentService"
-            android:exported="false" />
+        <!--<service-->
+            <!--android:name=".LocationUpdatesIntentService"-->
+            <!--android:exported="false" />-->
 
-        <receiver
-            android:name=".LocationUpdatesBroadcastReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.android.gms.location.sample.locationupdatespendingintent.LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver-->
+            <!--android:name=".LocationUpdatesBroadcastReceiver"-->
+            <!--android:exported="true">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.google.android.gms.location.sample.locationupdatespendingintent.LocationUpdatesBroadcastReceiver.ACTION_PROCESS_UPDATES" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="2a9e3f30a7d83edf9eb7c894eccd0e8eb334b790" />

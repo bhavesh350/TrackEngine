@@ -72,6 +72,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -124,20 +125,20 @@ public class RaiseTicket extends AppCompatActivity {
         companyID = pref.getString("CompanyId", "CompanyId");//locationId
         sParentCompanyId = pref.getString("ParentCompanyId", "ParentCompanyId");//companyId
         //DepartmentId=pref.getString("DepartmentId","DepartmentId");
-        categoryNameSP = (Spinner) findViewById(R.id.categorySpinner);
-        vCamera = (RadioButton) findViewById(R.id.vCam);
-        iImageIcon = (ImageView) findViewById(R.id.imageuplaodicon);
-        vGallery = (RadioButton) findViewById(R.id.vGal);
-        submit = (Button) findViewById(R.id.submitButton);
-        eSubject = (EditText) findViewById(R.id.subjectEditText);
-        eDescription = (EditText) findViewById(R.id.descEditText);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        categoryNameSP = findViewById(R.id.categorySpinner);
+        vCamera = findViewById(R.id.vCam);
+        iImageIcon = findViewById(R.id.imageuplaodicon);
+        vGallery = findViewById(R.id.vGal);
+        submit = findViewById(R.id.submitButton);
+        eSubject = findViewById(R.id.subjectEditText);
+        eDescription = findViewById(R.id.descEditText);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         //API_URL=PostUrl.sUrl+"GetCategoryForComplain";
         API_URL = PostUrl.sUrl + "GetCategoryForComplain";
         new fetchCategoryName().execute();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -238,7 +239,7 @@ public class RaiseTicket extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if (!((Activity) RaiseTicket.this).isFinishing()) {
+            if (!RaiseTicket.this.isFinishing()) {
                 progress = ProgressDialog.show(RaiseTicket.this, "Loading data", "Please wait...");
             }
         }
@@ -260,13 +261,13 @@ public class RaiseTicket extends AppCompatActivity {
                 urlConnection.connect();
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
@@ -558,14 +559,10 @@ public class RaiseTicket extends AppCompatActivity {
     }
 
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     public void openGallery(int req_code) {

@@ -23,7 +23,7 @@ public class HistoryActivity extends AppCompatActivity implements ActionBar.TabL
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
 
-        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager = findViewById(R.id.pager);
         actionBar = getSupportActionBar();
         mAdapter = new TabsPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(mAdapter);

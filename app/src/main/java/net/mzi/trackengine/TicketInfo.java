@@ -85,6 +85,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -231,10 +232,10 @@ public class TicketInfo extends AppCompatActivity {
         }
         sStatusId = cquery.getString(15);
         try {
-            Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+            Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
             if (cqueryForStatus.getCount() > 0) {
                 cqueryForStatus.moveToFirst();
-                tStatus = cqueryForStatus.getString(0).toString();
+                tStatus = cqueryForStatus.getString(0);
             } else
                 tStatus = "NA";
         } catch (Exception e) {
@@ -485,14 +486,14 @@ public class TicketInfo extends AppCompatActivity {
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
@@ -575,14 +576,10 @@ public class TicketInfo extends AppCompatActivity {
     }
 
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     private void captureImage() {
@@ -692,11 +689,7 @@ public class TicketInfo extends AppCompatActivity {
             try {
                 Uri selectedImageUri = data.getData();
                 if (requestCode == 200) {
-                    try {
-                        selectedPath = getPath(getApplicationContext(), selectedImageUri);
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    selectedPath = getPath(getApplicationContext(), selectedImageUri);
                     launchUploadActivity(selectedPath);
 
                     Log.e("selectedPath1 : ", selectedPath);
@@ -714,7 +707,7 @@ public class TicketInfo extends AppCompatActivity {
 
 
     @SuppressLint("NewApi")
-    public static String getPath(Context context, Uri uri) throws URISyntaxException {
+    public static String getPath(Context context, Uri uri) {
         String selection = null;
         String[] selectionArgs = null;
         // Uri is different in versions after KITKAT (Android 4.4), we need to

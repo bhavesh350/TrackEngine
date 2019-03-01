@@ -96,13 +96,13 @@ public class LoginActivity extends AppCompatActivity {
                     new String[]{android.Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         }
 
-        forgotPaswd = (TextView) findViewById(R.id.forgotPaswdId);
-        Ephonelogin = (EditText) findViewById(R.id.userlogin);
-        Epswdlogin = (EditText) findViewById(R.id.pswdlogin);
-        progressBar = (ProgressBar) findViewById(R.id.pbHeaderProgress);
+        forgotPaswd = findViewById(R.id.forgotPaswdId);
+        Ephonelogin = findViewById(R.id.userlogin);
+        Epswdlogin = findViewById(R.id.pswdlogin);
+        progressBar = findViewById(R.id.pbHeaderProgress);
 
 
-        Elogin = (Button) findViewById(R.id.login);
+        Elogin = findViewById(R.id.login);
         forgotPaswd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -208,8 +208,6 @@ public class LoginActivity extends AppCompatActivity {
                                                 sql.execSQL("INSERT INTO Issue_Status(StatusId,StatusName,CommentRequired,MainStatusId,IsMobileStatus,CompanyId,DepartmentId,ParentStatus,StartingForSite)VALUES" +
                                                         "('" + user.data.dataStatus[i].Id + "','" + user.data.dataStatus[i].StatusName + "','" + user.data.dataStatus[i].CommentRequired + "','" + user.data.dataStatus[i].MainStatusId + "','" + user.data.dataStatus[i].IsMobileStatus + "','" + user.data.CompanyId + "','" + user.data.DepartmentId + "','" + user.data.dataStatus[i].ParentStatuses + "','" + user.data.dataStatus[i].StartingForSite + "" + "')");
                                                 String sAllParentStatuses = user.data.dataStatus[i].ParentStatuses;
-                                                boolean holdTat = user.data.dataStatus[i].holdTat;
-                                                MyApp.setStatus("HOLDTAT"+user.data.dataStatus[i].Id, holdTat);
                                                 List<String> listsAllParentStatuses = Arrays.asList(sAllParentStatuses.split(","));
                                                 for (int j = 0; j < listsAllParentStatuses.size(); j++) {
                                                     sql.execSQL("INSERT INTO Issue_StatusHiererchy(StatusId,ParentStatus,WaitForEntry,ActionDate,RedirectToStatus)VALUES" +

@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 public class EULA_PP_TC extends AppCompatActivity {
     WebView eulaWebView;
@@ -39,7 +40,7 @@ public class EULA_PP_TC extends AppCompatActivity {
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        eulaWebView=(WebView)findViewById(R.id.eula);
+        eulaWebView= findViewById(R.id.eula);
         eulaWebView.setBackgroundColor(Color.TRANSPARENT);
         WebSettings webSettings=eulaWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -72,7 +73,7 @@ public class EULA_PP_TC extends AppCompatActivity {
         Writer writer=new StringWriter();
         char[] buffer=new char[1024];
         try {
-            Reader reader=new BufferedReader(new InputStreamReader(inputStream,"UTF-8"));
+            Reader reader=new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             int n;
             while ((n=reader.read(buffer))!=-1) {
                 writer.write(buffer, 0, n);

@@ -31,6 +31,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,13 +62,13 @@ public class ComplainAdapter extends RecyclerView.Adapter<ComplainAdapter.ViewHo
         ImageView ivSendComment;
         public ComlpainViewHolder(View itemView) {
             super(itemView);
-            this.tCreatedDate=(TextView)itemView.findViewById(R.id.date);
-            this.tIssueId=(TextView)itemView.findViewById(R.id.issueId_Id);
-            this.tDescription=(TextView)itemView.findViewById(R.id.desc_Id);
-            this.tStatus=(TextView)itemView.findViewById(R.id.status);
-            this.tLastModified=(TextView)itemView.findViewById(R.id.lastmodifieddate);
-            this.eComment=(EditText)itemView.findViewById(R.id.commentEditText);
-            this.ivSendComment=(ImageView)itemView.findViewById(R.id.sendImageView);
+            this.tCreatedDate= itemView.findViewById(R.id.date);
+            this.tIssueId= itemView.findViewById(R.id.issueId_Id);
+            this.tDescription= itemView.findViewById(R.id.desc_Id);
+            this.tStatus= itemView.findViewById(R.id.status);
+            this.tLastModified= itemView.findViewById(R.id.lastmodifieddate);
+            this.eComment= itemView.findViewById(R.id.commentEditText);
+            this.ivSendComment= itemView.findViewById(R.id.sendImageView);
         }
     }
     @Override
@@ -165,7 +166,7 @@ public class ComplainAdapter extends RecyclerView.Adapter<ComplainAdapter.ViewHo
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(jsonString);
@@ -173,7 +174,7 @@ public class ComplainAdapter extends RecyclerView.Adapter<ComplainAdapter.ViewHo
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {

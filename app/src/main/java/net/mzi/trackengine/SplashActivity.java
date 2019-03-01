@@ -331,7 +331,7 @@ public class SplashActivity extends AppCompatActivity {
                         // for ActivityCompat#requestPermissions for more details.
                         return;
                     }
-                    deviceId = telephonyManager.getDeviceId().toString();
+                    deviceId = telephonyManager.getDeviceId();
                     // permissions granted.
                 } else {
                     // no permissions granted.

@@ -96,24 +96,24 @@ public class TicketInfoAdapter extends RecyclerView.Adapter<TicketInfoAdapter.Vi
 
         public TktInfoViewHolder(View itemView) {
             super(itemView);
-            this.tcname = (TextView) itemView.findViewById(R.id.contactpersonname);
-            this.tcAdrs = (TextView) itemView.findViewById(R.id.adrs);
-            this.tmNumber = (TextView) itemView.findViewById(R.id.cntctprsnmob);
-            this.texpectedTime = (TextView) itemView.findViewById(R.id.beontime);
-            this.ttIssue = (TextView) itemView.findViewById(R.id.subject);
-            this.ttStatus = (TextView) itemView.findViewById(R.id.status);
-            this.tcreatedDate = (TextView) itemView.findViewById(R.id.createddate);
-            this.tupdatedDate = (TextView) itemView.findViewById(R.id.updateddate);
-            this.tcAssetName = (TextView) itemView.findViewById(R.id.assetName);
-            this.tcAssetType = (TextView) itemView.findViewById(R.id.assetType);
-            this.tcAssetSubtype = (TextView) itemView.findViewById(R.id.assetSubType);
-            this.tcAssetSerialNumber = (TextView) itemView.findViewById(R.id.assetserialNumber);
-            this.tcorporateName = (TextView) itemView.findViewById(R.id.corporateName);
-            this.vCamera = (RadioButton) itemView.findViewById(R.id.vCam);
-            this.vGallery = (RadioButton) itemView.findViewById(R.id.vGal);
+            this.tcname = itemView.findViewById(R.id.contactpersonname);
+            this.tcAdrs = itemView.findViewById(R.id.adrs);
+            this.tmNumber = itemView.findViewById(R.id.cntctprsnmob);
+            this.texpectedTime = itemView.findViewById(R.id.beontime);
+            this.ttIssue = itemView.findViewById(R.id.subject);
+            this.ttStatus = itemView.findViewById(R.id.status);
+            this.tcreatedDate = itemView.findViewById(R.id.createddate);
+            this.tupdatedDate = itemView.findViewById(R.id.updateddate);
+            this.tcAssetName = itemView.findViewById(R.id.assetName);
+            this.tcAssetType = itemView.findViewById(R.id.assetType);
+            this.tcAssetSubtype = itemView.findViewById(R.id.assetSubType);
+            this.tcAssetSerialNumber = itemView.findViewById(R.id.assetserialNumber);
+            this.tcorporateName = itemView.findViewById(R.id.corporateName);
+            this.vCamera = itemView.findViewById(R.id.vCam);
+            this.vGallery = itemView.findViewById(R.id.vGal);
             //this.upload=(ImageView)itemView.findViewById(R.id.uploadImage);
-            this.comment = (EditText) itemView.findViewById(R.id.agentComment);
-            this.Submit = (Button) itemView.findViewById(R.id.submit);
+            this.comment = itemView.findViewById(R.id.agentComment);
+            this.Submit = itemView.findViewById(R.id.submit);
 
         }
     }
@@ -121,7 +121,7 @@ public class TicketInfoAdapter extends RecyclerView.Adapter<TicketInfoAdapter.Vi
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
-        sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+        sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
         //ctx=parent.getContext();
         v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.tktinfocrd, parent, false);

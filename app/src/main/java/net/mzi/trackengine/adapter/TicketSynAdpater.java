@@ -67,11 +67,11 @@ public class TicketSynAdpater extends RecyclerView.Adapter<TicketSynAdpater.View
 
         public TicketSyncHolder(View itemView) {
             super(itemView);
-            this.tTicketTime = (TextView) itemView.findViewById(R.id.id_date);
-            this.tTicketStatus = (TextView) itemView.findViewById(R.id.id_status);
-            this.tTicketNumber = (TextView) itemView.findViewById(R.id.id_TNumber);
-            this.tTicketComment = (TextView) itemView.findViewById(R.id.id_comment);
-            this.tktLayout = (LinearLayout) itemView.findViewById(R.id.tktsynclayout);
+            this.tTicketTime = itemView.findViewById(R.id.id_date);
+            this.tTicketStatus = itemView.findViewById(R.id.id_status);
+            this.tTicketNumber = itemView.findViewById(R.id.id_TNumber);
+            this.tTicketComment = itemView.findViewById(R.id.id_comment);
+            this.tktLayout = itemView.findViewById(R.id.tktsynclayout);
         }
     }
 

@@ -43,6 +43,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
@@ -83,22 +84,22 @@ public class EngineerFeedbackFragment extends Fragment {
         sCurrentTime = getArguments().getString("currentTime");
         sStatusId = getArguments().getString("StatusId");
         sCardType = getArguments().getString("CardType");
-        rbRateCustomer = (RatingBar) view.findViewById(R.id.ratingBar);
-        etRatingComment = (EditText) view.findViewById(R.id.feedback);
-        etOTP = (EditText) view.findViewById(R.id.otp);
-        fabFeedback = (FloatingActionButton) view.findViewById(R.id.fabfeedback);
-        bSendFeedBack = (Button) view.findViewById(R.id.sendfb);
+        rbRateCustomer = view.findViewById(R.id.ratingBar);
+        etRatingComment = view.findViewById(R.id.feedback);
+        etOTP = view.findViewById(R.id.otp);
+        fabFeedback = view.findViewById(R.id.fabfeedback);
+        bSendFeedBack = view.findViewById(R.id.sendfb);
         fabFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final Dialog dialog = new Dialog(getActivity());
                 dialog.setContentView(R.layout.customer_info_card);
                 dialog.setTitle("Resend link to customer ");
-                tietNewNumber = (TextInputLayout) dialog.findViewById(R.id.tiNumber);
-                rViaEmail = (RadioButton) dialog.findViewById(R.id.vEmail);
-                rRegNumber = (RadioButton) dialog.findViewById(R.id.regNumber);
-                rNewNumber = (RadioButton) dialog.findViewById(R.id.newNumber);
-                eNewNumber = (EditText) dialog.findViewById(R.id.edieNewNumber);
+                tietNewNumber = dialog.findViewById(R.id.tiNumber);
+                rViaEmail = dialog.findViewById(R.id.vEmail);
+                rRegNumber = dialog.findViewById(R.id.regNumber);
+                rNewNumber = dialog.findViewById(R.id.newNumber);
+                eNewNumber = dialog.findViewById(R.id.edieNewNumber);
                 // set the custom dialog components - text, image and button
                 rViaEmail.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -220,7 +221,7 @@ public class EngineerFeedbackFragment extends Fragment {
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(closeTkt);
@@ -228,7 +229,7 @@ public class EngineerFeedbackFragment extends Fragment {
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
@@ -325,7 +326,7 @@ public class EngineerFeedbackFragment extends Fragment {
 
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 
                 //Call parserUsuarioJson() inside write(),Make sure it is returning proper json string .
                 writer.write(sendLink);
@@ -333,7 +334,7 @@ public class EngineerFeedbackFragment extends Fragment {
                 outputStream.close();
 
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {

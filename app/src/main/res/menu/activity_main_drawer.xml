@@ -9,7 +9,7 @@
             android:title="Performance" />
         <item
             android:id="@+id/nav_history"
-            android:icon="@drawable/quantum_ic_forward_30_grey600_36"
+            android:icon="@drawable/ic_history"
             android:title="History" />
         <!--<item-->
             <!--android:id="@+id/nav_mytkts"-->

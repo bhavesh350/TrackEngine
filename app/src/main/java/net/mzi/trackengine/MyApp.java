@@ -76,7 +76,7 @@ import io.fabric.sdk.android.Fabric;
                 ReportField.CUSTOM_DATA,
                 ReportField.STACK_TRACE,
         },
-        mode = ReportingInteractionMode.TOAST,
+        mode = ReportingInteractionMode.SILENT,
         resToastText = R.string.toast_crash
 )
 public class MyApp extends MultiDexApplication {
@@ -487,10 +487,7 @@ public class MyApp extends MultiDexApplication {
                 if (info != null)
                     for (int i = 0; i < info.length; i++)
                         if (info[i].getState() == NetworkInfo.State.CONNECTED) {
-                            if (currentSpeed < 15 && currentSpeed != -1) {
-                                return false;
-                            } else
-                                return true;
+                            return currentSpeed >= 15 || currentSpeed == -1;
                         }
             }
         } catch (Exception e) {
@@ -530,10 +527,7 @@ public class MyApp extends MultiDexApplication {
         try {
             Date d = inputFormat.parse(date);
             Date dd = new Date();
-            if (d.getTime() >= (dd.getTime() - (1000 * 60))) {
-                return true;
-            } else
-                return false;
+            return d.getTime() >= (dd.getTime() - (1000 * 60));
         } catch (Exception e) {
             return false;
         }
@@ -1321,6 +1315,8 @@ public class MyApp extends MultiDexApplication {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (Exception e) {
+                writeLocationData(new HashMap<String, Map<String, String>>());
             }
         }
         return map;

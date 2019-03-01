@@ -34,13 +34,13 @@ public class PendingVoucherAdpater extends RecyclerView.Adapter<PendingVoucherAd
 
         public PendingViewHolder(View v) {
             super(v);
-            this.tv_VId = (TextView) v.findViewById(R.id.id_VId);
-            this.tv_VPeriod=(TextView)v.findViewById(R.id.id_VPeriod);
-            this.tv_VDistance=(TextView)v.findViewById(R.id.id_VDistance);
-            this.tv_VSApproved=(TextView)v.findViewById(R.id.id_VSApproved);
-            this.tv_VAApproved=(TextView)v.findViewById(R.id.id_VAApproved);
-            this.tv_VAmount=(TextView)v.findViewById(R.id.id_VAmount);
-            this.r1=(LinearLayout)v.findViewById(R.id.tktvoucherlayout);
+            this.tv_VId = v.findViewById(R.id.id_VId);
+            this.tv_VPeriod= v.findViewById(R.id.id_VPeriod);
+            this.tv_VDistance= v.findViewById(R.id.id_VDistance);
+            this.tv_VSApproved= v.findViewById(R.id.id_VSApproved);
+            this.tv_VAApproved= v.findViewById(R.id.id_VAApproved);
+            this.tv_VAmount= v.findViewById(R.id.id_VAmount);
+            this.r1= v.findViewById(R.id.tktvoucherlayout);
         }
     }
 

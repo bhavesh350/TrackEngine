@@ -1,1 +1,2 @@
-include ':app'
+include ':app', ':background-geolocation'
+project(':background-geolocation').projectDir = new File(rootProject.projectDir, './background-geolocation')

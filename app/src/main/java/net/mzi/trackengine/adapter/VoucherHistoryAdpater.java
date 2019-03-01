@@ -31,11 +31,11 @@ public class VoucherHistoryAdpater extends RecyclerView.Adapter<VoucherHistoryAd
 
         public VoucherHistoryViewHolder(View v) {
             super(v);
-            this.tvh_VHdate = (TextView) v.findViewById(R.id.id_VHdate);
-            this.tvh_VHaction=(TextView)v.findViewById(R.id.id_VHaction);
-            this.tvh_VHdoneby=(TextView)v.findViewById(R.id.id_VHdoneby);
-            this.tvh_VHremarks=(TextView)v.findViewById(R.id.id_VHremarks);
-            this.tvh_VHnumber=(TextView)v.findViewById(R.id.id_VHNumber);
+            this.tvh_VHdate = v.findViewById(R.id.id_VHdate);
+            this.tvh_VHaction= v.findViewById(R.id.id_VHaction);
+            this.tvh_VHdoneby= v.findViewById(R.id.id_VHdoneby);
+            this.tvh_VHremarks= v.findViewById(R.id.id_VHremarks);
+            this.tvh_VHnumber= v.findViewById(R.id.id_VHNumber);
 
             //this.r1=(LinearLayout)v.findViewById(R.id.tktvoucherlayout);
         }

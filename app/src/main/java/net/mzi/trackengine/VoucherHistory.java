@@ -39,7 +39,7 @@ public class VoucherHistory extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        mRecyclerView = (RecyclerView) findViewById(R.id.voucherhistory_view);
+        mRecyclerView = findViewById(R.id.voucherhistory_view);
         getData();
     }
 

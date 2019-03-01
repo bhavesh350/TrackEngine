@@ -44,7 +44,16 @@ public class TicketInfoClass implements Serializable {
     public String type;
     public String journeyStatus;
     public String OtherDepartment;
+    public String StatusChangeDate;
     public boolean isCaptured = false;
+
+    public String getStatusChangeDate() {
+        return StatusChangeDate;
+    }
+
+    public void setStatusChangeDate(String statusChangeDate) {
+        StatusChangeDate = statusChangeDate;
+    }
 
     public String getPriority() {
         return priority;

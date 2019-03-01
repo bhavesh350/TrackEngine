@@ -64,7 +64,7 @@ public class History_CheckIn extends Fragment {
         rl_progress = view.findViewById(R.id.rl_progress);
         //API_URL = "http://192.168.1.20/TrackEngine/api/Post/GetCheckInCheckoutReport?iUserId="+MainActivity.LOGINID+"&dtFromDate="+"2017-04-13"+"&dtToDate="+"2017-04-13";
         API_URL = PostUrl.sUrl + "GetCheckInCheckoutReport?iUserId=" + MainActivity.LOGINID + "&dtFromDate=" + currentDateTimeString + "&dtToDate=" + currentDateTimeString;
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.history_view);
+        mRecyclerView = view.findViewById(R.id.history_view);
         Log.e("onCreateView: ", API_URL);
         rl_progress.setVisibility(View.VISIBLE);
         new History_CheckIn.CheckInInfo().execute();

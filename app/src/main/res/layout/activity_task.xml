@@ -52,8 +52,8 @@
                 android:clipToPadding="true"
                 android:paddingBottom="10dp"
                 android:visibility="gone"
-                card_view:cardCornerRadius="@dimen/_10sdp"
-                card_view:cardElevation="@dimen/_10sdp"
+                card_view:cardCornerRadius="10dp"
+                card_view:cardElevation="10dp"
                 card_view:cardPreventCornerOverlap="false">
 
                 <LinearLayout
@@ -62,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:background="#ffffff"
                     android:orientation="vertical"
-                    android:paddingBottom="@dimen/_1sdp">
+                    android:paddingBottom="1dp">
 
 
                     <!--<View-->
@@ -94,7 +94,7 @@
                             android:id="@+id/btn_office_start"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            android:layout_marginLeft="@dimen/_25sdp"
+                            android:layout_marginLeft="25dp"
                             android:background="@null"
                             android:scaleType="centerInside"
                             android:src="@drawable/btn_start" />
@@ -121,7 +121,7 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_alignParentRight="true"
-                            android:layout_marginRight="@dimen/_25sdp"
+                            android:layout_marginRight="25dp"
                             android:background="@null"
                             android:scaleType="centerInside"
                             android:src="@drawable/btn_reach" />
@@ -139,10 +139,10 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:clipToPadding="true"
-                android:paddingBottom="@dimen/_10sdp"
+                android:paddingBottom="10dp"
                 android:visibility="gone"
-                card_view:cardCornerRadius="@dimen/_10sdp"
-                card_view:cardElevation="@dimen/_10sdp"
+                card_view:cardCornerRadius="10dp"
+                card_view:cardElevation="10dp"
                 card_view:cardPreventCornerOverlap="false">
 
                 <LinearLayout
@@ -151,7 +151,7 @@
                     android:layout_height="wrap_content"
                     android:background="#ffffff"
                     android:orientation="vertical"
-                    android:paddingBottom="@dimen/_1sdp">
+                    android:paddingBottom="1dp">
 
 
                     <!--<View-->
@@ -183,7 +183,7 @@
                             android:id="@+id/btn_misl_start"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            android:layout_marginLeft="@dimen/_25sdp"
+                            android:layout_marginLeft="25dp"
                             android:background="@null"
                             android:scaleType="centerInside"
                             android:src="@drawable/btn_start" />
@@ -205,7 +205,7 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_alignParentRight="true"
-                            android:layout_marginRight="@dimen/_25sdp"
+                            android:layout_marginRight="25dp"
                             android:background="@null"
                             android:scaleType="centerInside"
                             android:src="@drawable/btn_reach" />

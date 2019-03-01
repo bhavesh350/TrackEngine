@@ -142,7 +142,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                 Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + DepartmentId + "' ", null);
                 if (cquery.getCount() > 0) {
                     cquery.moveToFirst();
-                    sAcceptStatus = cquery.getString(0).toString();
+                    sAcceptStatus = cquery.getString(0);
                 } else
                     sAcceptStatus = "0";
 
@@ -304,7 +304,7 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
                 Dialog.setCancelable(false);
                 LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View dialogView = li.inflate(R.layout.rejection, null);
-                final EditText commemt = (EditText) dialogView.findViewById(R.id.rejectionReason);
+                final EditText commemt = dialogView.findViewById(R.id.rejectionReason);
                 Dialog.setView(dialogView);
                 Dialog.setPositiveButton("Ok",
                         new DialogInterface.OnClickListener() {
@@ -474,7 +474,9 @@ public class NewTaskAdapter extends RecyclerView.Adapter<NewTaskAdapter.ViewHold
 
                             removeCard(position);
                             dialog.dismiss();
-
+                            try{
+                                cquery.close();
+                            }catch (Exception e){}
 
                         }
                         //else dialog stays open. Make sure you have an obvious way to close the dialog especially if you set cancellable to false.

@@ -24,7 +24,6 @@ public class NewTaskActivity extends AppCompatActivity {
     List<Integer> mDatasetTypes = new ArrayList<Integer>();
     List<String> mIssueID = new ArrayList<String>();
     List<String> mTicketNumber = new ArrayList<String>();
-    //List<StatusInfoClass> statusList=new ArrayList<StatusInfoClass>();
     SQLiteDatabase sql;
     Cursor cquery;
 

@@ -37,7 +37,7 @@ public class AndroidMultiPartEntity extends MultipartEntity {
         super.writeTo(new CountingOutputStream(outstream, this.listener));
     }
 
-    public static interface ProgressListener {
+    public interface ProgressListener {
         void transferred(long num);
     }
 

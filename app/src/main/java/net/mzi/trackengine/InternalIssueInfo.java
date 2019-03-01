@@ -44,7 +44,7 @@ public class InternalIssueInfo extends AppCompatActivity {
         getSupportActionBar().setTitle("Follow up History: "+id);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        mRecyclerView = (RecyclerView) findViewById(R.id.folllowUpviewInternal);
+        mRecyclerView = findViewById(R.id.folllowUpviewInternal);
         //API_URL = PostUrl.sUrl+"GetIssueHistory?IssueId="+id;
         API_URL = PostUrl.sUrl+"GetComplainHistory?iComplainId="+id+"&iInternalOnly=0";
         new InternalIssueFollowUp().execute();

@@ -16,9 +16,9 @@ public class AboutUs extends AppCompatActivity {
         getSupportActionBar().setTitle("About Us");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        EU=(TextView)findViewById(R.id.endUser);
-        PP=(TextView)findViewById(R.id.privacyPolicy);
-        TC=(TextView)findViewById(R.id.termsCondition);
+        EU= findViewById(R.id.endUser);
+        PP= findViewById(R.id.privacyPolicy);
+        TC= findViewById(R.id.termsCondition);
         EU.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

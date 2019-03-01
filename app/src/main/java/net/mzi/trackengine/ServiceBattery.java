@@ -164,16 +164,16 @@ public class ServiceBattery extends Service {
         }
         long differ = System.currentTimeMillis() - lastBatteryTime;
         if (differ > (15 * 60 * 1000)) {
-            try {
-                startService(new Intent(getApplicationContext(), ServiceLocation.class));
-            } catch (Exception e) {
-            }
+//            try {
+//                startService(new Intent(getApplicationContext(), ServiceLocation.class));
+//            } catch (Exception e) {
+//            }
             MyApp.setSharedPrefLong("BAT", System.currentTimeMillis());
 
             apiInterface = ApiClient.getClient().create(ApiInterface.class);
             final ApiResult apiResult = new ApiResult();
 
-            final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
+            final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId"), batteryInfo.get("DeviceId"), batteryInfo.get("Battery"), batteryInfo.get("ActivityDate"), batteryInfo.get("AutoCaptured"));
             Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
             call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
                 @Override
@@ -223,7 +223,7 @@ public class ServiceBattery extends Service {
                 apiInterface = ApiClient.getClient().create(ApiInterface.class);
                 final ApiResult apiResult = new ApiResult();
 
-                final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId").toString(), batteryInfo.get("DeviceId").toString(), batteryInfo.get("Battery").toString(), batteryInfo.get("ActivityDate").toString(), batteryInfo.get("AutoCaptured").toString());
+                final ApiResult.User_BatteryLevel userBatteryLevel = apiResult.new User_BatteryLevel(realTimeUpdate ? "true" : "false", batteryInfo.get("UserId"), batteryInfo.get("DeviceId"), batteryInfo.get("Battery"), batteryInfo.get("ActivityDate"), batteryInfo.get("AutoCaptured"));
                 Call<ApiResult.User_BatteryLevel> call1 = apiInterface.PostBatteryLevel(userBatteryLevel);
                 call1.enqueue(new Callback<ApiResult.User_BatteryLevel>() {
                     @Override

@@ -123,7 +123,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         Geocoder coder = new Geocoder(TaskActivity.this);
                         List<Address> address;
                         try {
-                            address = coder.getFromLocationName(cquery.getString(10).toString(), 5);
+                            address = coder.getFromLocationName(cquery.getString(10), 5);
                             if (address.size() > 0) {
                                 Address location = address.get(0);
                                 lat = location.getLatitude();
@@ -138,7 +138,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         lat = cquery.getDouble(2);
                         lon = cquery.getDouble(3);
                     }
-                    lDistance.add(new DistanceSortingClassParameter(showDistance(curLat, curLon, lat, lon), cquery.getString(1).toString()));
+                    lDistance.add(new DistanceSortingClassParameter(showDistance(curLat, curLon, lat, lon), cquery.getString(1)));
                 }
                 Collections.sort(lDistance, new Comparator<DistanceSortingClassParameter>() {
                     @Override
@@ -205,7 +205,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         }
                     }
                 }
-                mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
+                mRecyclerView = findViewById(R.id.task_view);
                 mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
                 mRecyclerView.setLayoutManager(mLayoutManager);
                 scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub,
@@ -225,7 +225,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
             @Override
             public void onClick(View v) {
                 Fragment hello = new FilterListFragment();
-                FragmentManager fragmentManager = ((AppCompatActivity) TaskActivity.this).getSupportFragmentManager();
+                FragmentManager fragmentManager = TaskActivity.this.getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.add(R.id.activity_task, hello);
                 fragmentTransaction.commit();
@@ -276,7 +276,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                         cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                         if (cqueryForStatus.getCount() > 0) {
                             cqueryForStatus.moveToFirst();
-                            mcardType.add(cqueryForStatus.getString(0).toString());
+                            mcardType.add(cqueryForStatus.getString(0));
                         } else {
                             mcardType.add("N/A");
                         }
@@ -412,7 +412,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                 }
             }
         }
-        mRecyclerView = (RecyclerView) findViewById(R.id.task_view);
+        mRecyclerView = findViewById(R.id.task_view);
         mLayoutManager = new LinearLayoutManager(TaskActivity.this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         scehduleAdapter = new SchedulingAdapter(mIssueID, mName, mTime, mLoc, mMob, mSub, mDatasetTypes,
@@ -477,7 +477,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                     mLoc.add(cquery.getString(10));
                     mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
                     mTicketNumber.add(cquery.getString(20));
-                    cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                    cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                     if (cqueryForStatus.getCount() > 0) {
                         cqueryForStatus.moveToFirst();
                         mcardType.add(cqueryForStatus.getString(0));
@@ -520,7 +520,7 @@ public class TaskActivity extends AppCompatActivity implements FilterListFragmen
                     mLoc.add(cquery.getString(10));
                     mLatLng.add(cquery.getString(11) + "##" + cquery.getString(12));
                     mTicketNumber.add(cquery.getString(20));
-                    cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15).toString() + "'", null);
+                    cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId = '" + cquery.getString(15) + "'", null);
                     if (cqueryForStatus.getCount() > 0) {
                         cqueryForStatus.moveToFirst();
                         mcardType.add(cqueryForStatus.getString(0));

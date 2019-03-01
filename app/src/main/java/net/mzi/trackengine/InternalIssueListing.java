@@ -43,7 +43,7 @@ public class InternalIssueListing extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_internal_issue_listing);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("My Tickets");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -53,7 +53,7 @@ public class InternalIssueListing extends AppCompatActivity {
         companyID = pref.getString("CompanyId", "CompanyId");//locationId
         API_URL = PostUrl.sUrl + "GetComplainDetail?iId=0&iUserId=" + sUserId + "&iCompanyId=" + companyID;
         new FetchIssues().execute();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -127,7 +127,7 @@ public class InternalIssueListing extends AppCompatActivity {
                         oInternalIssueClass.StatusName = object.getString("StatusName");
                         lComplainData.add(oInternalIssueClass);
                     }
-                    mRecyclerView = (RecyclerView) findViewById(R.id.internal_issue_task_view);
+                    mRecyclerView = findViewById(R.id.internal_issue_task_view);
                     mLayoutManager = new LinearLayoutManager(InternalIssueListing.this, LinearLayoutManager.VERTICAL, false);
                     mRecyclerView.setLayoutManager(mLayoutManager);
                     oComplainAdapter = new ComplainAdapter(lComplainData, getApplicationContext());

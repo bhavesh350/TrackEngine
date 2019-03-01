@@ -66,6 +66,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -317,7 +318,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + DepartmentId + "' ", null);
                     if (cquery.getCount() > 0) {
                         cquery.moveToFirst();
-                        sAcceptStatus = cquery.getString(0).toString();
+                        sAcceptStatus = cquery.getString(0);
                     } else
                         sAcceptStatus = "0";
                     Date cDate = new Date();
@@ -355,7 +356,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
                     ContentValues newValues = new ContentValues();
                     newValues.put("IsAccepted", "1");
-                    newValues.put("PreviousStatus", cquery.getString(6).toString());
+                    newValues.put("PreviousStatus", cquery.getString(6));
                     newValues.put("StatusId", sAcceptStatus);
                     newValues.put("UpdatedDate", currentDateTimeString);
                     try {
@@ -412,9 +413,10 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     });
 
 
-                    Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6).toString() + "'", null);
+                    Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6) + "'", null);
                     cqueryForStatus.moveToFirst();
-                    addCard(cquery.getString(0).toString(), cquery.getString(1).toString(), cquery.getString(2).toString(), cquery.getString(3).toString(), cquery.getString(4).toString(), cquery.getString(5).toString(), cqueryForStatus.getString(0).toString(), R.color.orange, Pending, position, cquery.getString(7).toString());
+                    addCard(cquery.getString(0), cquery.getString(1), cquery.getString(2), cquery.getString(3), cquery.getString(4), cquery.getString(5), cqueryForStatus.getString(0), R.color.orange, Pending, position, cquery.getString(7));
+                    cquery.close();
                 }
             });
 //            final Boolean finalIsFuture = isFuture;
@@ -431,7 +433,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     Dialog.setCancelable(false);
                     LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                     View dialogView = li.inflate(R.layout.rejection, null);
-                    final EditText commemt = (EditText) dialogView.findViewById(R.id.rejectionReason);
+                    final EditText commemt = dialogView.findViewById(R.id.rejectionReason);
                     Dialog.setView(dialogView);
                     Dialog.setPositiveButton("Ok",
                             new DialogInterface.OnClickListener() {
@@ -459,7 +461,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 Cursor cquery = sql.rawQuery("select StatusId from Issue_Status where IsMobileStatus = 1 and DepartmentId = '" + DepartmentId + "'", null);
                                 if (cquery.getCount() > 0) {
                                     cquery.moveToFirst();
-                                    sAcceptStatus = cquery.getString(0).toString();
+                                    sAcceptStatus = cquery.getString(0);
                                 } else
                                     sAcceptStatus = "0";
                                 Firstfrag f = new Firstfrag();
@@ -931,55 +933,113 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             } else {
                 sMainStatusIdTemp = "4";
             }
+            HashMap<String, TicketInfoClass> mm = MyApp.getApplication().readIssueDetailsHistory();
 
-            boolean isHoldTat = MyApp.getStatus("HOLDTAT" + sMainStatusIdTemp);
+            try {
+                if (mTime.get(position).equals(""))
+                    schedulingholder.time.setText("NA!!");
+                else if (sMainStatusIdTemp.equals("4")) {
+                    schedulingholder.time.setText("--");
+                } else if (isHoldTat(mm.get(mIssueID.get(position)).getStatusId())) {
+                    Date dSLAdate = null, dCurrentDate = null, dStatsChangeDate = null;
+                    String dtStart = mTime.get(position);
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//2019-01-30 10:00:00
+                    try {
+                        dSLAdate = format.parse(dtStart);
+                    } catch (ParseException e) {
+                        dSLAdate = new Date();
+                        e.printStackTrace();
+                    }
 
-            if (mTime.get(position).equals(""))
-                schedulingholder.time.setText("NA!!");
-            else if (sMainStatusIdTemp.equals("4")) {
-                schedulingholder.time.setText("--");
-            } else if (!isHoldTat) {
-                Date dSLAdate = null, dCurrentDate = null;
-                String dtStart = mTime.get(position);
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                try {
-                    dSLAdate = format.parse(dtStart);
+                    try {
+                        dStatsChangeDate = format2.parse(mm.get(mIssueID.get(position)).getStatusChangeDate());
+                    } catch (ParseException e) {
+                        dStatsChangeDate = new Date();
+                        e.printStackTrace();
+                    } catch (Exception ee) {
+                        dStatsChangeDate = new Date();
+                    }
+
+                    Date cDate = new Date();
+                    String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(cDate);
+                    try {
+                        dCurrentDate = format.parse(currentDateTimeString);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    long l = printDifference(dSLAdate, dCurrentDate);
+                    long sct = differenceStatusChangeDate(dStatsChangeDate, dCurrentDate);
+                    if (sct > 0) {
+                        l = l + sct;
+                    }
+                    final long secondsInMilli = 1000;
+                    final long minutesInMilli = secondsInMilli * 60;
+                    final long hoursInMilli = minutesInMilli * 60;
+                    new CountDownTimer(l, 1000) {
+                        public void onTick(long millisUntilFinished) {
+                            long elapsedHours = millisUntilFinished / hoursInMilli;
+                            millisUntilFinished = millisUntilFinished % hoursInMilli;
+
+                            long elapsedMinutes = millisUntilFinished / minutesInMilli;
+                            millisUntilFinished = millisUntilFinished % minutesInMilli;
+
+                            long elapsedSeconds = millisUntilFinished / secondsInMilli;
+                            schedulingholder.time.setText(elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s ");
+                            //here you can have your logic to set text to edittext
+                        }
+
+                        public void onFinish() {
+                            schedulingholder.time.setTextColor(Color.RED);
+                            schedulingholder.time.setText("SLA Breached!!");
+                        }
+
+                    }.start();
+                } else {
+
+                    Date dSLAdate = null, dCurrentDate = null;
+                    String dtStart = mTime.get(position);
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    try {
+                        dSLAdate = format.parse(dtStart);
 //                    System.out.println(dSLAdate);
-                } catch (ParseException e) {
-                    dSLAdate = new Date();
-                    e.printStackTrace();
-                }
-
-                Date cDate = new Date();
-                String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(cDate);
-                try {
-                    dCurrentDate = format.parse(currentDateTimeString);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                long l = printDifference(dSLAdate, dCurrentDate);
-                final long secondsInMilli = 1000;
-                final long minutesInMilli = secondsInMilli * 60;
-                final long hoursInMilli = minutesInMilli * 60;
-                new CountDownTimer(l, 1000) {
-                    public void onTick(long millisUntilFinished) {
-                        long elapsedHours = millisUntilFinished / hoursInMilli;
-                        millisUntilFinished = millisUntilFinished % hoursInMilli;
-
-                        long elapsedMinutes = millisUntilFinished / minutesInMilli;
-                        millisUntilFinished = millisUntilFinished % minutesInMilli;
-
-                        long elapsedSeconds = millisUntilFinished / secondsInMilli;
-                        schedulingholder.time.setText(elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s ");
-                        //here you can have your logic to set text to edittext
+                    } catch (ParseException e) {
+                        dSLAdate = new Date();
+                        e.printStackTrace();
                     }
 
-                    public void onFinish() {
-                        schedulingholder.time.setTextColor(Color.RED);
-                        schedulingholder.time.setText("SLA Breached!!");
+                    Date cDate = new Date();
+                    String currentDateTimeString = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(cDate);
+                    try {
+                        dCurrentDate = format.parse(currentDateTimeString);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
+                    long l = printDifference(dSLAdate, dCurrentDate);
+                    final long secondsInMilli = 1000;
+                    final long minutesInMilli = secondsInMilli * 60;
+                    final long hoursInMilli = minutesInMilli * 60;
+                    new CountDownTimer(l, 1000) {
+                        public void onTick(long millisUntilFinished) {
+                            long elapsedHours = millisUntilFinished / hoursInMilli;
+                            millisUntilFinished = millisUntilFinished % hoursInMilli;
 
-                }.start();
+                            long elapsedMinutes = millisUntilFinished / minutesInMilli;
+                            millisUntilFinished = millisUntilFinished % minutesInMilli;
+
+                            long elapsedSeconds = millisUntilFinished / secondsInMilli;
+                            schedulingholder.time.setText(elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s ");
+                            //here you can have your logic to set text to edittext
+                        }
+
+                        public void onFinish() {
+                            schedulingholder.time.setTextColor(Color.RED);
+                            schedulingholder.time.setText("SLA Breached!!");
+                        }
+
+                    }.start();
+                }
+            } catch (Exception e) {
             }
             schedulingholder.popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
@@ -1004,23 +1064,14 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             ctx.startActivity(in);
                             return true;
                         case R.id.chStatus:
-                            boolean isBothDisable = MyApp.getStatus("isBothDisable");
-                            boolean isEngaged = MyApp.getStatus("savedCardStatus");
-                            String savedCardId = MyApp.getSharedPrefString("savedCardId");
-                            if (!MyApp.getSharedPrefString("savedCardId").isEmpty() && !mIssueID.get(position).equals(savedCardId)) {
-                                MyApp.popMessage("Alert!", "Please finish your journey first.", context);
-                                return true;
-                            } else if (isEngaged && !MyApp.getSharedPrefString("savedCardId").isEmpty()) {
-                                MyApp.popMessage("Alert!", "Please finish your journey first.", context);
-                                return true;
-                            }
+
                             currentStatus = mCardType.get(position);
                             Cursor cqueryIsVerified = sql.rawQuery("select IsVerified from Issue_Detail where IssueId='" + mIssueID.get(position) + "'", null);
                             if (cqueryIsVerified.getCount() == 0) {
                                 return false;
                             }
                             cqueryIsVerified.moveToFirst();
-                            if (cqueryIsVerified.getString(0).toString().equals("0")) {
+                            if (cqueryIsVerified.getString(0).equals("0")) {
                                 final AlertDialog.Builder Dialog = new AlertDialog.Builder(context);
                                 Dialog.setTitle("Verify Asset Serial Number");
                                 Dialog.setCancelable(false);
@@ -1091,7 +1142,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             Dialog.setCancelable(false);
                             LayoutInflater li = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                             View dialogView = li.inflate(R.layout.rejection, null);
-                            final EditText commemt = (EditText) dialogView.findViewById(R.id.rejectionReason);
+                            final EditText commemt = dialogView.findViewById(R.id.rejectionReason);
                             Dialog.setView(dialogView);
                             Dialog.setPositiveButton("Ok",
                                     new DialogInterface.OnClickListener() {
@@ -1589,12 +1640,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 urlConnection.connect();
                 //Write
                 OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
                 writer.write(jsonString);
                 writer.close();
                 outputStream.close();
                 //Read
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
                 String line = null;
                 StringBuilder sb = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
@@ -1620,7 +1671,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 jsonObject = new JSONObject(jsonString);
                 SQLiteDatabase sql;
                 String currentDateTimeString = null;
-                sql = ctx.openOrCreateDatabase("MZI.sqlite", ctx.MODE_PRIVATE, null);
+                sql = ctx.openOrCreateDatabase("MZI.sqlite", Context.MODE_PRIVATE, null);
 
                 if (s == null) {
                     MyApp.showMassage(ctx, ctx.getString(R.string.internet_error));
@@ -1639,6 +1690,33 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
     public long printDifference(Date dCurrentDate, Date dSLAdate) {
         long different = dCurrentDate.getTime() - dSLAdate.getTime();
+        long m = different;
+        long secondsInMilli = 1000;
+        long minutesInMilli = secondsInMilli * 60;
+        long hoursInMilli = minutesInMilli * 60;
+        long daysInMilli = hoursInMilli * 24;
+
+        long elapsedDays = different / daysInMilli;
+        different = different % daysInMilli;
+
+        long elapsedHours = different / hoursInMilli;
+        different = different % hoursInMilli;
+
+        long elapsedMinutes = different / minutesInMilli;
+        different = different % minutesInMilli;
+
+        long elapsedSeconds = different / secondsInMilli;
+
+        System.out.printf(
+                "%d days, %d hours, %d minutes, %d seconds%n",
+                elapsedDays,
+                elapsedHours, elapsedMinutes, elapsedSeconds);
+
+        return m;
+    }
+
+    public long differenceStatusChangeDate(Date statusChangeDate, Date dSLAdate) {
+        long different = statusChangeDate.getTime() - dSLAdate.getTime();
         long m = different;
         long secondsInMilli = 1000;
         long minutesInMilli = secondsInMilli * 60;
@@ -1788,18 +1866,17 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
             final String savedCardId = MyApp.getSharedPrefString("savedCardId");
             final boolean isBothDisable = MyApp.getStatus("isBothDisable");
             final boolean isEngaged = MyApp.getStatus("savedCardStatus");
+
             if (isBothDisable && !mIssueID.get(position).equals(savedCardId)) {
                 MyApp.popMessage("Alert!", "Please finish your journey first.", context);
                 return;
-//            MyApp.setStatus("isBothDisable", false);
-//            MyApp.setSharedPrefString("savedCardId", "");
-//            notifyDataSetChanged();
             } else if (isEngaged && !MyApp.getSharedPrefString("savedCardId").isEmpty() && !isBothDisable) {
                 MyApp.popMessage("Alert!", "Please finish your journey first.", context);
                 return;
             }
 
-            if (!isEngaged && !isBothDisable && !MyApp.getSharedPrefString("savedCardId").isEmpty() && !mIssueID.get(position).equals(savedCardId)) {
+            if (!isEngaged && !isBothDisable && !MyApp.getSharedPrefString("savedCardId").isEmpty()
+                    && !mIssueID.get(position).equals(savedCardId)) {
                 MyApp.popMessage("Alert!", "Please finish your journey first.", context);
                 return;
             }
@@ -1856,6 +1933,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                         if (isCommentRequired(commemt.getText().toString(), statusListIds.get(poss))) {
                             if (isBothDisable && mIssueID.get(position).equals(savedCardId)) {
                                 MyApp.setStatus("isBothDisable", false);
+                                MyApp.setStatus("savedCardStatus", false);
                                 MyApp.setSharedPrefString("savedCardId", "");
                                 try {
                                     ((TaskActivity) context).updateButtons();
@@ -2021,7 +2099,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                 savedMap.put(id, previousValues);
                                 MyApp.getApplication().writeSavedStatusValues(savedMap);
 
-                                if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).equals("6") || cqueryCurrentStatus_MainId.getString(0).toString().equals("5")) {
+                                if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).equals("6") || cqueryCurrentStatus_MainId.getString(0).equals("5")) {
 
                                     ContentValues newValues = new ContentValues();
                                     newValues.put("StatusId", sSelectedStatus);
@@ -2068,7 +2146,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     savedMap.put(id, previousValues);
                                     MyApp.getApplication().writeSavedStatusValues(savedMap);
 
-                                    if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).toString().equals("6") || cqueryCurrentStatus_MainId.getString(0).toString().equals("5")) {
+                                    if (cqueryCurrentStatus_MainId.getString(0).equals("1") || cqueryCurrentStatus_MainId.getString(0).equals("6") || cqueryCurrentStatus_MainId.getString(0).equals("5")) {
                                         flag = true;
                                         ContentValues newValues = new ContentValues();
                                         newValues.put("StatusId", sSelectedStatus);
@@ -2104,7 +2182,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                             if (TaskActivity.card.equals("-1")) {
                                 cquery = sql.rawQuery("select IssueId,TicketHolder,SLADate,Address,PhoneNo,Subject,StatusId,IsAccepted,TicketNumber from Issue_Detail where IssueId ='" + id + "'", null);
                                 cquery.moveToFirst();
-                                Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6).toString() + "'", null);
+                                Cursor cqueryForStatus = sql.rawQuery("select StatusName from Issue_Status where StatusId ='" + cquery.getString(6) + "'", null);
                                 cqueryForStatus.moveToFirst();
                                 int iColor, iDatatype;
                                 if (cquery.getString(7).equals("1")) {
@@ -2123,7 +2201,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                                     iColor = R.color.colorPrimaryDark;
                                     iDatatype = PendingScheduled;
                                 }
-                                addCard(cquery.getString(0), cquery.getString(1), cquery.getString(2), cquery.getString(3), cquery.getString(4).toString(), cquery.getString(5).toString(), cqueryForStatus.getString(0).toString(), iColor, iDatatype, position, cquery.getString(8).toString());
+                                addCard(cquery.getString(0), cquery.getString(1), cquery.getString(2), cquery.getString(3), cquery.getString(4), cquery.getString(5), cqueryForStatus.getString(0), iColor, iDatatype, position, cquery.getString(8));
                             } else {
                                 Cursor cqueryTempStatus = sql.rawQuery("select MainStatusId from Issue_Status where StatusId='" + sSelectedStatus + "'", null);
                                 cqueryTempStatus.moveToFirst();
@@ -2361,13 +2439,16 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
     private void fetchTransportMode() {
         mtTransportlistName.clear();
         mtTransportlistIds.clear();
-        ApiResult.ModeOfTrasportList temp = null;
-        cquery = sql.rawQuery("select * from ModeOfTrasportList", null);
-        if (cquery.getCount() > 0) {
-            for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
-                mtTransportlistIds.add(cquery.getString(1));
-                mtTransportlistName.add(cquery.getString(2));
+        try {
+            ApiResult.ModeOfTrasportList temp = null;
+            cquery = sql.rawQuery("select * from ModeOfTrasportList", null);
+            if (cquery.getCount() > 0) {
+                for (cquery.moveToFirst(); !cquery.isAfterLast(); cquery.moveToNext()) {
+                    mtTransportlistIds.add(cquery.getString(1));
+                    mtTransportlistName.add(cquery.getString(2));
+                }
             }
+        } catch (Exception e) {
         }
     }
 
@@ -2549,7 +2630,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 if (postTktStatus.get("ModeOfTransport").equals("0")) ;
                 else {
                     try {
-                        LastTransportMode = postTktStatus.get("ModeOfTransport").toString();
+                        LastTransportMode = postTktStatus.get("ModeOfTransport");
                         editor.putString("LastTransport", LastTransportMode);
                         editor.apply();
                         editor.commit();
@@ -2713,12 +2794,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                     if (childStatusCount > 0) {
 
                         for (cqueryFetchingChildStatus.moveToFirst(); !cqueryFetchingChildStatus.isAfterLast(); cqueryFetchingChildStatus.moveToNext()) {
-                            Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0).toString() + "'", null);
+                            Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0) + "'", null);
                             Log.d("debuggingStatus", "statusName " + cqueryFetchingStatusName.getCount());
                             if (cqueryFetchingStatusName.getCount() > 0) {
                                 cqueryFetchingStatusName.moveToFirst();
-                                statusList.add(cqueryFetchingStatusName.getString(0).toString());//Name
-                                statusListIds.add(cqueryFetchingChildStatus.getString(0).toString());//Id
+                                statusList.add(cqueryFetchingStatusName.getString(0));//Name
+                                statusListIds.add(cqueryFetchingChildStatus.getString(0));//Id
                             } else {
                                 statusList.add("N/A");
                                 statusListIds.add("0");
@@ -2733,12 +2814,12 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
                 Cursor cqueryFetchingChildStatus = sql.rawQuery("select StatusId from Issue_StatusHiererchy where ParentStatus='" + sCurrentStatusId + "'", null);
                 if (cqueryFetchingChildStatus.getCount() > 0) {
                     for (cqueryFetchingChildStatus.moveToFirst(); !cqueryFetchingChildStatus.isAfterLast(); cqueryFetchingChildStatus.moveToNext()) {
-                        Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0).toString() + "'", null);
+                        Cursor cqueryFetchingStatusName = sql.rawQuery("select StatusName from Issue_Status where StatusId='" + cqueryFetchingChildStatus.getString(0) + "'", null);
                         if (cqueryFetchingStatusName.getCount() > 0) {
                             cqueryFetchingStatusName.moveToFirst();
-                            statusList.add(cqueryFetchingStatusName.getString(0).toString());
-                            statusListIds.add(cqueryFetchingChildStatus.getString(0).toString());
-                            Log.e("Sceline number:1293 ", cqueryFetchingChildStatus.getString(0).toString());
+                            statusList.add(cqueryFetchingStatusName.getString(0));
+                            statusListIds.add(cqueryFetchingChildStatus.getString(0));
+                            Log.e("Sceline number:1293 ", cqueryFetchingChildStatus.getString(0));
                         } else {
                             statusList.add("N/A");
                             statusListIds.add("0");
@@ -2755,7 +2836,7 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
     void getLocation() {
         try {
-            locationManager = (LocationManager) context.getSystemService(context.LOCATION_SERVICE);
+            locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             isGPSEnabled = locationManager
                     .isProviderEnabled(LocationManager.GPS_PROVIDER);
 //            isNetworkEnabled = locationManager
@@ -2816,16 +2897,29 @@ public class SchedulingAdapter extends RecyclerView.Adapter<SchedulingAdapter.Vi
 
             if (list[i].Id.equals(id)) {
                 if (list[i].CommentRequired.equals("true")) {
-                    Log.d("commentRequired", list[i].CommentRequired);
+//                    Log.d("commentRequired", list[i].CommentRequired);
                     isClosed = true;
                 }
             }
         }
         if (isClosed)
-            if (comment.isEmpty())
-                return false;
-            else
-                return true;
+            return !comment.isEmpty();
         return !isClosed;
+    }
+
+    private boolean isHoldTat(String id) {
+        ApiResult.IssueStatus.lstDetails[] list = MyApp.getApplication().readIssuesStatusList();
+        boolean isClosed = false;
+        for (int i = 0; i < list.length; i++) {
+
+            if (list[i].Id.equals(id)) {
+                if (list[i].holdTat) {
+//                    Log.d("commentRequired", list[i].holdTat + "");
+                    isClosed = true;
+                }
+            }
+        }
+
+        return isClosed;
     }
 }

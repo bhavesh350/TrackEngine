@@ -49,7 +49,7 @@ public class FollowUpHistory extends AppCompatActivity {
         getSupportActionBar().setTitle("Follow up History");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        mRecyclerView = (RecyclerView) findViewById(R.id.folllowUpview);
+        mRecyclerView = findViewById(R.id.folllowUpview);
         Map<String, TicketInfoClass> issueDetailsMap = MyApp.getApplication().readIssueDetailsHistory();
         API_URL = PostUrl.sUrl + "GetIssueHistory?IssueId=" + id;
         if (issueDetailsMap.containsKey(id)) {

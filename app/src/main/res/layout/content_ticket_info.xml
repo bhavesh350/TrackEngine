@@ -42,7 +42,7 @@
                 android:layout_weight="4"
                 android:text="User's Name "
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -54,7 +54,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -65,7 +65,7 @@
                 android:layout_weight="5"
                 android:text="Vaishali"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
 
                 android:typeface="serif" />
         </LinearLayout>
@@ -357,7 +357,7 @@
                 android:layout_weight="1.2"
                 android:text="Status: "
                 android:textColor="#000"
-                android:textSize="@dimen/_10ssp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -368,7 +368,7 @@
                 android:layout_weight="1.8"
                 android:text="New"
                 android:textColor="#000"
-                android:textSize="@dimen/_10ssp"
+                android:textSize="14sp"
                 android:typeface="serif" />
 
             <TextView
@@ -378,7 +378,7 @@
                 android:layout_weight="2"
                 android:text="SLA Time :  "
                 android:textColor="#000"
-                android:textSize="@dimen/_10ssp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -389,7 +389,7 @@
                 android:layout_weight="3"
                 android:text="11:30 AM"
                 android:textColor="#000"
-                android:textSize="@dimen/_10ssp"
+                android:textSize="14sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -438,7 +438,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -464,7 +464,7 @@
                 android:layout_weight="4"
                 android:text="Asset Type"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -476,7 +476,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -487,7 +487,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
         </LinearLayout>
@@ -504,7 +504,7 @@
                 android:layout_weight="4"
                 android:text="Asset SubType"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -516,7 +516,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -527,7 +527,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -544,7 +544,7 @@
                 android:layout_weight="4"
                 android:text="Asset Sr Number"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -556,7 +556,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -567,7 +567,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -582,7 +582,7 @@
                 android:layout_weight="4"
                 android:text="Asset Desc."
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -594,7 +594,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -605,7 +605,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -641,7 +641,7 @@
                 android:layout_weight="4"
                 android:text="Created On"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -653,7 +653,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -664,7 +664,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -679,7 +679,7 @@
                 android:layout_weight="4"
                 android:text="Updated On"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -691,7 +691,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -702,7 +702,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -728,7 +728,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -765,7 +765,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -802,7 +802,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -828,7 +828,7 @@
                 android:layout_weight="4"
                 android:text="OEM Info"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -840,7 +840,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -851,7 +851,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
         </LinearLayout>
@@ -867,7 +867,7 @@
                 android:layout_weight="4"
                 android:text="Service Type"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -879,7 +879,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -890,7 +890,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -905,7 +905,7 @@
                 android:layout_weight="4"
                 android:text="Service Sub Type"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -917,7 +917,7 @@
                 android:gravity="center"
                 android:text=":"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
 
             <TextView
@@ -928,7 +928,7 @@
                 android:layout_weight="5"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
 
@@ -946,7 +946,7 @@
                 android:layout_gravity="center"
                 android:text="Upload Image"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:typeface="serif" />
 
@@ -972,10 +972,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginLeft="@dimen/_25sdp"
+                android:layout_marginLeft="25dp"
                 android:checked="false"
                 android:gravity="center"
-                android:paddingRight="@dimen/_45sdp"
+                android:paddingRight="45dp"
                 android:text="Via Camera" />
 
             <RadioButton
@@ -996,7 +996,7 @@
             android:padding="5dp"
             android:text="Add Comment:"
             android:textColor="#000"
-            android:textSize="@dimen/_12ssp"
+            android:textSize="15sp"
             android:typeface="serif" />
 
         <EditText
@@ -1008,7 +1008,7 @@
             android:focusableInTouchMode="true"
             android:hint="Add Comment, if necessary"
             android:inputType="textPersonName"
-            android:textSize="@dimen/_12ssp"
+            android:textSize="15sp"
             android:typeface="serif"
             android:windowSoftInputMode="stateVisible" />
 
@@ -1036,7 +1036,7 @@
                 android:paddingRight="50dp"
                 android:text="Submit"
                 android:textColor="#000"
-                android:textSize="@dimen/_12ssp"
+                android:textSize="15sp"
                 android:typeface="serif" />
         </LinearLayout>
     </LinearLayout>

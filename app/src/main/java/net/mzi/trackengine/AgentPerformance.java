@@ -57,7 +57,7 @@ public class AgentPerformance extends AppCompatActivity {
         getSupportActionBar().setTitle("Performance");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        pieChart = (PieChart) findViewById(R.id.chart);
+        pieChart = findViewById(R.id.chart);
         new AgentPerformance.UserPerformance().execute();
         Legend l = pieChart.getLegend();
         l.setPosition(Legend.LegendPosition.RIGHT_OF_CHART);
